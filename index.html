@@ -1,0 +1,779 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>퀴즈 챌린지</title>
+  <!-- 구글 웹폰트: 주아(Jua) 체 및 Noto Sans KR -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Jua&family=Noto+Sans+KR:wght@500;700;800&display=swap" rel="stylesheet">
+  
+  <style>
+    :root {
+      /* 카훗 시그니처 컬러 (흰색 글씨 가독성을 위해 살짝 묵직한 톤으로 최적화) */
+      --kahoot-red: #d01937;
+      --kahoot-blue: #1368ce;
+      --kahoot-yellow: #c88900;
+      --kahoot-green: #23830c;
+      --kahoot-purple: #46178f;
+      --bg-color: #f1f3f7;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Noto Sans KR', sans-serif; }
+    body { background-color: var(--bg-color); min-height: 100vh; display: flex; flex-direction: column; }
+    
+    /* 상단 헤더: 타이틀 가운데 정렬 */
+    header { 
+      background-color: var(--kahoot-purple); 
+      color: white; 
+      padding: 18px 24px; 
+      position: relative;
+      display: flex; 
+      justify-content: center;
+      align-items: center; 
+      box-shadow: 0 4px 10px rgba(0,0,0,0.12); 
+    }
+    header h1 { 
+      font-family: 'Jua', sans-serif;
+      font-size: 2.1rem; 
+      font-weight: normal;
+      letter-spacing: 1px;
+      text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    }
+    
+    /* 우측 톱니바퀴 (은은한 투명도) */
+    .btn-gear { 
+      position: absolute;
+      right: 24px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: transparent; 
+      border: none; 
+      color: rgba(255, 255, 255, 0.4); 
+      font-size: 1.35rem; 
+      cursor: pointer; 
+      padding: 8px; 
+      border-radius: 50%;
+      line-height: 1;
+      transition: color 0.2s, background-color 0.2s;
+    }
+    .btn-gear:hover { 
+      color: rgba(255, 255, 255, 0.95); 
+      background-color: rgba(255, 255, 255, 0.12);
+    }
+
+    /* 메인 컨테이너 (와이드 1120px) */
+    .container { 
+      flex: 1; 
+      max-width: 1120px; 
+      width: 95%; 
+      margin: 0 auto; 
+      padding: 20px 16px; 
+      display: flex; 
+      flex-direction: column; 
+      justify-content: center; 
+    }
+
+    /* 카드 공통 */
+    .card { background: white; border-radius: 20px; padding: 36px 30px; box-shadow: 0 8px 24px rgba(0,0,0,0.06); }
+
+    /* 1. 시작 화면 */
+    .start-title { 
+      font-family: 'Jua', sans-serif;
+      font-size: 2rem; 
+      text-align: center; 
+      margin-bottom: 28px; 
+      color: #333; 
+    }
+    .form-group { margin-bottom: 22px; }
+    .form-group label { display: block; margin-bottom: 8px; font-weight: 700; font-size: 1.2rem; color: #222; }
+    .form-control { 
+      width: 100%; 
+      padding: 16px 18px; 
+      border: 2px solid #d5d9e2; 
+      border-radius: 12px; 
+      font-size: 1.2rem; 
+      font-weight: 600;
+      color: #333;
+      transition: border-color 0.2s;
+    }
+    .form-control:focus { outline: none; border-color: var(--kahoot-purple); }
+    .form-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-bottom: 26px; }
+    
+    .btn-start { 
+      font-family: 'Jua', sans-serif;
+      width: 100%; 
+      background: var(--kahoot-purple); 
+      color: white; 
+      padding: 18px; 
+      border: none; 
+      border-radius: 14px; 
+      font-size: 1.55rem; 
+      cursor: pointer; 
+      transition: 0.2s; 
+      box-shadow: 0 6px 16px rgba(70, 23, 143, 0.25);
+    }
+    .btn-start:hover { filter: brightness(1.15); transform: translateY(-2px); }
+
+    /* 2. 퀴즈 진행 화면 */
+    .quiz-info-bar { 
+      display: flex; 
+      justify-content: space-between; 
+      align-items: center; 
+      margin-bottom: 14px; 
+      font-weight: 800; 
+      color: #4b5563; 
+      font-size: 1.2rem; 
+      padding: 0 4px;
+    }
+
+    /* 문제 카드 기본 */
+    .question-card { 
+      background: white; 
+      padding: 24px 28px; 
+      border-radius: 18px; 
+      margin-bottom: 16px; 
+      box-shadow: 0 4px 14px rgba(0,0,0,0.06); 
+      border: 2px solid #eaecf0;
+      display: flex;
+      flex-direction: column;
+    }
+    .q-main-row { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+    .q-title-text { 
+      flex: 1;
+      font-size: 1.45rem; 
+      font-weight: 800; 
+      line-height: 1.5; 
+      word-break: keep-all; 
+      color: #111827; 
+      text-align: left;
+    }
+    .q-points-tag { 
+      flex-shrink: 0;
+      background: #ede7f6; 
+      color: var(--kahoot-purple); 
+      font-size: 1rem; 
+      font-weight: 800; 
+      padding: 5px 12px; 
+      border-radius: 8px; 
+    }
+
+    /* 문제 그림 컨테이너 */
+    .q-image-wrap { 
+      margin-top: 14px; 
+      border-radius: 12px;
+      overflow: hidden; 
+      background: #fafafa;
+      border: 1px solid #eef0f3;
+      display: flex; 
+      justify-content: center; 
+      align-items: center; 
+      padding: 8px;
+    }
+    .q-image { max-width: 100%; max-height: 380px; border-radius: 8px; object-fit: contain; }
+
+    /* 보기 목록 기본 (그림 없을 때: 1열 세로) */
+    .options-list { display: flex; flex-direction: column; gap: 14px; }
+
+    /* ★ 카훗 스타일 색상 버튼 + 흰색 글씨 ★ */
+    .opt-card-btn {
+      border: none;
+      border-radius: 16px;
+      min-height: 80px;
+      color: white; /* 텍스트 흰색 */
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      padding: 16px 22px;
+      gap: 18px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+      transition: all 0.15s ease-in-out;
+      text-align: left;
+    }
+    .opt-card-btn:hover {
+      transform: translateY(-2px);
+      filter: brightness(1.08);
+      box-shadow: 0 6px 18px rgba(0,0,0,0.18);
+    }
+    .opt-card-btn:active { transform: scale(0.99); }
+
+    /* 버튼 색상 클래스 */
+    .opt-card-btn.red    { background-color: var(--kahoot-red); }
+    .opt-card-btn.blue   { background-color: var(--kahoot-blue); }
+    .opt-card-btn.yellow { background-color: var(--kahoot-yellow); }
+    .opt-card-btn.green  { background-color: var(--kahoot-green); }
+
+    /* 카훗 기호+번호 반투명 뱃지 */
+    .opt-badge {
+      flex-shrink: 0;
+      width: 52px;
+      height: 52px;
+      background: rgba(0, 0, 0, 0.22);
+      border-radius: 12px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-weight: 800;
+      box-shadow: inset 0 1px 2px rgba(255,255,255,0.2);
+    }
+    .badge-symbol { font-size: 1.1rem; line-height: 1; }
+    .badge-num { font-size: 1.05rem; line-height: 1; margin-top: 2px; }
+
+    /* 선명한 흰색 보기 글씨 */
+    .opt-text {
+      flex: 1;
+      font-size: 1.25rem;
+      font-weight: 700;
+      line-height: 1.55;
+      word-break: keep-all;
+      color: #ffffff;
+      text-shadow: 0 1px 2px rgba(0,0,0,0.25);
+    }
+
+    /* ★ [핵심] 그림이 있는 경우: 좌우 2단 분할 레이아웃 (.has-image) ★ */
+    .quiz-layout-wrap.has-image {
+      display: grid;
+      grid-template-columns: 1.15fr 1fr; /* 좌: 문제+그림, 우: 보기 리스트 */
+      gap: 20px;
+      align-items: stretch;
+    }
+    .quiz-layout-wrap.has-image .question-card {
+      margin-bottom: 0;
+      height: 100%;
+      justify-content: flex-start;
+    }
+    .quiz-layout-wrap.has-image .q-image-wrap {
+      flex: 1;
+      min-height: 250px;
+      margin-top: 16px;
+    }
+    .quiz-layout-wrap.has-image .options-list {
+      gap: 12px;
+      justify-content: space-between;
+    }
+    .quiz-layout-wrap.has-image .opt-card-btn {
+      min-height: 76px;
+      padding: 14px 18px;
+    }
+    .quiz-layout-wrap.has-image .opt-text {
+      font-size: 1.15rem; /* 2분할 환경에 맞춰 보기 글씨 크기 살짝 정돈 */
+    }
+
+    /* 3. 완료 화면 */
+    .result-score { 
+      font-family: 'Jua', sans-serif;
+      font-size: 2.8rem; 
+      color: var(--kahoot-purple); 
+      margin: 20px 0; 
+      text-align: center; 
+    }
+    .status-badge { display: inline-block; padding: 10px 18px; border-radius: 20px; font-size: 1rem; font-weight: 700; margin-top: 10px; }
+    .status-badge.success { background: #e8f5e9; color: #2e7d32; }
+
+    /* 4. 교사 관리 모달 */
+    .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.55); z-index: 1000; align-items: center; justify-content: center; }
+    .modal-content { background: white; border-radius: 18px; padding: 28px; max-width: 760px; width: 92%; max-height: 88vh; overflow-y: auto; box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
+    .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding-bottom: 12px; border-bottom: 2px solid #f0f2f5; }
+    .modal-header h3 { font-family: 'Jua', sans-serif; font-size: 1.6rem; color: #222; }
+    
+    .admin-form-card { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 14px; padding: 20px; margin-bottom: 24px; }
+    .admin-form-card h4 { font-size: 1.15rem; font-weight: 800; color: #1e293b; margin-bottom: 14px; }
+    .admin-input { width: 100%; padding: 12px 14px; border: 1.5px solid #cbd5e1; border-radius: 8px; font-size: 0.95rem; font-weight: 500; margin-bottom: 10px; background: white; }
+    .admin-input:focus { outline: none; border-color: var(--kahoot-purple); }
+
+    .q-item { 
+      border: 1.5px solid #e2e8f0; 
+      padding: 16px 18px; 
+      border-radius: 12px; 
+      margin-bottom: 14px; 
+      background: #ffffff;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.03);
+    }
+    .q-item-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; }
+    .q-item-title { flex: 1; font-size: 1.05rem; font-weight: 700; color: #0f172a; line-height: 1.5; word-break: keep-all; }
+    .q-item-badge { display: inline-block; background: #f1f5f9; color: #475569; font-size: 0.85rem; font-weight: 700; padding: 2px 8px; border-radius: 6px; margin-left: 6px; white-space: nowrap; }
+    
+    /* 삭제 버튼 줄바꿈 방지 */
+    .danger-btn { 
+      flex-shrink: 0; 
+      white-space: nowrap; 
+      background: #fee2e2; 
+      color: #dc2626; 
+      border: 1px solid #fca5a5; 
+      border-radius: 8px; 
+      padding: 8px 14px; 
+      font-size: 0.9rem;
+      font-weight: 700; 
+      cursor: pointer; 
+      transition: background 0.15s, color 0.15s;
+    }
+    .danger-btn:hover { background: #ef4444; color: white; border-color: #ef4444; }
+
+    .q-item-meta { margin-top: 10px; padding-top: 10px; border-top: 1px dashed #e2e8f0; font-size: 0.92rem; color: #475569; line-height: 1.5; }
+    .q-item-img-tag { display: inline-flex; align-items: center; gap: 4px; color: #0284c7; font-size: 0.85rem; font-weight: 600; margin-bottom: 4px; }
+
+    /* 모바일 환경 반응형 */
+    @media (max-width: 820px) {
+      .quiz-layout-wrap.has-image { grid-template-columns: 1fr; }
+      .form-row { grid-template-columns: 1fr; }
+      .q-title-text { font-size: 1.25rem; }
+      .opt-text { font-size: 1.1rem; }
+      header h1 { font-size: 1.6rem; }
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>퀴즈 챌린지</h1>
+    <button class="btn-gear" onclick="openAdminModal()" title="교사 관리">⚙</button>
+  </header>
+
+  <div class="container">
+    <!-- 1. 학생 정보 입력 화면 -->
+    <div id="screen-login" class="card">
+      <h2 class="start-title">학생 정보 입력</h2>
+      <div class="form-group">
+        <label>참여 학년</label>
+        <select id="user-grade" class="form-control">
+          <option value="1" selected>1학년</option>
+          <option value="2">2학년</option>
+          <option value="3">3학년</option>
+          <option value="4">4학년</option>
+          <option value="5">5학년</option>
+          <option value="6">6학년</option>
+        </select>
+      </div>
+      <div class="form-row">
+        <div class="form-group" style="margin-bottom:0;">
+          <label>반</label>
+          <input type="number" id="user-class" class="form-control" placeholder="예: 1">
+        </div>
+        <div class="form-group" style="margin-bottom:0;">
+          <label>번호</label>
+          <input type="number" id="user-number" class="form-control" placeholder="예: 5">
+        </div>
+        <div class="form-group" style="margin-bottom:0;">
+          <label>이름</label>
+          <input type="text" id="user-name" class="form-control" placeholder="김하늘">
+        </div>
+      </div>
+      <button class="btn-start" onclick="startQuiz()">퀴즈 시작하기</button>
+    </div>
+
+    <!-- 2. 퀴즈 진행 화면 (그림 유무에 따라 자동 2단/1단 전환) -->
+    <div id="screen-quiz" style="display: none;">
+      <div class="quiz-info-bar">
+        <span id="quiz-progress">문제 1 / 2</span>
+        <span id="quiz-student-tag">1학년 1반 5번</span>
+      </div>
+
+      <!-- 문제 영역 + 보기 영역을 감싸는 래퍼 -->
+      <div id="quiz-layout-wrapper" class="quiz-layout-wrap">
+        
+        <!-- 좌측: 문제 및 그림 카드 -->
+        <div class="question-card">
+          <div class="q-main-row">
+            <div class="q-title-text" id="question-text">문제가 여기에 표시됩니다.</div>
+            <div id="question-points" class="q-points-tag">10점</div>
+          </div>
+          <!-- 그림 표시 영역 -->
+          <div id="q-image-container" class="q-image-wrap" style="display: none;">
+            <img id="q-image-el" class="q-image" src="" alt="문제 그림">
+          </div>
+        </div>
+
+        <!-- 우측: 카훗 컬러 버튼 보기 목록 -->
+        <div class="options-list">
+          <button class="opt-card-btn red" onclick="handleAnswer(0)">
+            <div class="opt-badge">
+              <span class="badge-symbol">▲</span>
+              <span class="badge-num">1</span>
+            </div>
+            <span id="opt-0" class="opt-text">보기 1</span>
+          </button>
+
+          <button class="opt-card-btn blue" onclick="handleAnswer(1)">
+            <div class="opt-badge">
+              <span class="badge-symbol">◆</span>
+              <span class="badge-num">2</span>
+            </div>
+            <span id="opt-1" class="opt-text">보기 2</span>
+          </button>
+
+          <button class="opt-card-btn yellow" onclick="handleAnswer(2)">
+            <div class="opt-badge">
+              <span class="badge-symbol">●</span>
+              <span class="badge-num">3</span>
+            </div>
+            <span id="opt-2" class="opt-text">보기 3</span>
+          </button>
+
+          <button class="opt-card-btn green" onclick="handleAnswer(3)">
+            <div class="opt-badge">
+              <span class="badge-symbol">■</span>
+              <span class="badge-num">4</span>
+            </div>
+            <span id="opt-3" class="opt-text">보기 4</span>
+          </button>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- 3. 완료 화면 -->
+    <div id="screen-result" class="card" style="display: none; text-align: center;">
+      <h2 style="font-family: 'Jua', sans-serif; font-size: 2rem;">퀴즈 완료! 수고하셨습니다 🎉</h2>
+      <div class="result-score" id="result-score-text">0 / 0 점</div>
+      <p id="result-summary" style="color: #555; margin-bottom: 24px; font-size: 1.15rem; line-height: 1.6;"></p>
+      <div id="submission-status" class="status-badge success">구글 폼으로 결과 전송 중...</div>
+      <br><br>
+      <button class="btn-start" style="max-width: 280px; margin: 0 auto; font-size: 1.35rem;" onclick="location.reload()">처음으로</button>
+    </div>
+  </div>
+
+  <!-- 교사 관리자 모달 -->
+  <div id="modal-admin" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 id="modal-title">⚙ 교사 문제 및 배점 관리</h3>
+        <button onclick="closeAdminModal()" style="border:none; background:none; font-size:1.6rem; cursor:pointer; color:#64748b;">&times;</button>
+      </div>
+
+      <!-- 관리자 인증 -->
+      <div id="admin-auth-box">
+        <div class="form-group">
+          <label style="font-size: 1.05rem;">관리자 비밀번호</label>
+          <input type="password" id="admin-password" class="form-control" placeholder="비밀번호를 입력하세요">
+        </div>
+        <button class="btn-start" style="font-size: 1.15rem; padding: 14px;" onclick="verifyAdmin()">인증하기</button>
+      </div>
+
+      <!-- 문제 등록 및 목록 화면 -->
+      <div id="admin-mgmt-box" style="display: none;">
+        <div class="form-group" style="margin-bottom: 16px;">
+          <label style="font-size: 1.05rem;">편집할 학년 선택</label>
+          <select id="admin-grade-select" class="form-control" onchange="renderAdminQuestionList()">
+            <option value="1">1학년</option>
+            <option value="2">2학년</option>
+            <option value="3">3학년</option>
+            <option value="4">4학년</option>
+            <option value="5">5학년</option>
+            <option value="6">6학년</option>
+          </select>
+        </div>
+
+        <div class="admin-form-card">
+          <h4>새 문항 등록</h4>
+          <input type="text" id="new-q-title" class="admin-input" placeholder="문제 내용">
+          
+          <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 10px; margin-bottom: 2px;">
+            <input type="text" id="new-q-img" class="admin-input" placeholder="그림 파일명 또는 이미지 URL (선택)">
+            <input type="number" id="new-q-points" class="admin-input" placeholder="배점" value="10">
+          </div>
+
+          <input type="text" id="new-q-opt0" class="admin-input" placeholder="1번 보기 (▲ 빨강)">
+          <input type="text" id="new-q-opt1" class="admin-input" placeholder="2번 보기 (◆ 파랑)">
+          <input type="text" id="new-q-opt2" class="admin-input" placeholder="3번 보기 (● 노랑)">
+          <input type="text" id="new-q-opt3" class="admin-input" placeholder="4번 보기 (■ 초록)">
+          
+          <div style="margin: 6px 0 14px 0;">
+            <label style="font-size: 0.95rem; font-weight: 700; color: #334155; margin-bottom: 6px; display: block;">정답 선택</label>
+            <select id="new-q-ans" class="admin-input" style="margin-bottom: 0;">
+              <option value="0">1번 (▲ 빨강)</option>
+              <option value="1">2번 (◆ 파랑)</option>
+              <option value="2">3번 (● 노랑)</option>
+              <option value="3">4번 (■ 초록)</option>
+            </select>
+          </div>
+          <button class="btn-start" style="padding: 12px 18px; font-size: 1.15rem; width: 100%; border-radius: 10px;" onclick="addQuestion()">문항 저장하기</button>
+        </div>
+
+        <h4 style="font-size: 1.15rem; font-weight: 800; color: #1e293b; margin-bottom: 12px;">등록된 문제 목록</h4>
+        <div id="admin-questions-list"></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    /* =========================================================
+       [교사 설정 영역] - 구글 폼 연동 설정
+       ========================================================= */
+    const CONFIG = {
+      ADMIN_PW: "1234",
+      GOOGLE_FORM_URL: "https://docs.google.com/forms/d/e/YOUR_FORM_ID/formResponse",
+      ENTRY_IDS: {
+        grade: "entry.1000001",
+        classNum: "entry.1000002",
+        number: "entry.1000003",
+        name: "entry.1000004",
+        score: "entry.1000005",
+        detail: "entry.1000006"
+      }
+    };
+
+    /* 기본 탑재 문제 데이터 */
+    const DEFAULT_QUESTIONS = {
+      "1": [
+        {
+          q: "컴퓨터의 입력을 담당하는 마우스와 키보드에 대해 설명한 것 중에 옳지 않은 것을 고르세요.",
+          img: "",
+          points: 10,
+          opts: [
+            "잘못 입력한 글자를 삭제하려고 할 때는 백스페이스키(←) 또는 Delete(Del)키를 이용합니다.",
+            "마우스는 종류가 많지 않으며, 사용할 수 있는 버튼은 1개입니다.",
+            "마우스는 '쥐(Mouse)'와 모양이 비슷해서 이름을 '마우스'라고 부르게 되었습니다.",
+            "사용 중인 프로그램을 종료할 때에는 마우스로 'X' 버튼을 클릭합니다."
+          ],
+          ans: 1
+        },
+        {
+          q: "다음 중 컴퓨터를 사용하는 바른 자세가 아닌 것을 고르세요.",
+          img: "posture.png", // 그림 파일명 또는 URL 입력 시 자동으로 좌우 2분할 전환
+          points: 10,
+          opts: [
+            "모니터와의 거리는 50~60cm 정도 띄우고 사용합니다.",
+            "휴식시간에는 몸의 피로를 풀어주는 운동을 합니다.",
+            "한 손은 마우스를 사용하고 다른 한 손은 턱을 괴는데 사용합니다.",
+            "컴퓨터를 사용할 때는 스스로 시간을 정하고 사용합니다."
+          ],
+          ans: 2
+        }
+      ]
+    };
+
+    function getStoredQuestions() {
+      const saved = localStorage.getItem("quiz_data_v5");
+      return saved ? JSON.parse(saved) : DEFAULT_QUESTIONS;
+    }
+    function saveQuestions(data) {
+      localStorage.setItem("quiz_data_v5", JSON.stringify(data));
+    }
+
+    /* 런타임 변수 */
+    let currentStudent = { grade: "1", classNum: "", number: "", name: "" };
+    let quizList = [];
+    let currentIndex = 0;
+    let earnedPoints = 0;
+    let maxTotalPoints = 0;
+    let answersLog = [];
+
+    function startQuiz() {
+      const g = document.getElementById("user-grade").value;
+      const c = document.getElementById("user-class").value.trim();
+      const n = document.getElementById("user-number").value.trim();
+      const name = document.getElementById("user-name").value.trim();
+
+      if (!c || !n || !name) {
+        alert("반, 번호, 이름을 모두 입력해주세요.");
+        return;
+      }
+
+      const allData = getStoredQuestions();
+      quizList = allData[g] || [];
+      if (quizList.length === 0) {
+        alert(`${g}학년에 등록된 문제가 없습니다. 관리 메뉴(우측 상단 톱니바퀴)에서 문제를 등록해주세요.`);
+        return;
+      }
+
+      currentStudent = { grade: g, classNum: c, number: n, name: name };
+      currentIndex = 0;
+      earnedPoints = 0;
+      maxTotalPoints = quizList.reduce((sum, item) => sum + (parseInt(item.points) || 10), 0);
+      answersLog = [];
+
+      document.getElementById("screen-login").style.display = "none";
+      document.getElementById("screen-quiz").style.display = "block";
+      document.getElementById("quiz-student-tag").innerText = `${g}학년 ${c}반 ${n}번 ${name}`;
+      renderCurrentQuestion();
+    }
+
+    // ★ 문제 화면 렌더링 (그림 유무에 따른 좌우 2분할/단일 1열 자동 전환)
+    function renderCurrentQuestion() {
+      const item = quizList[currentIndex];
+      const qPoints = parseInt(item.points) || 10;
+
+      document.getElementById("quiz-progress").innerText = `문제 ${currentIndex + 1} / ${quizList.length}`;
+      document.getElementById("question-text").innerText = item.q;
+      document.getElementById("question-points").innerText = `${qPoints}점`;
+
+      const layoutWrap = document.getElementById("quiz-layout-wrapper");
+      const imgWrap = document.getElementById("q-image-container");
+      const imgEl = document.getElementById("q-image-el");
+
+      // 그림이 있을 경우 has-image 클래스 부여 -> 좌우 2단 분할 활성화
+      if (item.img && item.img.trim() !== "") {
+        imgEl.src = item.img.trim();
+        imgWrap.style.display = "flex";
+        layoutWrap.classList.add("has-image");
+      } else {
+        imgWrap.style.display = "none";
+        layoutWrap.classList.remove("has-image");
+      }
+
+      item.opts.forEach((optText, idx) => {
+        document.getElementById(`opt-${idx}`).innerText = optText;
+      });
+    }
+
+    function handleAnswer(selectedOptIndex) {
+      const item = quizList[currentIndex];
+      const qPoints = parseInt(item.points) || 10;
+      const isCorrect = (selectedOptIndex === item.ans);
+      
+      if (isCorrect) {
+        earnedPoints += qPoints;
+      }
+
+      answersLog.push({
+        qNum: currentIndex + 1,
+        selected: selectedOptIndex + 1,
+        isCorrect: isCorrect,
+        points: isCorrect ? qPoints : 0,
+        maxPoints: qPoints
+      });
+
+      currentIndex++;
+      if (currentIndex < quizList.length) {
+        renderCurrentQuestion();
+      } else {
+        finishQuiz();
+      }
+    }
+
+    function finishQuiz() {
+      document.getElementById("screen-quiz").style.display = "none";
+      document.getElementById("screen-result").style.display = "block";
+
+      document.getElementById("result-score-text").innerText = `${earnedPoints} / ${maxTotalPoints} 점`;
+      
+      const detailStr = answersLog.map(a => `${a.qNum}번:${a.isCorrect ? 'O' : 'X'}(${a.points}/${a.maxPoints}점)`).join(", ");
+      document.getElementById("result-summary").innerText = detailStr;
+
+      sendToGoogleForms(detailStr);
+    }
+
+    function sendToGoogleForms(detailRecord) {
+      const statusEl = document.getElementById("submission-status");
+      
+      const formData = new FormData();
+      formData.append(CONFIG.ENTRY_IDS.grade, `${currentStudent.grade}학년`);
+      formData.append(CONFIG.ENTRY_IDS.classNum, currentStudent.classNum);
+      formData.append(CONFIG.ENTRY_IDS.number, currentStudent.number);
+      formData.append(CONFIG.ENTRY_IDS.name, currentStudent.name);
+      formData.append(CONFIG.ENTRY_IDS.score, earnedPoints);
+      formData.append(CONFIG.ENTRY_IDS.detail, detailRecord);
+
+      fetch(CONFIG.GOOGLE_FORM_URL, {
+        method: "POST",
+        mode: "no-cors",
+        body: formData
+      }).then(() => {
+        statusEl.innerText = "✓ 결과가 구글 폼에 정상 저장되었습니다.";
+        statusEl.className = "status-badge success";
+      }).catch((err) => {
+        console.error("전송 오류:", err);
+        statusEl.innerText = "⚠ 구글 폼 전송에 실패했습니다. (설정 확인 필요)";
+        statusEl.style.background = "#ffebee";
+        statusEl.style.color = "#c62828";
+      });
+    }
+
+    /* 관리자 모달 기능 */
+    function openAdminModal() {
+      document.getElementById("modal-admin").style.display = "flex";
+      document.getElementById("admin-auth-box").style.display = "block";
+      document.getElementById("admin-mgmt-box").style.display = "none";
+      document.getElementById("admin-password").value = "";
+    }
+    function closeAdminModal() {
+      document.getElementById("modal-admin").style.display = "none";
+    }
+    function verifyAdmin() {
+      const pw = document.getElementById("admin-password").value;
+      if (pw === CONFIG.ADMIN_PW) {
+        document.getElementById("admin-auth-box").style.display = "none";
+        document.getElementById("admin-mgmt-box").style.display = "block";
+        renderAdminQuestionList();
+      } else {
+        alert("비밀번호가 일치하지 않습니다.");
+      }
+    }
+
+    function renderAdminQuestionList() {
+      const g = document.getElementById("admin-grade-select").value;
+      const allData = getStoredQuestions();
+      const list = allData[g] || [];
+      const container = document.getElementById("admin-questions-list");
+      container.innerHTML = "";
+
+      if (list.length === 0) {
+        container.innerHTML = "<p style='color:#64748b; font-size:1rem; padding: 12px 0;'>등록된 문제가 없습니다. 위의 입력창에서 문항을 추가해보세요.</p>";
+        return;
+      }
+
+      list.forEach((item, idx) => {
+        const div = document.createElement("div");
+        div.className = "q-item";
+        div.innerHTML = `
+          <div class="q-item-header">
+            <div class="q-item-title">
+              <strong>${idx + 1}. ${item.q}</strong>
+              <span class="q-item-badge">${item.points || 10}점</span>
+            </div>
+            <button class="danger-btn" onclick="deleteQuestion(${idx})">삭제</button>
+          </div>
+          <div class="q-item-meta">
+            ${item.img ? `<div class="q-item-img-tag">🖼 <span>그림: ${item.img}</span></div>` : ''}
+            <div><strong>정답:</strong> ${item.ans + 1}번 (${item.opts[item.ans]})</div>
+          </div>
+        `;
+        container.appendChild(div);
+      });
+    }
+
+    function addQuestion() {
+      const g = document.getElementById("admin-grade-select").value;
+      const q = document.getElementById("new-q-title").value.trim();
+      const img = document.getElementById("new-q-img").value.trim();
+      const points = parseInt(document.getElementById("new-q-points").value) || 10;
+      const o0 = document.getElementById("new-q-opt0").value.trim();
+      const o1 = document.getElementById("new-q-opt1").value.trim();
+      const o2 = document.getElementById("new-q-opt2").value.trim();
+      const o3 = document.getElementById("new-q-opt3").value.trim();
+      const ans = parseInt(document.getElementById("new-q-ans").value);
+
+      if (!q || !o0 || !o1 || !o2 || !o3) {
+        alert("문제와 4개 보기를 모두 입력해주세요.");
+        return;
+      }
+
+      const allData = getStoredQuestions();
+      if (!allData[g]) allData[g] = [];
+      allData[g].push({ q, img, points, opts: [o0, o1, o2, o3], ans });
+      saveQuestions(allData);
+
+      document.getElementById("new-q-title").value = "";
+      document.getElementById("new-q-img").value = "";
+      document.getElementById("new-q-points").value = "10";
+      document.getElementById("new-q-opt0").value = "";
+      document.getElementById("new-q-opt1").value = "";
+      document.getElementById("new-q-opt2").value = "";
+      document.getElementById("new-q-opt3").value = "";
+
+      renderAdminQuestionList();
+    }
+
+    function deleteQuestion(index) {
+      if (!confirm("해당 문제를 삭제하시겠습니까?")) return;
+      const g = document.getElementById("admin-grade-select").value;
+      const allData = getStoredQuestions();
+      allData[g].splice(index, 1);
+      saveQuestions(allData);
+      renderAdminQuestionList();
+    }
+  </script>
+</body>
+</html>
