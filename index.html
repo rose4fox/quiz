@@ -41,8 +41,8 @@
 
     /* 로그인 폼 */
     .login-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin: 20px 0; }
-    .login-grid input, .login-grid select {
-      padding: 14px; font-size: 1.2rem; border: 2px solid #dce1eb; border-radius: 12px; text-align: center;
+    .login-grid input {
+      padding: 14px; font-size: 1.2rem; border: 2px solid #dce1eb; border-radius: 12px; text-align: center; width: 100%;
     }
     .btn-big {
       width: 100%; padding: 16px; font-size: 1.3rem; font-weight: bold;
@@ -78,6 +78,7 @@
     /* OX 전용 버튼 */
     .ox-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-top: 24px; }
     .ox-btn { font-size: 4rem; padding: 30px; border-radius: 24px; border: none; color: white; font-weight: bold; cursor: pointer; }
+    .ox-btn.selected { outline: 6px solid #222; transform: scale(0.98); }
     .ox-o { background: var(--blue); }
     .ox-x { background: var(--red); }
 
@@ -87,7 +88,7 @@
       display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;
     }
     .ctrl-btn {
-      padding: 12px 20px; font-size: 1.1rem; font-weight: bold; border: none;
+      padding: 12px 20px; font-size: 1.05rem; font-weight: bold; border: none;
       border-radius: 12px; cursor: pointer; color: white;
     }
 
@@ -97,6 +98,8 @@
     .form-group input, .form-group select, .form-group textarea {
       width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 8px; font-size: 1rem;
     }
+    .entry-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin: 12px 0; }
+    .entry-grid input { padding: 10px; border: 1px solid #ccc; border-radius: 8px; font-size: 0.95rem; text-align: center; width: 100%; }
     .q-list-item {
       display: flex; justify-content: space-between; align-items: center;
       padding: 12px; border-bottom: 1px solid #eee;
@@ -158,7 +161,7 @@
       <div style="font-size: 4rem;">🎉</div>
       <h2>참 잘했어요! 모든 퀴즈가 끝났습니다.</h2>
       <p id="st-final-score" style="font-size: 1.8rem; font-weight: bold; color: var(--primary);"></p>
-      <p id="st-submit-status" style="color: #2b9348; font-weight: bold;">선생님께 점수를 보내는 중...</p>
+      <p id="st-submit-status" style="color: #2b9348; font-weight: bold;">선생님께 점수와 답안을 보내는 중...</p>
     </div>
   </section>
 
@@ -173,7 +176,8 @@
         </div>
         <div style="display:flex; gap:8px; flex-wrap:wrap;">
           <button class="ctrl-btn" style="background:#6c757d;" onclick="prevQuestion()">◀ 이전 문제</button>
-          <button class="ctrl-btn" style="background:#ff9f1c;" onclick="speakCurrentQuestion()">🔊 다시 읽어주기</button>
+          <button class="ctrl-btn" style="background:#3a86ff;" onclick="showQuestionOnTeacher()">📺 문제 띄우기(음성)</button>
+          <button class="ctrl-btn" style="background:#ff9f1c;" onclick="speakCurrentQuestion()">🔊 다시 읽기</button>
           <button class="ctrl-btn" style="background:#2b9348;" onclick="pushToStudents()">📢 학생 화면에 보내기</button>
           <button class="ctrl-btn" style="background:#4a6cf7;" onclick="nextQuestion()">다음 문제 ▶</button>
           <button class="ctrl-btn" style="background:#d90429;" onclick="finishQuizForAll()">🏁 퀴즈 종료(결과전송)</button>
@@ -196,7 +200,7 @@
 
     <!-- 문제 출제 및 관리 -->
     <div class="card">
-      <h3>✏️ 새 문제 추가하기</h3>
+      <h3>✏️ 새 문제 추가하기 (최대 10문항 권장)</h3>
       <div class="form-group">
         <label>문제 유형</label>
         <select id="new-q-type" onchange="toggleOptionInputs()">
@@ -250,37 +254,65 @@
 
     <!-- 구글 폼 및 실시간 동기화 설정 -->
     <div class="card">
-      <h3>⚙️ 구글 폼 & 실시간 화면 전송 설정</h3>
-      <p style="font-size:0.9rem; color:#555;">
-        * 여러 학생 컴퓨터로 실시간 전송하려면 무료 <b>Firebase Realtime Database URL</b>을 입력하세요.<br>
-        * 입력하지 않으면 현재 컴퓨터(브라우저 탭 간)에서만 테스트 모드로 작동합니다.
+      <h3>⚙️ 구글 폼 보고서 & 실시간 화면 전송 설정</h3>
+      <p style="font-size:0.9rem; color:#555; line-height:1.5;">
+        1. <b>Firebase Realtime DB URL</b>: 교실 학생 PC로 화면을 실시간 전송하기 위해 필요합니다.<br>
+        2. <b>구글 폼 문항별 보고서</b>: 구글 폼에 <code>1번</code>~<code>10번</code> 객관식 질문(보기: <code>1번</code>, <code>2번</code>, <code>3번</code>, <code>4번</code>, <code>O</code>, <code>X</code>)을 만들고 각 entry 번호를 입력하면 구글 폼 요약 그래프가 자동 생성됩니다.
       </p>
       <div class="form-group">
-        <label>Firebase Realtime DB URL (선택)</label>
-        <input type="text" id="cfg-firebase" placeholder="예: https://my-quiz-default-rtdb.firebaseio.com" />
+        <label>Firebase Realtime DB URL</label>
+        <input type="text" id="cfg-firebase" placeholder="예: https://grade1-quiz-default-rtdb.firebaseio.com" />
       </div>
       <div class="form-group">
         <label>구글 폼 전송 주소 (formResponse URL)</label>
-        <input type="text" id="cfg-form-url" value="https://docs.google.com/forms/d/e/1FAIpQLSf_여기에_폼ID_입력/formResponse" />
+        <input type="text" id="cfg-form-url" placeholder="https://docs.google.com/forms/d/e/.../formResponse" />
       </div>
-      <div class="login-grid">
+
+      <label style="font-weight:bold; display:block; margin-top:14px;">기본 인적사항 & 점수 entry 번호</label>
+      <div class="entry-grid">
         <input type="text" id="cfg-entry-grade" placeholder="학년 entry.번호" />
         <input type="text" id="cfg-entry-class" placeholder="반 entry.번호" />
         <input type="text" id="cfg-entry-num" placeholder="번호 entry.번호" />
         <input type="text" id="cfg-entry-name" placeholder="이름 entry.번호" />
+        <input type="text" id="cfg-entry-score" placeholder="점수 entry.번호" />
       </div>
-      <div class="form-group">
-        <label>점수 entry.번호</label>
-        <input type="text" id="cfg-entry-score" placeholder="예: entry.123456789" />
+
+      <label style="font-weight:bold; display:block; margin-top:14px;">문항별(1번~10번) 구글 폼 entry 번호 (문항별 통계 그래프용)</label>
+      <div class="entry-grid">
+        <input type="text" id="cfg-entry-q1" placeholder="1번 entry.번호" />
+        <input type="text" id="cfg-entry-q2" placeholder="2번 entry.번호" />
+        <input type="text" id="cfg-entry-q3" placeholder="3번 entry.번호" />
+        <input type="text" id="cfg-entry-q4" placeholder="4번 entry.번호" />
+        <input type="text" id="cfg-entry-q5" placeholder="5번 entry.번호" />
+        <input type="text" id="cfg-entry-q6" placeholder="6번 entry.번호" />
+        <input type="text" id="cfg-entry-q7" placeholder="7번 entry.번호" />
+        <input type="text" id="cfg-entry-q8" placeholder="8번 entry.번호" />
+        <input type="text" id="cfg-entry-q9" placeholder="9번 entry.번호" />
+        <input type="text" id="cfg-entry-q10" placeholder="10번 entry.번호" />
       </div>
-      <button class="ctrl-btn" style="background:var(--primary);" onclick="saveSettings()">설정 저장하기</button>
+
+      <button class="ctrl-btn" style="background:var(--primary); margin-top:10px; width:100%;" onclick="saveSettings()">💾 설정 저장하기</button>
     </div>
   </section>
 </main>
 
 <script>
-  // ==================== 기본 데이터 및 상태 ====================
+  // ==================== 기본 설정 (코드에 직접 고정 가능) ====================
   const TEACHER_PW = "1234"; // 교사 비밀번호
+
+  // 학생 컴퓨터에서도 별도 입력 없이 바로 작동하게 하려면 아래 기본값을 채워서 깃허브에 올리세요!
+  const DEFAULT_CONFIG = {
+    firebaseUrl: "", // 예: "https://grade1-quiz-default-rtdb.firebaseio.com"
+    formUrl: "",     // 예: "https://docs.google.com/forms/d/e/.../formResponse"
+    entryGrade: "",
+    entryClass: "",
+    entryNum: "",
+    entryName: "",
+    entryScore: "",
+    entryQ1: "", entryQ2: "", entryQ3: "", entryQ4: "", entryQ5: "",
+    entryQ6: "", entryQ7: "", entryQ8: "", entryQ9: "", entryQ10: ""
+  };
+
   let questions = JSON.parse(localStorage.getItem("quiz_1st_questions")) || [
     {
       type: "ox",
@@ -293,28 +325,19 @@
       type: "choice",
       text: "다음 중 빨간색 과일은 무엇일까요?",
       img: "",
-      options: ["사과", "바나나", "포도", "수박 속살 말고 껍질"],
+      options: ["사과", "바나나", "포도", "레몬"],
       answer: "0"
     }
   ];
 
-  let config = JSON.parse(localStorage.getItem("quiz_1st_config")) || {
-    firebaseUrl: "",
-    formUrl: "",
-    entryGrade: "",
-    entryClass: "",
-    entryNum: "",
-    entryName: "",
-    entryScore: ""
-  };
+  let config = Object.assign({}, DEFAULT_CONFIG, JSON.parse(localStorage.getItem("quiz_1st_config")) || {});
 
   let currentIdx = 0;
   let isPushedToStudent = false;
   let studentInfo = null;
-  let studentAnswers = {}; // { qIndex: selectedValue }
+  let studentAnswers = {}; // { 0: "O", 1: "0", ... }
   let uploadedBase64 = "";
 
-  // 브라우저 간 동기화 채널 (같은 PC 테스트용) & Firebase 폴링
   const bc = new BroadcastChannel("grade1_quiz_channel");
 
   // ==================== 초기화 ====================
@@ -331,7 +354,7 @@
     window.speechSynthesis.cancel();
     const utter = new SpeechSynthesisUtterance(text);
     utter.lang = "ko-KR";
-    utter.rate = 0.9; // 1학년을 위해 약간 천천히 또박또박
+    utter.rate = 0.9; // 1학년을 위해 천천히 또박또박
     utter.pitch = 1.05;
     window.speechSynthesis.speak(utter);
   }
@@ -408,7 +431,7 @@
     isPushedToStudent = false;
     renderTeacherView();
     broadcastState("SHOW_TEACHER_ONLY");
-    speakCurrentQuestion(); // 문제 띄우자마자 음성 안내 시작!
+    speakCurrentQuestion();
   }
 
   function pushToStudents() {
@@ -434,7 +457,7 @@
   }
 
   function finishQuizForAll() {
-    if (!confirm("퀴즈를 종료하고 모든 학생의 점수를 구글 폼으로 전송할까요?")) return;
+    if (!confirm("퀴즈를 종료하고 모든 학생의 점수와 문항별 답안을 구글 폼으로 전송할까요?")) return;
     broadcastState("FINISH_QUIZ");
     alert("학생 화면에 결과 전송 신호를 보냈습니다!");
   }
@@ -446,12 +469,11 @@
       currentIdx,
       isPushedToStudent,
       question: questions[currentIdx],
-      totalQuestions: questions.length,
+      allQuestions: questions,
       timestamp: Date.now()
     };
     bc.postMessage(payload);
 
-    // Firebase DB가 설정된 경우 클라우드로 전송 (교실 전체 PC 동기화)
     if (config.firebaseUrl) {
       const url = config.firebaseUrl.replace(/\/$/, "") + "/live_quiz.json";
       fetch(url, {
@@ -463,10 +485,8 @@
 
   let lastTimestamp = 0;
   function startSyncListener() {
-    // 1. 같은 브라우저 탭 동기화
     bc.onmessage = (e) => handleIncomingState(e.data);
 
-    // 2. Firebase 실시간 폴링 (1.5초마다 교사 화면 상태 확인)
     setInterval(() => {
       if (!config.firebaseUrl || !studentInfo) return;
       const url = config.firebaseUrl.replace(/\/$/, "") + "/live_quiz.json";
@@ -500,6 +520,7 @@
 
   function handleIncomingState(data) {
     if (!studentInfo) return;
+    if (data.allQuestions) questions = data.allQuestions;
 
     if (data.action === "SHOW_TEACHER_ONLY") {
       document.getElementById("student-wait").classList.remove("hidden");
@@ -567,14 +588,13 @@
     document.getElementById("student-quiz").classList.add("hidden");
     document.getElementById("student-end").classList.remove("hidden");
 
-    // 점수 계산 (문제당 10점)
     let correctCount = 0;
     questions.forEach((q, idx) => {
       if (String(studentAnswers[idx]) === String(q.answer)) {
         correctCount++;
       }
     });
-    const totalScore = correctCount * 10;
+    const totalScore = questions.length > 0 ? Math.round((correctCount / questions.length) * 100) : 0;
     document.getElementById("st-final-score").innerText = `${questions.length}문제 중 ${correctCount}개 정답! (${totalScore}점)`;
 
     if (!config.formUrl || !config.formUrl.includes("formResponse")) {
@@ -589,13 +609,28 @@
     if (config.entryName) formData.append(config.entryName, studentInfo.name);
     if (config.entryScore) formData.append(config.entryScore, totalScore);
 
+    // 1번~10번 문항별 선택 답안을 구글 폼 객관식 보기("1번"~"4번", "O", "X")에 맞춰 전송
+    const qEntries = [
+      config.entryQ1, config.entryQ2, config.entryQ3, config.entryQ4, config.entryQ5,
+      config.entryQ6, config.entryQ7, config.entryQ8, config.entryQ9, config.entryQ10
+    ];
+
+    questions.forEach((q, idx) => {
+      const entryId = qEntries[idx];
+      const ans = studentAnswers[idx];
+      if (entryId && ans !== undefined) {
+        const formattedAns = (q.type === "ox") ? ans : `${Number(ans) + 1}번`;
+        formData.append(entryId, formattedAns);
+      }
+    });
+
     fetch(config.formUrl, {
       method: "POST",
       mode: "no-cors",
       body: formData
     })
     .then(() => {
-      document.getElementById("st-submit-status").innerText = "✅ 선생님 컴퓨터(구글 폼)에 점수가 저장되었어요!";
+      document.getElementById("st-submit-status").innerText = "✅ 선생님 구글 폼 보고서에 저장되었어요!";
     })
     .catch(() => {
       document.getElementById("st-submit-status").innerText = "⚠️ 전송 중 오류가 발생했어요. 선생님께 말씀드려주세요.";
@@ -647,7 +682,6 @@
     questions.push(newQ);
     localStorage.setItem("quiz_1st_questions", JSON.stringify(questions));
     
-    // 입력창 초기화
     document.getElementById("new-q-text").value = "";
     document.getElementById("new-q-img-url").value = "";
     document.getElementById("new-q-file").value = "";
@@ -691,18 +725,25 @@
     document.getElementById("cfg-entry-num").value = config.entryNum || "";
     document.getElementById("cfg-entry-name").value = config.entryName || "";
     document.getElementById("cfg-entry-score").value = config.entryScore || "";
+
+    for (let i = 1; i <= 10; i++) {
+      document.getElementById(`cfg-entry-q${i}`).value = config[`entryQ${i}`] || "";
+    }
   }
 
   function saveSettings() {
-    config = {
-      firebaseUrl: document.getElementById("cfg-firebase").value.trim(),
-      formUrl: document.getElementById("cfg-form-url").value.trim(),
-      entryGrade: document.getElementById("cfg-entry-grade").value.trim(),
-      entryClass: document.getElementById("cfg-entry-class").value.trim(),
-      entryNum: document.getElementById("cfg-entry-num").value.trim(),
-      entryName: document.getElementById("cfg-entry-name").value.trim(),
-      entryScore: document.getElementById("cfg-entry-score").value.trim()
-    };
+    config.firebaseUrl = document.getElementById("cfg-firebase").value.trim();
+    config.formUrl = document.getElementById("cfg-form-url").value.trim();
+    config.entryGrade = document.getElementById("cfg-entry-grade").value.trim();
+    config.entryClass = document.getElementById("cfg-entry-class").value.trim();
+    config.entryNum = document.getElementById("cfg-entry-num").value.trim();
+    config.entryName = document.getElementById("cfg-entry-name").value.trim();
+    config.entryScore = document.getElementById("cfg-entry-score").value.trim();
+
+    for (let i = 1; i <= 10; i++) {
+      config[`entryQ${i}`] = document.getElementById(`cfg-entry-q${i}`).value.trim();
+    }
+
     localStorage.setItem("quiz_1st_config", JSON.stringify(config));
     alert("설정이 저장되었습니다!");
   }
