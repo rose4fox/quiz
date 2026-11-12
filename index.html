@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>1학년 신나는 소리 퀴즈</title>
+  <title>퀴즈챌린지! 우리는 코딩탐험대!</title>
   <style>
     :root {
       --bg: #f4f7fb;
@@ -16,46 +16,69 @@
       --text: #222222;
     }
     * { box-sizing: border-box; font-family: 'Malgun Gothic', '맑은 고딕', sans-serif; }
-    body { margin: 0; background: var(--bg); color: var(--text); display: flex; flex-direction: column; min-height: 100vh; }
     
-    /* 상단 헤더 */
-    header {
-      background: var(--primary); color: white; padding: 14px 24px;
-      display: flex; justify-content: space-between; align-items: center;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    /* 전체 화면을 한 페이지(100vh)에 고정하여 스크롤 방지 */
+    html, body {
+      margin: 0; padding: 0; height: 100%; background: var(--bg); color: var(--text);
+      display: flex; flex-direction: column; overflow: hidden;
     }
-    header h1 { margin: 0; font-size: 1.5rem; }
-    .header-right { display: flex; align-items: center; gap: 10px; }
+
+    /* 설정 화면일 때만 세로 스크롤 허용 */
+    body.allow-scroll { overflow-y: auto; height: auto; min-height: 100vh; }
+
+    /* 상단 통합 슬림 헤더 (1줄로 모든 컨트롤 압축) */
+    header {
+      background: var(--primary); color: white; padding: 8px 20px; height: 54px;
+      display: flex; justify-content: space-between; align-items: center; flex-shrink: 0;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.12);
+    }
+    header h1 { margin: 0; font-size: 1.25rem; white-space: nowrap; }
+
+    /* 헤더 내 교사 미니 리모컨 (산만하지 않게 한 줄 배치) */
+    .mini-remote {
+      display: flex; align-items: center; gap: 6px;
+    }
+    .status-dot {
+      font-size: 0.85rem; background: rgba(0,0,0,0.22); padding: 4px 10px;
+      border-radius: 12px; margin-right: 4px; white-space: nowrap;
+    }
+    .nav-btn {
+      background: rgba(255,255,255,0.18); border: 1px solid rgba(255,255,255,0.35);
+      color: white; padding: 5px 11px; border-radius: 8px; font-size: 0.9rem;
+      font-weight: bold; cursor: pointer; white-space: nowrap; transition: background 0.15s;
+    }
+    .nav-btn:hover { background: rgba(255,255,255,0.32); }
+    .nav-btn.push { background: #2b9348; border-color: #2b9348; }
+    .nav-btn.reveal { background: #7209b7; border-color: #7209b7; }
+    .nav-btn.finish { background: #d90429; border-color: #d90429; }
+
     .gear-btn {
       background: rgba(255,255,255,0.18); border: none; color: white;
-      width: 38px; height: 38px; border-radius: 50%; font-size: 1.2rem;
+      width: 34px; height: 34px; border-radius: 50%; font-size: 1.1rem;
       cursor: pointer; display: flex; align-items: center; justify-content: center;
     }
-    .gear-btn:hover { background: rgba(255,255,255,0.3); }
+    .gear-btn:hover { background: rgba(255,255,255,0.32); }
 
-    /* 교사 탭 전환 바 */
-    .teacher-tabs {
-      display: flex; gap: 10px; margin-bottom: 18px;
+    /* 메인 작업 영역 (남은 높이를 100% 채움) */
+    main {
+      flex: 1; width: 100%; max-width: 1200px; margin: 0 auto;
+      padding: 16px 20px; display: flex; flex-direction: column; overflow: hidden;
     }
-    .tab-btn {
-      flex: 1; padding: 14px; font-size: 1.15rem; font-weight: bold;
-      border: 2px solid var(--primary); border-radius: 14px; cursor: pointer;
-      background: white; color: var(--primary); transition: all 0.15s;
-    }
-    .tab-btn.active {
-      background: var(--primary); color: white;
-      box-shadow: 0 4px 12px rgba(74, 108, 247, 0.25);
-    }
+    body.allow-scroll main { overflow: visible; display: block; max-width: 960px; }
 
-    /* 메인 컨테이너 */
-    main { flex: 1; max-width: 1020px; width: 100%; margin: 20px auto; padding: 0 16px; }
+    .full-card {
+      flex: 1; background: var(--card); border-radius: 22px; padding: 24px 32px;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.06);
+      display: flex; flex-direction: column; justify-content: space-between; overflow: hidden;
+    }
     .card {
-      background: var(--card); border-radius: 22px; padding: 28px;
+      background: var(--card); border-radius: 20px; padding: 26px;
       box-shadow: 0 6px 20px rgba(0,0,0,0.06); margin-bottom: 20px;
     }
     .hidden { display: none !important; }
 
-    /* 로그인 폼 */
+    /* 로그인 화면 */
+    .login-wrap { margin: auto; width: 100%; max-width: 680px; }
     .login-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin: 24px 0; }
     .login-grid input {
       padding: 16px; font-size: 1.3rem; border: 2px solid #dce1eb; border-radius: 14px; text-align: center; width: 100%;
@@ -64,57 +87,63 @@
       width: 100%; padding: 18px; font-size: 1.4rem; font-weight: bold;
       background: var(--primary); color: white; border: none; border-radius: 16px; cursor: pointer;
     }
-    .btn-big:hover { opacity: 0.92; }
 
-    /* 퀴즈 화면 (공통) */
-    .q-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; }
-    .badge { background: #eef2ff; color: var(--primary); padding: 8px 16px; border-radius: 12px; font-weight: bold; font-size: 1.2rem; }
+    /* 문제 상단 & 본문 (비율 자동 조절) */
+    .q-top { display: flex; justify-content: space-between; align-items: center; flex-shrink: 0; }
+    .badge { background: #eef2ff; color: var(--primary); padding: 6px 16px; border-radius: 12px; font-weight: bold; font-size: 1.25rem; }
     .tts-btn {
-      background: #ff9f1c; color: white; border: none; padding: 10px 18px;
-      border-radius: 12px; font-size: 1.1rem; font-weight: bold; cursor: pointer;
+      background: #ff9f1c; color: white; border: none; padding: 8px 16px;
+      border-radius: 10px; font-size: 1.05rem; font-weight: bold; cursor: pointer;
     }
-    .q-body { display: flex; gap: 28px; align-items: center; margin: 24px 0; min-height: 180px; }
-    .q-img { max-width: 360px; max-height: 260px; border-radius: 16px; border: 2px solid #eee; object-fit: contain; }
-    .q-text { flex: 1; font-size: 2.2rem; font-weight: bold; line-height: 1.45; word-break: keep-all; }
 
-    /* 보기 버튼 (1학년용 큰 버튼) */
-    .options-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; margin-top: 24px; }
+    .q-body {
+      flex: 1; display: flex; gap: 28px; align-items: center; justify-content: center;
+      margin: 12px 0; min-height: 0; overflow: hidden;
+    }
+    .q-img {
+      max-width: 42%; max-height: 100%; border-radius: 16px; border: 2px solid #eee; object-fit: contain;
+    }
+    .q-text {
+      flex: 1; font-size: clamp(1.8rem, 3.2vw, 2.6rem); font-weight: bold;
+      line-height: 1.4; word-break: keep-all;
+    }
+
+    /* 보기 버튼 영역 (하단 42% 고정 비율로 절대 잘리지 않음) */
+    .options-area { height: 42%; min-height: 180px; flex-shrink: 0; display: flex; flex-direction: column; }
+    .options-grid { flex: 1; display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
     .opt-btn {
-      padding: 26px; font-size: 1.7rem; font-weight: bold; color: white;
+      height: 100%; padding: 16px 24px; font-size: clamp(1.4rem, 2.3vw, 2rem); font-weight: bold; color: white;
       border: none; border-radius: 20px; cursor: pointer; transition: transform 0.1s, opacity 0.2s;
-      text-shadow: 0 1px 3px rgba(0,0,0,0.3); min-height: 100px;
+      text-shadow: 0 1px 3px rgba(0,0,0,0.28);
       display: flex; align-items: center; justify-content: center; text-align: center;
     }
-    .opt-btn:active { transform: scale(0.97); }
+    .opt-btn:active { transform: scale(0.98); }
     .opt-btn.selected { outline: 7px solid #222; transform: scale(0.98); }
     .opt-0 { background: var(--red); }
     .opt-1 { background: var(--blue); }
     .opt-2 { background: var(--yellow); color: #222; text-shadow: none; }
     .opt-3 { background: var(--green); }
 
-    /* 정답 공개 시 강조 스타일 (교사 화면용) */
-    .dimmed { opacity: 0.32; }
-    .correct-reveal { outline: 8px solid #1b4332; transform: scale(1.02); box-shadow: 0 8px 24px rgba(0,0,0,0.2); }
-
     /* OX 전용 버튼 */
-    .ox-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-top: 24px; }
-    .ox-btn { font-size: 4.5rem; padding: 32px; border-radius: 24px; border: none; color: white; font-weight: bold; cursor: pointer; }
+    .ox-grid { flex: 1; display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+    .ox-btn {
+      height: 100%; font-size: clamp(3.5rem, 6vw, 5.5rem); border-radius: 24px; border: none;
+      color: white; font-weight: bold; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+    }
     .ox-btn.selected { outline: 7px solid #222; transform: scale(0.98); }
     .ox-o { background: var(--blue); }
     .ox-x { background: var(--red); }
 
-    /* 교사 진행 리모컨 바 */
-    .teacher-controls {
-      background: #fff8e7; border: 2px solid #ffd166; padding: 16px 20px; border-radius: 18px;
-      display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;
-    }
-    .ctrl-btn {
-      padding: 12px 16px; font-size: 1rem; font-weight: bold; border: none;
-      border-radius: 12px; cursor: pointer; color: white;
-    }
-    .ctrl-btn:hover { opacity: 0.9; }
+    /* 정답 공개 강조 */
+    .dimmed { opacity: 0.28; }
+    .correct-reveal { outline: 8px solid #1b4332; transform: scale(1.01); box-shadow: 0 8px 24px rgba(0,0,0,0.2); }
 
-    /* 문제 출제 폼 */
+    /* 대기 / 종료 중앙 정렬 */
+    .center-box { margin: auto; text-align: center; }
+    .center-box h2 { font-size: 2.2rem; color: var(--primary); margin: 16px 0; }
+
+    /* 출제/설정 폼 */
     .form-group { margin-bottom: 14px; }
     .form-group label { display: block; font-weight: bold; margin-bottom: 6px; }
     .form-group input, .form-group select, .form-group textarea {
@@ -126,27 +155,37 @@
       display: flex; justify-content: space-between; align-items: center;
       padding: 12px; border-bottom: 1px solid #eee;
     }
-
-    /* 학생 대기 화면 */
-    .wait-box { text-align: center; padding: 60px 20px; }
-    .wait-box h2 { font-size: 2.2rem; color: var(--primary); }
   </style>
 </head>
 <body>
 
 <header>
-  <h1>🎈 1학년 신나는 소리 퀴즈</h1>
-  <div class="header-right">
-    <button id="btn-back-student" class="ctrl-btn hidden" style="background:rgba(255,255,255,0.25); padding:8px 14px;" onclick="switchMode('student')">👦 학생 화면으로</button>
+  <h1>🧭 퀴즈챌린지! 우리는 코딩탐험대!</h1>
+
+  <!-- 교사 라이브 모드일 때만 헤더 우측에 슬림 리모컨 표시 -->
+  <div id="teacher-mini-bar" class="mini-remote hidden">
+    <span id="tc-push-status" class="status-dot">🔴 대기중</span>
+    <button class="nav-btn" onclick="prevQuestion()" title="이전 문제 (←)">◀</button>
+    <button class="nav-btn" onclick="speakCurrentQuestion()" title="다시 읽기 (R)">🔊 읽기</button>
+    <button class="nav-btn push" onclick="pushToStudents()" title="학생 화면에 보내기 (Space)">📢 학생전송</button>
+    <button class="nav-btn reveal" onclick="revealAnswerOnBoard()" title="정답 확인 (Enter)">✨ 정답</button>
+    <button class="nav-btn" onclick="nextQuestion()" title="다음 문제 (→)">다음 ▶</button>
+    <button class="nav-btn finish" onclick="finishQuizForAll()" title="퀴즈 종료 및 구글폼 전송">🏁 종료</button>
+    <button class="nav-btn" style="background:#333;" onclick="openSetupTab()">📝 출제·설정</button>
+    <button class="nav-btn" onclick="switchMode('student')">👦 나가기</button>
+  </div>
+
+  <!-- 학생 모드일 때 보이는 톱니바퀴 -->
+  <div id="student-header-bar">
     <button class="gear-btn" title="교사 화면" onclick="openTeacherAuth()">⚙️</button>
   </div>
 </header>
 
 <main>
   <!-- ==================== 1. 학생 화면 ==================== -->
-  <section id="student-section">
+  <section id="student-section" class="full-card">
     <!-- 학생 로그인 -->
-    <div id="student-login" class="card">
+    <div id="student-login" class="login-wrap">
       <h2 style="text-align:center; font-size:1.9rem;">안녕! 반, 번호, 이름을 적어주세요 😊</h2>
       <div class="login-grid">
         <input type="number" id="st-grade" value="1" min="1" max="6" placeholder="학년" />
@@ -154,192 +193,167 @@
         <input type="number" id="st-num" placeholder="번호" />
         <input type="text" id="st-name" placeholder="이름" />
       </div>
-      <button class="btn-big" onclick="startStudent()">퀴즈 방 들어가기 🚀</button>
+      <button class="btn-big" onclick="startStudent()">탐험 시작하기 🚀</button>
     </div>
 
     <!-- 학생 대기 상태 -->
-    <div id="student-wait" class="card wait-box hidden">
-      <div style="font-size: 4.5rem;">👀</div>
+    <div id="student-wait" class="center-box hidden">
+      <div style="font-size: 5rem;">👀</div>
       <h2>선생님 화면을 봐주세요!</h2>
       <p style="font-size: 1.4rem; color: #555;">선생님이 문제를 읽어주신 뒤 버튼을 누르면 여기에 보기가 나타납니다.</p>
     </div>
 
     <!-- 학생 문제 풀이 화면 -->
-    <div id="student-quiz" class="card hidden">
-      <div class="q-header">
+    <div id="student-quiz" class="hidden" style="display:flex; flex-direction:column; height:100%; justify-content:space-between;">
+      <div class="q-top">
         <span class="badge" id="st-q-num">문제 1</span>
+        <span id="st-feedback" style="font-size:1.3rem; font-weight:bold; color:var(--primary);"></span>
         <button class="tts-btn" onclick="speakCurrentQuestion()">🔊 문제 다시 듣기</button>
       </div>
       <div class="q-body">
         <img id="st-q-img" class="q-img hidden" src="" alt="문제 그림" />
         <div class="q-text" id="st-q-text">문제가 여기에 표시됩니다.</div>
       </div>
-      <div id="st-options-container"></div>
-      <p id="st-feedback" style="text-align:center; font-size:1.5rem; font-weight:bold; margin-top:20px; color:var(--primary);"></p>
+      <div class="options-area">
+        <div id="st-options-container" class="options-grid"></div>
+      </div>
     </div>
 
     <!-- 학생 완료 화면 -->
-    <div id="student-end" class="card wait-box hidden">
-      <div style="font-size: 4.5rem;">🎉</div>
-      <h2>참 잘했어요! 모든 퀴즈가 끝났습니다.</h2>
-      <p id="st-final-score" style="font-size: 1.9rem; font-weight: bold; color: var(--primary);"></p>
-      <p id="st-submit-status" style="color: #2b9348; font-weight: bold; font-size: 1.2rem;">선생님께 점수와 답안을 보내는 중...</p>
+    <div id="student-end" class="center-box hidden">
+      <div style="font-size: 5rem;">🎉</div>
+      <h2>참 잘했어요! 모든 탐험이 끝났습니다.</h2>
+      <p id="st-final-score" style="font-size: 2rem; font-weight: bold; color: var(--primary);"></p>
+      <p id="st-submit-status" style="color: #2b9348; font-weight: bold; font-size: 1.25rem;">선생님께 점수와 답안을 보내는 중...</p>
     </div>
   </section>
 
-  <!-- ==================== 2. 교사 화면 ==================== -->
-  <section id="teacher-section" class="hidden">
-    <!-- 교사 상단 탭 메뉴 (전자칠판용 vs 출제용 분리) -->
-    <div class="teacher-tabs">
-      <button id="tab-live-btn" class="tab-btn active" onclick="switchTeacherTab('live')">📺 수업 진행 화면 (전자칠판 공개용)</button>
-      <button id="tab-setup-btn" class="tab-btn" onclick="switchTeacherTab('setup')">⚙️ 문제 출제 · 설정 (수업 준비용)</button>
+  <!-- ==================== 2. 교사 수업 진행 화면 (전자칠판용, 스크롤 없음) ==================== -->
+  <section id="teacher-live-section" class="full-card hidden">
+    <div class="q-top">
+      <span class="badge" id="tc-q-num" style="font-size:1.35rem;">문제 1 / 1</span>
+      <span style="font-size:0.9rem; color:#888;">단축키: [Space] 학생전송 · [Enter] 정답확인 · [→] 다음문제 · [R] 다시읽기</span>
+    </div>
+    <div class="q-body">
+      <img id="tc-q-img" class="q-img hidden" src="" alt="문제 그림" />
+      <div class="q-text" id="tc-q-text">문제를 등록해주세요.</div>
+    </div>
+    <div class="options-area">
+      <div id="tc-options-preview" class="options-grid"></div>
+    </div>
+  </section>
+
+  <!-- ==================== 3. 교사 출제·설정 화면 (수업 준비용) ==================== -->
+  <section id="teacher-setup-section" class="hidden">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+      <h2 style="margin:0;">📝 문제 출제 및 시스템 설정</h2>
+      <button class="btn-big" style="width:auto; padding:12px 24px; font-size:1.1rem;" onclick="backToLiveBoard()">📺 수업 화면으로 돌아가기</button>
     </div>
 
-    <!-- [탭 1] 수업 진행 화면 (전자칠판에 띄우는 깔끔한 화면) -->
-    <div id="teacher-live-panel" class="card">
-      <div class="teacher-controls">
-        <div>
-          <strong style="font-size:1.15rem;">📡 수업 리모컨</strong>
-          <div id="tc-push-status" style="font-size:0.95rem; font-weight:bold; color:#d90429; margin-top:2px;">
-            🔴 교사 화면만 공개됨 (학생 대기중)
-          </div>
-        </div>
-        <div style="display:flex; gap:8px; flex-wrap:wrap;">
-          <button class="ctrl-btn" style="background:#6c757d;" onclick="prevQuestion()">◀ 이전</button>
-          <button class="ctrl-btn" style="background:#3a86ff;" onclick="showQuestionOnTeacher()">📺 문제 띄우기(음성)</button>
-          <button class="ctrl-btn" style="background:#ff9f1c;" onclick="speakCurrentQuestion()">🔊 다시 읽기</button>
-          <button class="ctrl-btn" style="background:#2b9348;" onclick="pushToStudents()">📢 학생 화면에 보내기</button>
-          <button class="ctrl-btn" style="background:#7209b7;" onclick="revealAnswerOnBoard()">✨ 정답 확인</button>
-          <button class="ctrl-btn" style="background:#4a6cf7;" onclick="nextQuestion()">다음 ▶</button>
-          <button class="ctrl-btn" style="background:#d90429;" onclick="finishQuizForAll()">🏁 종료(전송)</button>
-        </div>
+    <div class="card">
+      <h3>✏️ 새 문제 추가하기 (최대 10문항 권장)</h3>
+      <div class="form-group">
+        <label>문제 유형</label>
+        <select id="new-q-type" onchange="toggleOptionInputs()">
+          <option value="choice">객관식 (4지선다)</option>
+          <option value="ox">O / X 퀴즈</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>문제 내용 (화면에 띄우면 자동으로 읽어줍니다)</label>
+        <textarea id="new-q-text" rows="2" placeholder="예: 다음 중 봄에 피는 꽃은 무엇일까요?"></textarea>
+      </div>
+      <div class="form-group">
+        <label>그림 넣기 (이미지 파일 선택 또는 인터넷 이미지 주소 입력)</label>
+        <input type="file" id="new-q-file" accept="image/*" onchange="handleImageUpload(event)" />
+        <input type="text" id="new-q-img-url" placeholder="또는 이미지 URL 붙여넣기" style="margin-top:6px;" />
       </div>
 
-      <!-- 학생들에게 보여줄 문제 본문 (정답 체크 숨김) -->
-      <div style="margin-top:24px; padding-top:10px;">
-        <div class="q-header">
-          <span class="badge" id="tc-q-num" style="font-size:1.3rem;">문제 1 / 1</span>
-        </div>
-        <div class="q-body">
-          <img id="tc-q-img" class="q-img hidden" src="" alt="문제 그림" />
-          <div class="q-text" id="tc-q-text">문제를 등록해주세요.</div>
-        </div>
-        <div id="tc-options-preview" class="options-grid"></div>
-      </div>
-    </div>
-
-    <!-- [탭 2] 문제 출제 및 설정 화면 (수업 전 준비용) -->
-    <div id="teacher-setup-panel" class="hidden">
-      <div class="card">
-        <h3>✏️ 새 문제 추가하기 (최대 10문항 권장)</h3>
+      <div id="choice-inputs">
+        <div class="form-group"><label>보기 1 (빨강)</label><input type="text" id="opt-0" /></div>
+        <div class="form-group"><label>보기 2 (파랑)</label><input type="text" id="opt-1" /></div>
+        <div class="form-group"><label>보기 3 (노랑)</label><input type="text" id="opt-2" /></div>
+        <div class="form-group"><label>보기 4 (초록)</label><input type="text" id="opt-3" /></div>
         <div class="form-group">
-          <label>문제 유형</label>
-          <select id="new-q-type" onchange="toggleOptionInputs()">
-            <option value="choice">객관식 (4지선다)</option>
-            <option value="ox">O / X 퀴즈</option>
+          <label>정답 번호</label>
+          <select id="choice-answer">
+            <option value="0">1번</option>
+            <option value="1">2번</option>
+            <option value="2">3번</option>
+            <option value="3">4번</option>
           </select>
         </div>
-        <div class="form-group">
-          <label>문제 내용 (이 글자를 컴퓨터가 읽어줍니다)</label>
-          <textarea id="new-q-text" rows="2" placeholder="예: 다음 중 봄에 피는 꽃은 무엇일까요?"></textarea>
-        </div>
-        <div class="form-group">
-          <label>그림 넣기 (이미지 파일 선택 또는 인터넷 이미지 주소 입력)</label>
-          <input type="file" id="new-q-file" accept="image/*" onchange="handleImageUpload(event)" />
-          <input type="text" id="new-q-img-url" placeholder="또는 이미지 URL 붙여넣기" style="margin-top:6px;" />
-        </div>
-
-        <!-- 객관식 보기 입력 -->
-        <div id="choice-inputs">
-          <div class="form-group"><label>보기 1 (빨강)</label><input type="text" id="opt-0" /></div>
-          <div class="form-group"><label>보기 2 (파랑)</label><input type="text" id="opt-1" /></div>
-          <div class="form-group"><label>보기 3 (노랑)</label><input type="text" id="opt-2" /></div>
-          <div class="form-group"><label>보기 4 (초록)</label><input type="text" id="opt-3" /></div>
-          <div class="form-group">
-            <label>정답 번호</label>
-            <select id="choice-answer">
-              <option value="0">1번</option>
-              <option value="1">2번</option>
-              <option value="2">3번</option>
-              <option value="3">4번</option>
-            </select>
-          </div>
-        </div>
-
-        <!-- OX 정답 입력 -->
-        <div id="ox-inputs" class="hidden">
-          <div class="form-group">
-            <label>OX 정답</label>
-            <select id="ox-answer">
-              <option value="O">O (맞다)</option>
-              <option value="X">X (틀리다)</option>
-            </select>
-          </div>
-        </div>
-
-        <button class="btn-big" onclick="addQuestion()">➕ 문제 저장하기</button>
-
-        <h3 style="margin-top:30px;">📋 등록된 문제 목록</h3>
-        <div id="question-list"></div>
       </div>
 
-      <!-- 구글 폼 및 실시간 동기화 설정 -->
-      <div class="card">
-        <h3>⚙️ 구글 폼 보고서 & 실시간 화면 전송 설정</h3>
-        <p style="font-size:0.9rem; color:#555; line-height:1.5;">
-          1. <b>Firebase Realtime DB URL</b>: 교실 학생 PC로 화면을 실시간 전송하기 위해 필요합니다.<br>
-          2. <b>구글 폼 문항별 보고서</b>: 구글 폼에 <code>1번</code>~<code>10번</code> 객관식 질문(보기: <code>1번</code>, <code>2번</code>, <code>3번</code>, <code>4번</code>, <code>O</code>, <code>X</code>)을 만들고 각 entry 번호를 입력하면 구글 폼 요약 그래프가 자동 생성됩니다.
-        </p>
+      <div id="ox-inputs" class="hidden">
         <div class="form-group">
-          <label>Firebase Realtime DB URL</label>
-          <input type="text" id="cfg-firebase" placeholder="예: https://grade1-quiz-default-rtdb.firebaseio.com" />
+          <label>OX 정답</label>
+          <select id="ox-answer">
+            <option value="O">O (맞다)</option>
+            <option value="X">X (틀리다)</option>
+          </select>
         </div>
-        <div class="form-group">
-          <label>구글 폼 전송 주소 (formResponse URL)</label>
-          <input type="text" id="cfg-form-url" placeholder="https://docs.google.com/forms/d/e/.../formResponse" />
-        </div>
-
-        <label style="font-weight:bold; display:block; margin-top:14px;">기본 인적사항 & 점수 entry 번호</label>
-        <div class="entry-grid">
-          <input type="text" id="cfg-entry-grade" placeholder="학년 entry.번호" />
-          <input type="text" id="cfg-entry-class" placeholder="반 entry.번호" />
-          <input type="text" id="cfg-entry-num" placeholder="번호 entry.번호" />
-          <input type="text" id="cfg-entry-name" placeholder="이름 entry.번호" />
-          <input type="text" id="cfg-entry-score" placeholder="점수 entry.번호" />
-        </div>
-
-        <label style="font-weight:bold; display:block; margin-top:14px;">문항별(1번~10번) 구글 폼 entry 번호 (문항별 통계 그래프용)</label>
-        <div class="entry-grid">
-          <input type="text" id="cfg-entry-q1" placeholder="1번 entry.번호" />
-          <input type="text" id="cfg-entry-q2" placeholder="2번 entry.번호" />
-          <input type="text" id="cfg-entry-q3" placeholder="3번 entry.번호" />
-          <input type="text" id="cfg-entry-q4" placeholder="4번 entry.번호" />
-          <input type="text" id="cfg-entry-q5" placeholder="5번 entry.번호" />
-          <input type="text" id="cfg-entry-q6" placeholder="6번 entry.번호" />
-          <input type="text" id="cfg-entry-q7" placeholder="7번 entry.번호" />
-          <input type="text" id="cfg-entry-q8" placeholder="8번 entry.번호" />
-          <input type="text" id="cfg-entry-q9" placeholder="9번 entry.번호" />
-          <input type="text" id="cfg-entry-q10" placeholder="10번 entry.번호" />
-        </div>
-
-        <button class="ctrl-btn" style="background:var(--primary); margin-top:10px; width:100%; padding:14px;" onclick="saveSettings()">💾 설정 저장하기</button>
       </div>
+
+      <button class="btn-big" onclick="addQuestion()">➕ 문제 저장하기</button>
+
+      <h3 style="margin-top:30px;">📋 등록된 문제 목록</h3>
+      <div id="question-list"></div>
+    </div>
+
+    <div class="card">
+      <h3>⚙️ 교사 비밀번호 · 구글 폼 · 실시간 전송 설정</h3>
+      <div class="form-group">
+        <label>🔑 교사 화면 비밀번호 설정</label>
+        <input type="text" id="cfg-teacher-pw" placeholder="예: 1234" />
+      </div>
+
+      <hr style="border:none; border-top:1px solid #eee; margin:20px 0;" />
+
+      <div class="form-group">
+        <label>Firebase Realtime DB URL (실시간 학생 화면 전송용)</label>
+        <input type="text" id="cfg-firebase" placeholder="예: https://grade1-quiz-default-rtdb.firebaseio.com" />
+      </div>
+      <div class="form-group">
+        <label>구글 폼 전송 주소 (formResponse URL)</label>
+        <input type="text" id="cfg-form-url" placeholder="https://docs.google.com/forms/d/e/.../formResponse" />
+      </div>
+
+      <label style="font-weight:bold; display:block; margin-top:14px;">기본 인적사항 & 점수 entry 번호</label>
+      <div class="entry-grid">
+        <input type="text" id="cfg-entry-grade" placeholder="학년 entry.번호" />
+        <input type="text" id="cfg-entry-class" placeholder="반 entry.번호" />
+        <input type="text" id="cfg-entry-num" placeholder="번호 entry.번호" />
+        <input type="text" id="cfg-entry-name" placeholder="이름 entry.번호" />
+        <input type="text" id="cfg-entry-score" placeholder="점수 entry.번호" />
+      </div>
+
+      <label style="font-weight:bold; display:block; margin-top:14px;">문항별(1번~10번) 구글 폼 entry 번호</label>
+      <div class="entry-grid">
+        <input type="text" id="cfg-entry-q1" placeholder="1번 entry.번호" />
+        <input type="text" id="cfg-entry-q2" placeholder="2번 entry.번호" />
+        <input type="text" id="cfg-entry-q3" placeholder="3번 entry.번호" />
+        <input type="text" id="cfg-entry-q4" placeholder="4번 entry.번호" />
+        <input type="text" id="cfg-entry-q5" placeholder="5번 entry.번호" />
+        <input type="text" id="cfg-entry-q6" placeholder="6번 entry.번호" />
+        <input type="text" id="cfg-entry-q7" placeholder="7번 entry.번호" />
+        <input type="text" id="cfg-entry-q8" placeholder="8번 entry.번호" />
+        <input type="text" id="cfg-entry-q9" placeholder="9번 entry.번호" />
+        <input type="text" id="cfg-entry-q10" placeholder="10번 entry.번호" />
+      </div>
+
+      <button class="btn-big" style="margin-top:14px;" onclick="saveSettings()">💾 설정 저장하기</button>
     </div>
   </section>
 </main>
 
 <script>
   // ==================== 기본 설정 ====================
-  const TEACHER_PW = "1234"; // 교사 비밀번호
-
   const DEFAULT_CONFIG = {
+    teacherPw: "1234",
     firebaseUrl: "",
     formUrl: "",
-    entryGrade: "",
-    entryClass: "",
-    entryNum: "",
-    entryName: "",
-    entryScore: "",
+    entryGrade: "", entryClass: "", entryNum: "", entryName: "", entryScore: "",
     entryQ1: "", entryQ2: "", entryQ3: "", entryQ4: "", entryQ5: "",
     entryQ6: "", entryQ7: "", entryQ8: "", entryQ9: "", entryQ10: ""
   };
@@ -366,19 +380,37 @@
   let currentIdx = 0;
   let isPushedToStudent = false;
   let isAnswerRevealed = false;
+  let isTeacherLiveMode = false;
   let studentInfo = null;
   let studentAnswers = {};
   let uploadedBase64 = "";
 
   const bc = new BroadcastChannel("grade1_quiz_channel");
 
-  // ==================== 초기화 ====================
   window.onload = () => {
     loadConfigInputs();
     renderQuestionList();
     renderTeacherView();
     startSyncListener();
   };
+
+  // ==================== 키보드 단축키 (교사 수업 진행용) ====================
+  document.addEventListener("keydown", (e) => {
+    if (!isTeacherLiveMode) return;
+    if (e.code === "Space") {
+      e.preventDefault();
+      pushToStudents();
+    } else if (e.code === "Enter") {
+      e.preventDefault();
+      revealAnswerOnBoard();
+    } else if (e.code === "ArrowRight") {
+      nextQuestion();
+    } else if (e.code === "ArrowLeft") {
+      prevQuestion();
+    } else if (e.key === "r" || e.key === "R" || e.key === "ㄱ") {
+      speakCurrentQuestion();
+    }
+  });
 
   // ==================== 음성 안내 (TTS) ====================
   function speakText(text) {
@@ -401,40 +433,50 @@
     speakText(script);
   }
 
-  // ==================== 모드 및 탭 전환 ====================
+  // ==================== 화면 모드 전환 ====================
   function switchMode(mode) {
+    document.body.classList.remove("allow-scroll");
     if (mode === "student") {
+      isTeacherLiveMode = false;
       document.getElementById("student-section").classList.remove("hidden");
-      document.getElementById("teacher-section").classList.add("hidden");
-      document.getElementById("btn-back-student").classList.add("hidden");
+      document.getElementById("teacher-live-section").classList.add("hidden");
+      document.getElementById("teacher-setup-section").classList.add("hidden");
+      document.getElementById("teacher-mini-bar").classList.add("hidden");
+      document.getElementById("student-header-bar").classList.remove("hidden");
     } else {
-      document.getElementById("student-section").classList.add("hidden");
-      document.getElementById("teacher-section").classList.remove("hidden");
-      document.getElementById("btn-back-student").classList.remove("hidden");
-      switchTeacherTab("live");
-      renderTeacherView();
+      backToLiveBoard();
     }
   }
 
-  function switchTeacherTab(tab) {
-    const isLive = (tab === "live");
-    document.getElementById("teacher-live-panel").classList.toggle("hidden", !isLive);
-    document.getElementById("teacher-setup-panel").classList.toggle("hidden", isLive);
-    document.getElementById("tab-live-btn").classList.toggle("active", isLive);
-    document.getElementById("tab-setup-btn").classList.toggle("active", !isLive);
-    if (isLive) renderTeacherView();
+  function backToLiveBoard() {
+    isTeacherLiveMode = true;
+    document.body.classList.remove("allow-scroll");
+    document.getElementById("student-section").classList.add("hidden");
+    document.getElementById("teacher-setup-section").classList.add("hidden");
+    document.getElementById("teacher-live-section").classList.remove("hidden");
+    document.getElementById("student-header-bar").classList.add("hidden");
+    document.getElementById("teacher-mini-bar").classList.remove("hidden");
+    showQuestionOnTeacher(); // 수업 화면 진입 시 문제 표시 및 음성 자동 안내
+  }
+
+  function openSetupTab() {
+    isTeacherLiveMode = false;
+    document.body.classList.add("allow-scroll");
+    document.getElementById("teacher-live-section").classList.add("hidden");
+    document.getElementById("teacher-setup-section").classList.remove("hidden");
   }
 
   function openTeacherAuth() {
+    const currentPw = config.teacherPw || "1234";
     const pw = prompt("선생님 비밀번호를 입력하세요:");
-    if (pw === TEACHER_PW) {
+    if (pw === currentPw) {
       switchMode("teacher");
     } else if (pw !== null) {
       alert("비밀번호가 틀렸습니다.");
     }
   }
 
-  // ==================== 교사 화면 로직 ====================
+  // ==================== 교사 수업 화면 로직 ====================
   function renderTeacherView() {
     if (questions.length === 0) return;
     const q = questions[currentIdx];
@@ -458,7 +500,7 @@
         const isCorrect = (q.answer === val);
         const revealClass = isAnswerRevealed ? (isCorrect ? "correct-reveal" : "dimmed") : "";
         const mark = (isAnswerRevealed && isCorrect) ? " 🎉" : "";
-        prevBox.innerHTML += `<div class="ox-btn ${val === 'O' ? 'ox-o' : 'ox-x'} ${revealClass}" style="text-align:center;">${val}${mark}</div>`;
+        prevBox.innerHTML += `<div class="ox-btn ${val === 'O' ? 'ox-o' : 'ox-x'} ${revealClass}">${val}${mark}</div>`;
       });
     } else {
       prevBox.className = "options-grid";
@@ -470,10 +512,8 @@
       });
     }
 
-    document.getElementById("tc-push-status").innerText = isPushedToStudent
-      ? "🟢 학생 화면에 전송됨 (학생 입력 가능)"
-      : "🔴 교사 화면만 공개됨 (학생 대기중)";
-    document.getElementById("tc-push-status").style.color = isPushedToStudent ? "#2b9348" : "#d90429";
+    const statusEl = document.getElementById("tc-push-status");
+    statusEl.innerText = isPushedToStudent ? "🟢 학생전송됨" : "🔴 대기중";
   }
 
   function showQuestionOnTeacher() {
@@ -517,7 +557,7 @@
   }
 
   function finishQuizForAll() {
-    if (!confirm("퀴즈를 종료하고 모든 학생의 점수와 문항별 답안을 구글 폼으로 전송할까요?")) return;
+    if (!confirm("퀴즈를 종료하고 모든 학생의 점수와 답안을 구글 폼으로 전송할까요?")) return;
     broadcastState("FINISH_QUIZ");
     alert("학생 화면에 결과 전송 신호를 보냈습니다!");
   }
@@ -640,7 +680,7 @@
     studentAnswers[currentIdx] = val;
     document.querySelectorAll("#st-options-container button").forEach(b => b.classList.remove("selected"));
     btnEl.classList.add("selected");
-    document.getElementById("st-feedback").innerText = "✅ 답을 선택했어요! 바꿀 수도 있어요.";
+    document.getElementById("st-feedback").innerText = "✅ 답을 선택했어요!";
   }
 
   function submitToGoogleForm() {
@@ -777,6 +817,7 @@
   }
 
   function loadConfigInputs() {
+    document.getElementById("cfg-teacher-pw").value = config.teacherPw || "1234";
     document.getElementById("cfg-firebase").value = config.firebaseUrl || "";
     document.getElementById("cfg-form-url").value = config.formUrl || "";
     document.getElementById("cfg-entry-grade").value = config.entryGrade || "";
@@ -791,6 +832,13 @@
   }
 
   function saveSettings() {
+    const newPw = document.getElementById("cfg-teacher-pw").value.trim();
+    if (!newPw) {
+      alert("교사 비밀번호를 입력해주세요.");
+      return;
+    }
+
+    config.teacherPw = newPw;
     config.firebaseUrl = document.getElementById("cfg-firebase").value.trim();
     config.formUrl = document.getElementById("cfg-form-url").value.trim();
     config.entryGrade = document.getElementById("cfg-entry-grade").value.trim();
@@ -804,7 +852,7 @@
     }
 
     localStorage.setItem("quiz_1st_config", JSON.stringify(config));
-    alert("설정이 저장되었습니다!");
+    alert("비밀번호 및 설정이 저장되었습니다!");
   }
 </script>
 
