@@ -17,16 +17,13 @@
     }
     * { box-sizing: border-box; font-family: 'Malgun Gothic', '맑은 고딕', sans-serif; }
     
-    /* 전체 화면을 한 페이지(100vh)에 고정하여 스크롤 방지 */
     html, body {
       margin: 0; padding: 0; height: 100%; background: var(--bg); color: var(--text);
       display: flex; flex-direction: column; overflow: hidden;
     }
-
-    /* 설정 화면일 때만 세로 스크롤 허용 */
     body.allow-scroll { overflow-y: auto; height: auto; min-height: 100vh; }
 
-    /* 상단 통합 슬림 헤더 (1줄로 모든 컨트롤 압축) */
+    /* 상단 통합 슬림 헤더 */
     header {
       background: var(--primary); color: white; padding: 8px 20px; height: 54px;
       display: flex; justify-content: space-between; align-items: center; flex-shrink: 0;
@@ -34,10 +31,7 @@
     }
     header h1 { margin: 0; font-size: 1.25rem; white-space: nowrap; }
 
-    /* 헤더 내 교사 미니 리모컨 (산만하지 않게 한 줄 배치) */
-    .mini-remote {
-      display: flex; align-items: center; gap: 6px;
-    }
+    .mini-remote { display: flex; align-items: center; gap: 6px; }
     .status-dot {
       font-size: 0.85rem; background: rgba(0,0,0,0.22); padding: 4px 10px;
       border-radius: 12px; margin-right: 4px; white-space: nowrap;
@@ -59,7 +53,6 @@
     }
     .gear-btn:hover { background: rgba(255,255,255,0.32); }
 
-    /* 메인 작업 영역 (남은 높이를 100% 채움) */
     main {
       flex: 1; width: 100%; max-width: 1200px; margin: 0 auto;
       padding: 16px 20px; display: flex; flex-direction: column; overflow: hidden;
@@ -88,7 +81,7 @@
       background: var(--primary); color: white; border: none; border-radius: 16px; cursor: pointer;
     }
 
-    /* 문제 상단 & 본문 (비율 자동 조절) */
+    /* 문제 상단 & 본문 */
     .q-top { display: flex; justify-content: space-between; align-items: center; flex-shrink: 0; }
     .badge { background: #eef2ff; color: var(--primary); padding: 6px 16px; border-radius: 12px; font-weight: bold; font-size: 1.25rem; }
     .tts-btn {
@@ -104,19 +97,27 @@
       max-width: 42%; max-height: 100%; border-radius: 16px; border: 2px solid #eee; object-fit: contain;
     }
     .q-text {
-      flex: 1; font-size: clamp(1.8rem, 3.2vw, 2.6rem); font-weight: bold;
+      flex: 1; font-size: clamp(1.7rem, 3vw, 2.5rem); font-weight: bold;
       line-height: 1.4; word-break: keep-all;
     }
 
-    /* 보기 버튼 영역 (하단 42% 고정 비율로 절대 잘리지 않음) */
-    .options-area { height: 42%; min-height: 180px; flex-shrink: 0; display: flex; flex-direction: column; }
-    .options-grid { flex: 1; display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    /* 보기 버튼 영역 */
+    .options-area { height: 44%; min-height: 190px; flex-shrink: 0; display: flex; flex-direction: column; }
+    .options-grid {
+      flex: 1; display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr;
+      gap: 14px; min-height: 0;
+    }
     .opt-btn {
-      height: 100%; padding: 16px 24px; font-size: clamp(1.4rem, 2.3vw, 2rem); font-weight: bold; color: white;
+      height: 100%; width: 100%; padding: 12px 20px;
+      font-size: clamp(1.35rem, 2.2vw, 1.95rem); font-weight: bold; color: white;
       border: none; border-radius: 20px; cursor: pointer; transition: transform 0.1s, opacity 0.2s;
       text-shadow: 0 1px 3px rgba(0,0,0,0.28);
       display: flex; align-items: center; justify-content: center; text-align: center;
+      line-height: 1.3; word-break: keep-all; overflow-wrap: break-word; overflow: hidden;
     }
+    .opt-btn.text-md { font-size: clamp(1.1rem, 1.65vw, 1.45rem); line-height: 1.25; }
+    .opt-btn.text-lg { font-size: clamp(0.95rem, 1.35vw, 1.2rem); line-height: 1.2; padding: 10px 16px; }
+
     .opt-btn:active { transform: scale(0.98); }
     .opt-btn.selected { outline: 7px solid #222; transform: scale(0.98); }
     .opt-0 { background: var(--red); }
@@ -135,11 +136,9 @@
     .ox-o { background: var(--blue); }
     .ox-x { background: var(--red); }
 
-    /* 정답 공개 강조 */
     .dimmed { opacity: 0.28; }
     .correct-reveal { outline: 8px solid #1b4332; transform: scale(1.01); box-shadow: 0 8px 24px rgba(0,0,0,0.2); }
 
-    /* 대기 / 종료 중앙 정렬 */
     .center-box { margin: auto; text-align: center; }
     .center-box h2 { font-size: 2.2rem; color: var(--primary); margin: 16px 0; }
 
@@ -162,11 +161,11 @@
 <header>
   <h1>🧭 퀴즈챌린지! 우리는 코딩탐험대!</h1>
 
-  <!-- 교사 라이브 모드일 때만 헤더 우측에 슬림 리모컨 표시 -->
+  <!-- 교사 라이브 모드 리모컨 -->
   <div id="teacher-mini-bar" class="mini-remote hidden">
     <span id="tc-push-status" class="status-dot">🔴 대기중</span>
     <button class="nav-btn" onclick="prevQuestion()" title="이전 문제 (←)">◀</button>
-    <button class="nav-btn" onclick="speakCurrentQuestion()" title="다시 읽기 (R)">🔊 읽기</button>
+    <button class="nav-btn" onclick="speakCurrentQuestion()" title="문제 다시 읽기 (R)">🔊 읽기</button>
     <button class="nav-btn push" onclick="pushToStudents()" title="학생 화면에 보내기 (Space)">📢 학생전송</button>
     <button class="nav-btn reveal" onclick="revealAnswerOnBoard()" title="정답 확인 (Enter)">✨ 정답</button>
     <button class="nav-btn" onclick="nextQuestion()" title="다음 문제 (→)">다음 ▶</button>
@@ -175,7 +174,6 @@
     <button class="nav-btn" onclick="switchMode('student')">👦 나가기</button>
   </div>
 
-  <!-- 학생 모드일 때 보이는 톱니바퀴 -->
   <div id="student-header-bar">
     <button class="gear-btn" title="교사 화면" onclick="openTeacherAuth()">⚙️</button>
   </div>
@@ -184,7 +182,6 @@
 <main>
   <!-- ==================== 1. 학생 화면 ==================== -->
   <section id="student-section" class="full-card">
-    <!-- 학생 로그인 -->
     <div id="student-login" class="login-wrap">
       <h2 style="text-align:center; font-size:1.9rem;">안녕! 반, 번호, 이름을 적어주세요 😊</h2>
       <div class="login-grid">
@@ -193,17 +190,15 @@
         <input type="number" id="st-num" placeholder="번호" />
         <input type="text" id="st-name" placeholder="이름" />
       </div>
-      <button class="btn-big" onclick="startStudent()">탐험 시작하기 🚀</button>
+      <button class="btn-big" onclick="startStudent()">시작하기 🚀</button>
     </div>
 
-    <!-- 학생 대기 상태 -->
     <div id="student-wait" class="center-box hidden">
       <div style="font-size: 5rem;">👀</div>
       <h2>선생님 화면을 봐주세요!</h2>
       <p style="font-size: 1.4rem; color: #555;">선생님이 문제를 읽어주신 뒤 버튼을 누르면 여기에 보기가 나타납니다.</p>
     </div>
 
-    <!-- 학생 문제 풀이 화면 -->
     <div id="student-quiz" class="hidden" style="display:flex; flex-direction:column; height:100%; justify-content:space-between;">
       <div class="q-top">
         <span class="badge" id="st-q-num">문제 1</span>
@@ -219,16 +214,15 @@
       </div>
     </div>
 
-    <!-- 학생 완료 화면 -->
     <div id="student-end" class="center-box hidden">
       <div style="font-size: 5rem;">🎉</div>
-      <h2>참 잘했어요! 모든 탐험이 끝났습니다.</h2>
+      <h2>참 잘했어요! 모든 퀴즈가 끝났습니다.</h2>
       <p id="st-final-score" style="font-size: 2rem; font-weight: bold; color: var(--primary);"></p>
       <p id="st-submit-status" style="color: #2b9348; font-weight: bold; font-size: 1.25rem;">선생님께 점수와 답안을 보내는 중...</p>
     </div>
   </section>
 
-  <!-- ==================== 2. 교사 수업 진행 화면 (전자칠판용, 스크롤 없음) ==================== -->
+  <!-- ==================== 2. 교사 수업 진행 화면 ==================== -->
   <section id="teacher-live-section" class="full-card hidden">
     <div class="q-top">
       <span class="badge" id="tc-q-num" style="font-size:1.35rem;">문제 1 / 1</span>
@@ -243,7 +237,7 @@
     </div>
   </section>
 
-  <!-- ==================== 3. 교사 출제·설정 화면 (수업 준비용) ==================== -->
+  <!-- ==================== 3. 교사 출제·설정 화면 ==================== -->
   <section id="teacher-setup-section" class="hidden">
     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
       <h2 style="margin:0;">📝 문제 출제 및 시스템 설정</h2>
@@ -260,7 +254,7 @@
         </select>
       </div>
       <div class="form-group">
-        <label>문제 내용 (화면에 띄우면 자동으로 읽어줍니다)</label>
+        <label>문제 내용 (화면에 띄우면 문제 내용만 자연스럽게 읽어줍니다)</label>
         <textarea id="new-q-text" rows="2" placeholder="예: 다음 중 봄에 피는 꽃은 무엇일까요?"></textarea>
       </div>
       <div class="form-group">
@@ -302,10 +296,18 @@
     </div>
 
     <div class="card">
-      <h3>⚙️ 교사 비밀번호 · 구글 폼 · 실시간 전송 설정</h3>
+      <h3>⚙️ 교사 비밀번호 · 음성 · 구글 폼 · 실시간 전송 설정</h3>
       <div class="form-group">
         <label>🔑 교사 화면 비밀번호 설정</label>
         <input type="text" id="cfg-teacher-pw" placeholder="예: 1234" />
+      </div>
+
+      <div class="form-group">
+        <label>🔊 문제 읽기 범위</label>
+        <select id="cfg-read-options">
+          <option value="question_only">문제 내용만 읽기 (추천)</option>
+          <option value="with_options">문제와 보기까지 모두 읽기</option>
+        </select>
       </div>
 
       <hr style="border:none; border-top:1px solid #eee; margin:20px 0;" />
@@ -351,6 +353,7 @@
   // ==================== 기본 설정 ====================
   const DEFAULT_CONFIG = {
     teacherPw: "1234",
+    readOptions: "question_only",
     firebaseUrl: "",
     formUrl: "",
     entryGrade: "", entryClass: "", entryNum: "", entryName: "", entryScore: "",
@@ -384,17 +387,45 @@
   let studentInfo = null;
   let studentAnswers = {};
   let uploadedBase64 = "";
+  let bestKoreanVoice = null;
 
   const bc = new BroadcastChannel("grade1_quiz_channel");
 
+  // 브라우저의 가장 자연스러운 한국어 목소리 찾기
+  function loadBestKoreanVoice() {
+    if (!window.speechSynthesis) return;
+    const voices = window.speechSynthesis.getVoices();
+    const koVoices = voices.filter(v => v.lang.includes("ko"));
+    if (koVoices.length === 0) return;
+
+    // Google 한국의 또는 Microsoft Natural(자연스러운 음성) 최우선 선택
+    bestKoreanVoice =
+      koVoices.find(v => v.name.includes("Google")) ||
+      koVoices.find(v => v.name.includes("Natural")) ||
+      koVoices.find(v => v.name.includes("SunHi")) ||
+      koVoices[0];
+  }
+
+  if (window.speechSynthesis) {
+    window.speechSynthesis.onvoiceschanged = loadBestKoreanVoice;
+  }
+
   window.onload = () => {
+    loadBestKoreanVoice();
     loadConfigInputs();
     renderQuestionList();
     renderTeacherView();
     startSyncListener();
   };
 
-  // ==================== 키보드 단축키 (교사 수업 진행용) ====================
+  function getOptionSizeClass(text) {
+    const len = (text || "").length;
+    if (len >= 32) return "text-lg";
+    if (len >= 16) return "text-md";
+    return "";
+  }
+
+  // ==================== 키보드 단축키 ====================
   document.addEventListener("keydown", (e) => {
     if (!isTeacherLiveMode) return;
     if (e.code === "Space") {
@@ -412,23 +443,36 @@
     }
   });
 
-  // ==================== 음성 안내 (TTS) ====================
+  // ==================== 개선된 음성 안내 (TTS) ====================
   function speakText(text) {
     if (!window.speechSynthesis) return;
     window.speechSynthesis.cancel();
-    const utter = new SpeechSynthesisUtterance(text);
+    if (!bestKoreanVoice) loadBestKoreanVoice();
+
+    // O, X 단독 알파벳을 한국어 발음으로 자연스럽게 치환
+    const cleanText = text
+      .replace(/\bO\b/g, "오")
+      .replace(/\bX\b/g, "엑스");
+
+    const utter = new SpeechSynthesisUtterance(cleanText);
     utter.lang = "ko-KR";
-    utter.rate = 0.9;
-    utter.pitch = 1.05;
+    if (bestKoreanVoice) utter.voice = bestKoreanVoice;
+    utter.rate = 0.95;  // 너무 느리지 않고 자연스러운 표준 속도
+    utter.pitch = 1.0;  // 인위적인 높낮이 제거
     window.speechSynthesis.speak(utter);
   }
 
   function speakCurrentQuestion() {
     const q = questions[currentIdx];
     if (!q) return;
-    let script = `${currentIdx + 1}번 문제. ${q.text}`;
-    if (q.type === "choice") {
-      script += ` 1번 ${q.options[0]}, 2번 ${q.options[1]}, 3번 ${q.options[2]}, 4번 ${q.options[3]}.`;
+
+    // "1번 문제..." 접두어 없이 문제 본문만 깔끔하게 읽기
+    let script = q.text;
+
+    if (config.readOptions === "with_options" && q.type === "choice") {
+      const ordinals = ["첫 번째", "두 번째", "세 번째", "네 번째"];
+      const optScript = q.options.map((opt, idx) => `${ordinals[idx]}, ${opt}`).join(". ");
+      script += `. ${optScript}.`;
     }
     speakText(script);
   }
@@ -456,7 +500,7 @@
     document.getElementById("teacher-live-section").classList.remove("hidden");
     document.getElementById("student-header-bar").classList.add("hidden");
     document.getElementById("teacher-mini-bar").classList.remove("hidden");
-    showQuestionOnTeacher(); // 수업 화면 진입 시 문제 표시 및 음성 자동 안내
+    showQuestionOnTeacher();
   }
 
   function openSetupTab() {
@@ -508,7 +552,8 @@
         const isCorrect = (String(i) === String(q.answer));
         const revealClass = isAnswerRevealed ? (isCorrect ? "correct-reveal" : "dimmed") : "";
         const mark = (isAnswerRevealed && isCorrect) ? " 🎉" : "";
-        prevBox.innerHTML += `<div class="opt-btn opt-${i} ${revealClass}">${i + 1}. ${opt}${mark}</div>`;
+        const sizeClass = getOptionSizeClass(opt);
+        prevBox.innerHTML += `<div class="opt-btn opt-${i} ${sizeClass} ${revealClass}">${i + 1}. ${opt}${mark}</div>`;
       });
     }
 
@@ -535,8 +580,9 @@
     renderTeacherView();
     if (isAnswerRevealed) {
       const q = questions[currentIdx];
-      const ansText = q.type === "ox" ? q.answer : `${Number(q.answer) + 1}번 ${q.options[q.answer]}`;
-      speakText(`정답은 ${ansText} 입니다!`);
+      const ordinals = ["첫 번째", "두 번째", "세 번째", "네 번째"];
+      const ansText = q.type === "ox" ? q.answer : `${ordinals[q.answer]}, ${q.options[q.answer]}`;
+      speakText(`정답은 ${ansText} 입니다.`);
     }
   }
 
@@ -663,7 +709,8 @@
         optContainer.className = "options-grid";
         q.options.forEach((opt, i) => {
           const btn = document.createElement("button");
-          btn.className = `opt-btn opt-${i}`;
+          const sizeClass = getOptionSizeClass(opt);
+          btn.className = `opt-btn opt-${i} ${sizeClass}`;
           btn.innerText = `${i + 1}. ${opt}`;
           if (String(studentAnswers[currentIdx]) === String(i)) btn.classList.add("selected");
           btn.onclick = () => selectStudentAnswer(String(i), btn);
@@ -818,6 +865,7 @@
 
   function loadConfigInputs() {
     document.getElementById("cfg-teacher-pw").value = config.teacherPw || "1234";
+    document.getElementById("cfg-read-options").value = config.readOptions || "question_only";
     document.getElementById("cfg-firebase").value = config.firebaseUrl || "";
     document.getElementById("cfg-form-url").value = config.formUrl || "";
     document.getElementById("cfg-entry-grade").value = config.entryGrade || "";
@@ -839,6 +887,7 @@
     }
 
     config.teacherPw = newPw;
+    config.readOptions = document.getElementById("cfg-read-options").value;
     config.firebaseUrl = document.getElementById("cfg-firebase").value.trim();
     config.formUrl = document.getElementById("cfg-form-url").value.trim();
     config.entryGrade = document.getElementById("cfg-entry-grade").value.trim();
@@ -852,7 +901,7 @@
     }
 
     localStorage.setItem("quiz_1st_config", JSON.stringify(config));
-    alert("비밀번호 및 설정이 저장되었습니다!");
+    alert("설정이 저장되었습니다!");
   }
 </script>
 
