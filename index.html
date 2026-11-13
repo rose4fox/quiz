@@ -1550,7 +1550,7 @@
       rosterStream = null;
     }
 
-    // 1) 실시간 문제 전송 스트림 (교사 -> 학생 기기 0.1초 즉시 push)
+    // 1) 실시간 문제 전송 스트림 (교사 -> 학생 기기 즉시 push)
     try {
       liveQuizStream = new EventSource(baseUrl + "/live_quiz.json");
       const onQuizEvent = (e) => {
@@ -1656,7 +1656,7 @@
     setInterval(() => {
       if ((!isTeacherLiveMode && !isTeacherLobbyMode) || !config.firebaseUrl) return;
       fetchRosterOnce();
-    }, 1500);
+    }, 1000);
   }
 
   function renderTeacherLobby() {
@@ -2120,18 +2120,22 @@
     openTeacherEndScreen(total);
   }
 
-  // ==================== 실시간 상태 동기화 ====================
+  // ==================== 실시간 상태 동기화 (경량 페이로드 전송) ====================
   async function broadcastState(action, extra = {}) {
+    // PUSH_TO_STUDENT일 때만 현재 문제 데이터를 실어 보내고,
+    // 대기화면(SHOW_TEACHER_ONLY) / 시간종료(TIME_UP) / 초기화 / 종료는 100바이트 미만 초경량 신호만 즉시 전송
+    const isPush = (action === "PUSH_TO_STUDENT");
     const payload = Object.assign({
       action,
       currentIdx,
       isPushedToStudent,
-      timeLimit: Number(config.timeLimit) || 0,
+      totalCount: questions.length,
+      timeLimit: isPush ? (Number(config.timeLimit) || 0) : 0,
       endTime: 0,
-      question: questions[currentIdx],
-      allQuestions: questions,
+      question: isPush ? questions[currentIdx] : null,
       timestamp: Date.now()
     }, extra);
+
     bc.postMessage(payload);
 
     if (config.firebaseUrl) {
@@ -2174,7 +2178,7 @@
       handleIncomingState(e.data);
     };
 
-    // 백업 폴링 (SSE 스트림이 일시 끊겼을 경우 대비)
+    // 백업 폴링 (0.6초 간격으로 초경량 상태 확인)
     setInterval(() => {
       if (!config.firebaseUrl) return;
       const url = config.firebaseUrl.replace(/\/$/, "") + "/live_quiz.json";
@@ -2187,7 +2191,7 @@
           }
         })
         .catch(() => {});
-    }, 1500);
+    }, 600);
   }
 
   // ==================== 학생 화면 로직 ====================
@@ -2308,7 +2312,10 @@
     } 
     else if (data.action === "PUSH_TO_STUDENT") {
       currentIdx = data.currentIdx;
-      const q = data.question;
+      const q = data.question || questions[currentIdx];
+      if (!q) return;
+      if (data.question) questions[currentIdx] = data.question;
+
       const limit = Number(data.timeLimit) || 0;
       const endTime = Number(data.endTime) || 0;
 
