@@ -312,6 +312,7 @@
     .badge {
       background: #eef2ff; color: var(--primary); padding: 5px 14px;
       border-radius: 12px; font-weight: bold; font-size: clamp(1rem, 1.8vw, 1.2rem);
+      white-space: nowrap;
     }
     .timer-badge {
       background: #fff4d6; color: #b26a00; border: 2px solid #ffd166;
@@ -330,11 +331,6 @@
     @keyframes pulseUrgent {
       from { transform: scale(1); }
       to { transform: scale(1.06); }
-    }
-
-    .tts-btn {
-      background: #ff9f1c; color: white; border: none; padding: 7px 14px;
-      border-radius: 10px; font-size: clamp(0.92rem, 1.6vw, 1.05rem); font-weight: bold; cursor: pointer;
     }
 
     .quiz-split-grid {
@@ -672,15 +668,14 @@
       </div>
     </div>
 
-    <!-- 학생 문제 풀이 화면 -->
+    <!-- 학생 문제 풀이 화면 (우측 상단 문제 듣기 버튼 제거: 소리는 교사 PC에서만 재생) -->
     <div id="student-quiz" class="hidden" style="display:flex; flex-direction:column; height:100%;">
       <div class="q-top">
         <div class="q-top-left">
           <span class="badge" id="st-q-num">문제 1</span>
           <span id="st-timer-badge" class="timer-badge hidden">⏱️ 15초</span>
         </div>
-        <span id="st-feedback" style="font-size:clamp(1rem, 1.8vw, 1.3rem); font-weight:bold; color:var(--primary);"></span>
-        <button class="tts-btn" onclick="speakCurrentQuestion(true)">🔊 문제 듣기</button>
+        <span id="st-feedback" style="font-size:clamp(0.98rem, 1.8vw, 1.3rem); font-weight:bold; color:var(--primary); text-align:right; word-break:keep-all;"></span>
       </div>
       <div class="quiz-split-grid">
         <div id="st-left-pane" class="left-pane no-img">
@@ -831,7 +826,7 @@
       </div>
 
       <div class="form-group">
-        <label>🔊 문제 읽어주기 모드 (저학년 / 고학년 선택)</label>
+        <label>🔊 문제 읽어주기 모드 (교사 PC 전용 · 저학년 / 고학년 선택)</label>
         <select id="cfg-read-options">
           <option value="auto">자동 읽기 (저학년 추천 - 1번 보기가 10글자 넘으면 보기도 읽기)</option>
           <option value="none">읽어주기 끔 (고학년 추천 - 교사가 [🔊 읽기] 버튼을 누를 때만 읽기)</option>
@@ -1439,7 +1434,7 @@
     }
   });
 
-  // ==================== 스마트 음성 안내 (TTS) ====================
+  // ==================== 스마트 음성 안내 (TTS - 교사 전용) ====================
   function stopSpeech() {
     if (window.speechSynthesis) {
       window.speechSynthesis.cancel();
@@ -1893,9 +1888,11 @@
     document.getElementById("student-quiz").classList.add("hidden");
     document.getElementById("student-end").classList.remove("hidden");
 
+    // 한 문제도 안 풀었더라도 출석한 학생은 0점(totalScore = 0)으로 계산 및 전송됨
     let correctCount = 0;
     questions.forEach((q, idx) => {
-      if (String(studentAnswers[idx]) === String(q.answer)) {
+      const ans = studentAnswers[idx];
+      if (ans !== undefined && String(ans) === String(q.answer)) {
         correctCount++;
       }
     });
@@ -1912,7 +1909,7 @@
     if (config.entryClass) formData.append(config.entryClass, studentInfo.cls);
     if (config.entryNum) formData.append(config.entryNum, studentInfo.num);
     if (config.entryName) formData.append(config.entryName, studentInfo.name);
-    if (config.entryScore) formData.append(config.entryScore, totalScore);
+    if (config.entryScore) formData.append(config.entryScore, String(totalScore));
 
     const qEntries = [];
     for (let i = 1; i <= MAX_QUESTIONS; i++) {
@@ -1923,8 +1920,10 @@
     questions.forEach((q, idx) => {
       const entryId = qEntries[idx];
       const ans = studentAnswers[idx];
-      if (entryId && ans !== undefined) {
-        const formattedAns = (q.type === "ox") ? ans : `${Number(ans) + 1}번`;
+      if (entryId) {
+        const formattedAns = (ans === undefined)
+          ? "미응답"
+          : ((q.type === "ox") ? ans : `${Number(ans) + 1}번`);
         formData.append(entryId, formattedAns);
       }
     });
