@@ -389,10 +389,10 @@
       50% { transform: translateY(-8px); }
     }
     .wait-title {
-      margin: 0; font-size: clamp(1.6rem, 3.2vw, 2.6rem); color: #1a2340;
+      margin: 0; font-size: clamp(1.5rem, 3vw, 2.45rem); color: #1a2340; word-break: keep-all;
     }
     .wait-sub {
-      margin: 4px 0 0 0; font-size: clamp(1rem, 1.8vw, 1.3rem); color: #555; line-height: 1.4;
+      margin: 6px 0 0 0; font-size: clamp(1rem, 1.8vw, 1.28rem); color: #555; line-height: 1.45; word-break: keep-all;
     }
     .guide-steps {
       display: grid; grid-template-columns: repeat(3, 1fr); gap: clamp(10px, 1.8vw, 16px);
@@ -754,8 +754,8 @@
       </div>
       <div class="bounce-icon">👀</div>
       <div>
-        <h2 class="wait-title">선생님 화면을 봐주세요!</h2>
-        <p class="wait-sub">선생님이 문제를 보여주신 뒤 신호를 보내면 여기에 버튼이 나타납니다.</p>
+        <h2 class="wait-title">먼저 선생님 화면에서 문제를 함께 확인합니다!</h2>
+        <p class="wait-sub">잠시 후 개인 화면에 정답 선택 버튼이 나타나면 답을 클릭해 주세요!</p>
       </div>
       <div class="guide-steps">
         <!-- 1. 앞 화면 보기 (커스텀 벡터 일러스트) -->
@@ -2122,8 +2122,6 @@
 
   // ==================== 실시간 상태 동기화 (경량 페이로드 전송) ====================
   async function broadcastState(action, extra = {}) {
-    // PUSH_TO_STUDENT일 때만 현재 문제 데이터를 실어 보내고,
-    // 대기화면(SHOW_TEACHER_ONLY) / 시간종료(TIME_UP) / 초기화 / 종료는 100바이트 미만 초경량 신호만 즉시 전송
     const isPush = (action === "PUSH_TO_STUDENT");
     const payload = Object.assign({
       action,
