@@ -20,13 +20,13 @@
     
     html, body {
       margin: 0; padding: 0;
-      height: 100%; height: 100dvh; /* 태블릿 주소창·하단바 제외한 실제 가시 높이 */
+      height: 100%; height: 100dvh;
       background: var(--bg); color: var(--text);
       display: flex; flex-direction: column; overflow: hidden;
     }
     body.allow-scroll { overflow-y: auto; height: auto; min-height: 100dvh; }
 
-    /* 학생용 상단 헤더 (태블릿 높이 절약을 위해 슬림하게 조정) */
+    /* 학생용 상단 헤더 */
     header {
       background: var(--primary); color: white; padding: 6px 16px; height: 46px;
       display: flex; justify-content: space-between; align-items: center; flex-shrink: 0;
@@ -105,7 +105,7 @@
     .nav-btn.reveal { background: #7209b7; border-color: #7209b7; color: white; }
     .nav-btn.finish { background: #d90429; border-color: #d90429; color: white; }
 
-    /* ==================== 학생 로그인 화면 (태블릿·PC 반응형) ==================== */
+    /* ==================== 학생 로그인 화면 ==================== */
     .login-wrap {
       margin: auto; width: 100%; max-width: 780px; text-align: center;
       display: flex; flex-direction: column; gap: clamp(12px, 2.5vh, 22px);
@@ -177,7 +177,7 @@
       background: var(--primary); color: white; border: none; border-radius: 16px; cursor: pointer;
     }
 
-    /* ==================== 학생 대기 화면 (갤럭시탭 S6 라이트 높이 최적화) ==================== */
+    /* ==================== 학생 대기 화면 ==================== */
     .wait-wrap {
       margin: auto; width: 100%; max-width: 820px; text-align: center;
       display: flex; flex-direction: column; align-items: center; gap: clamp(10px, 2.2vh, 22px);
@@ -228,7 +228,7 @@
     .quiz-split-grid {
       flex: 1;
       display: grid;
-      grid-template-columns: 1.45fr 1fr; /* 태블릿 가로화면에서도 보기 버튼 폭 충분히 확보 */
+      grid-template-columns: 1.45fr 1fr;
       gap: clamp(12px, 2vw, 24px);
       min-height: 0;
       overflow: hidden;
@@ -299,11 +299,13 @@
     .q-text.q-lg { font-size: clamp(1.0rem, 1.65vw, 1.45rem); line-height: 1.38; }
     .q-text.q-xl { font-size: clamp(0.92rem, 1.35vw, 1.22rem); line-height: 1.34; }
 
+    /* 오른쪽 보기 영역: 버튼 확대 시 모서리가 깎이지 않도록 여유 패딩과 visible 적용 */
     .right-pane {
       display: flex;
       flex-direction: column;
       min-height: 0;
-      overflow: hidden;
+      padding: 4px;
+      overflow: visible;
     }
     .options-col {
       flex: 1;
@@ -326,7 +328,7 @@
       height: 100%; width: 100%;
       padding: clamp(8px, 1.4vh, 12px) clamp(12px, 1.8vw, 20px);
       font-size: clamp(1.1rem, 1.95vw, 1.75rem); font-weight: bold; color: white;
-      border: none; border-radius: 16px; cursor: pointer; transition: transform 0.1s, opacity 0.2s;
+      border: none; border-radius: 16px; cursor: pointer; transition: transform 0.1s, opacity 0.2s, box-shadow 0.15s;
       text-shadow: 0 1px 3px rgba(0,0,0,0.28);
       display: flex; align-items: center; justify-content: center; text-align: center;
       line-height: 1.4; word-break: keep-all; overflow-wrap: break-word; overflow: hidden;
@@ -335,7 +337,7 @@
     .opt-btn.text-lg { font-size: clamp(0.85rem, 1.2vw, 1.1rem); line-height: 1.36; padding: 6px 12px; }
 
     .opt-btn:active { transform: scale(0.98); }
-    .opt-btn.selected { outline: 5px solid #222; transform: scale(0.98); }
+    .opt-btn.selected { box-shadow: inset 0 0 0 5px #222; transform: scale(0.98); }
     .opt-0 { background: var(--red); }
     .opt-1 { background: var(--blue); }
     .opt-2 { background: var(--yellow); color: #222; text-shadow: none; }
@@ -345,13 +347,18 @@
       height: 100%; width: 100%; font-size: clamp(2.8rem, 6vh, 5.2rem);
       border-radius: 20px; border: none; color: white; font-weight: bold; cursor: pointer;
       display: flex; align-items: center; justify-content: center;
+      transition: transform 0.1s, opacity 0.2s, box-shadow 0.15s;
     }
-    .ox-btn.selected { outline: 6px solid #222; transform: scale(0.98); }
+    .ox-btn.selected { box-shadow: inset 0 0 0 6px #222; transform: scale(0.98); }
     .ox-o { background: var(--blue); }
     .ox-x { background: var(--red); }
 
     .dimmed { opacity: 0.28; }
-    .correct-reveal { outline: 7px solid #1b4332; transform: scale(1.01); box-shadow: 0 8px 24px rgba(0,0,0,0.2); }
+    .correct-reveal {
+      box-shadow: inset 0 0 0 6px #1b4332, 0 8px 20px rgba(27, 67, 50, 0.32);
+      transform: scale(1.01);
+      z-index: 2;
+    }
 
     .center-box { margin: auto; text-align: center; }
     .center-box h2 { font-size: clamp(1.6rem, 3vw, 2.2rem); color: var(--primary); margin: 16px 0; }
@@ -483,7 +490,7 @@
       <div class="bounce-icon">👀</div>
       <div>
         <h2 class="wait-title">선생님 화면을 봐주세요!</h2>
-        <p class="wait-sub">선생님이 문제를 읽어주신 뒤 신호를 보내면 여기에 버튼이 나타납니다.</p>
+        <p class="wait-sub">선생님이 문제를 보여주신 뒤 신호를 보내면 여기에 버튼이 나타납니다.</p>
       </div>
       <div class="guide-steps">
         <div class="step-card">
@@ -491,8 +498,8 @@
           <span class="step-text">1. 앞 화면 보기</span>
         </div>
         <div class="step-card">
-          <span class="step-emoji">👂</span>
-          <span class="step-text">2. 문제 잘 듣기</span>
+          <span class="step-emoji">🧠</span>
+          <span class="step-text">2. 문제 생각하기</span>
         </div>
         <div class="step-card">
           <span class="step-emoji">👆</span>
@@ -506,7 +513,7 @@
       <div class="q-top">
         <span class="badge" id="st-q-num">문제 1</span>
         <span id="st-feedback" style="font-size:clamp(1rem, 1.8vw, 1.3rem); font-weight:bold; color:var(--primary);"></span>
-        <button class="tts-btn" onclick="speakCurrentQuestion()">🔊 문제 다시 듣기</button>
+        <button class="tts-btn" onclick="speakCurrentQuestion(true)">🔊 문제 듣기</button>
       </div>
       <div class="quiz-split-grid">
         <div id="st-left-pane" class="left-pane no-img">
@@ -571,7 +578,7 @@
         </select>
       </div>
       <div class="form-group">
-        <label>문제 내용 (화면에 띄우면 문제 내용만 자연스럽게 읽어줍니다)</label>
+        <label>문제 내용</label>
         <textarea id="new-q-text" rows="2" placeholder="예: 다음 중 봄에 피는 꽃은 무엇일까요?"></textarea>
       </div>
       <div class="form-group">
@@ -633,11 +640,12 @@
       </div>
 
       <div class="form-group">
-        <label>🔊 문제 읽기 범위</label>
+        <label>🔊 문제 읽어주기 모드 (저학년 / 고학년 선택)</label>
         <select id="cfg-read-options">
-          <option value="auto">자동 (1번 보기가 10글자 넘으면 보기도 읽기 - 추천)</option>
-          <option value="question_only">항상 문제 내용만 읽기</option>
-          <option value="with_options">항상 문제와 보기까지 모두 읽기</option>
+          <option value="auto">자동 읽기 (저학년 추천 - 1번 보기가 10글자 넘으면 보기도 읽기)</option>
+          <option value="none">읽어주기 끔 (고학년 추천 - 교사가 [🔊 읽기] 버튼을 누를 때만 읽기)</option>
+          <option value="question_only">자동 읽기 (항상 문제 내용만 읽기)</option>
+          <option value="with_options">자동 읽기 (항상 문제와 보기까지 모두 읽기)</option>
         </select>
       </div>
 
@@ -690,7 +698,7 @@
     </button>
     <button class="nav-btn" onclick="resetStudentRoster()" title="새 반 수업을 위해 접속 인원 명단 초기화">🔄 초기화</button>
     <button class="nav-btn" onclick="prevQuestion()" title="단축키: 왼쪽 방향키 (←)">◀</button>
-    <button class="nav-btn" onclick="speakCurrentQuestion()" title="단축키: R">🔊 읽기</button>
+    <button class="nav-btn" onclick="speakCurrentQuestion(true)" title="단축키: R (수동 읽기)">🔊 읽기</button>
     <button class="nav-btn push" onclick="pushToStudents()" title="단축키: Space">📢 학생전송</button>
     <button class="nav-btn reveal" onclick="revealAnswerOnBoard()" title="단축키: Enter">✨ 정답</button>
     <button class="nav-btn" onclick="nextQuestion()" title="단축키: 오른쪽 방향키 (→)">다음 ▶</button>
@@ -704,7 +712,7 @@
   // ==================== 기본 설정 ====================
   const DEFAULT_CONFIG = {
     teacherPw: "1234",
-    readOptions: "auto",
+    readOptions: "auto", // "auto" | "none" | "question_only" | "with_options"
     firebaseUrl: "",
     formUrl: "",
     entryGrade: "", entryClass: "", entryNum: "", entryName: "", entryScore: "",
@@ -730,7 +738,7 @@
   ];
 
   let config = Object.assign({}, DEFAULT_CONFIG, JSON.parse(localStorage.getItem("quiz_1st_config")) || {});
-  if (!["auto", "question_only", "with_options"].includes(config.readOptions)) {
+  if (!["auto", "none", "question_only", "with_options"].includes(config.readOptions)) {
     config.readOptions = "auto";
   }
 
@@ -810,7 +818,7 @@
       if (data) {
         if (data.config) {
           config = Object.assign({}, config, data.config);
-          if (!["auto", "question_only", "with_options"].includes(config.readOptions)) {
+          if (!["auto", "none", "question_only", "with_options"].includes(config.readOptions)) {
             config.readOptions = "auto";
           }
           localStorage.setItem("quiz_1st_config", JSON.stringify(config));
@@ -968,7 +976,7 @@
     } else if (e.code === "ArrowLeft") {
       prevQuestion();
     } else if (e.key === "r" || e.key === "R" || e.key === "ㄱ") {
-      speakCurrentQuestion();
+      speakCurrentQuestion(true);
     }
   });
 
@@ -996,18 +1004,23 @@
     window.speechSynthesis.speak(utter);
   }
 
-  function speakCurrentQuestion() {
+  function speakCurrentQuestion(manualTrigger = false) {
     const q = questions[currentIdx];
     if (!q) return;
 
-    let script = q.text;
     const mode = document.getElementById("cfg-read-options")?.value || config.readOptions || "auto";
+
+    if (mode === "none" && !manualTrigger) {
+      return;
+    }
+
+    let script = q.text;
 
     if (q.type === "choice") {
       const firstOptLen = (q.options[0] || "").replace(/\s+/g, "").length;
       const shouldReadOptions =
         mode === "with_options" ||
-        (mode === "auto" && firstOptLen > 10);
+        ((mode === "auto" || mode === "none") && firstOptLen > 10);
 
       if (shouldReadOptions) {
         const ordinals = ["첫 번째", "두 번째", "세 번째", "네 번째"];
@@ -1133,7 +1146,7 @@
     isAnswerRevealed = false;
     renderTeacherView();
     broadcastState("SHOW_TEACHER_ONLY");
-    speakCurrentQuestion();
+    speakCurrentQuestion(false);
   }
 
   function pushToStudents() {
@@ -1145,7 +1158,10 @@
   function revealAnswerOnBoard() {
     isAnswerRevealed = !isAnswerRevealed;
     renderTeacherView();
+    const mode = document.getElementById("cfg-read-options")?.value || config.readOptions || "auto";
+
     if (isAnswerRevealed) {
+      if (mode === "none") return;
       const q = questions[currentIdx];
       const ordinals = ["첫 번째", "두 번째", "세 번째", "네 번째"];
       const ansText = q.type === "ox" ? q.answer : `${ordinals[q.answer]}, ${q.options[q.answer]}`;
