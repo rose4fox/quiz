@@ -65,8 +65,9 @@
       display: flex; flex-direction: column; justify-content: space-between; overflow: hidden; min-height: 0;
     }
     main.projector-mode .full-card {
-      flex: none;
-      height: 84vh;
+      flex: 1;
+      height: auto;
+      min-height: 0;
       padding: 18px 28px 22px 28px;
     }
 
@@ -116,23 +117,27 @@
     .modal-btn.cancel { background: #e2e8f0; color: #334155; }
     .modal-btn.confirm { background: var(--primary); color: white; }
 
-    /* ==================== 교사 하단 리모컨 바 ==================== */
+    /* ==================== 교사 하단 리모컨 바 (중앙 정렬 & 태블릿 대응) ==================== */
     .teacher-bottom-bar {
-      background: #23293a; color: white; padding: 6px 18px; height: 46px;
-      display: flex; justify-content: space-between; align-items: center; flex-shrink: 0;
+      background: #23293a; color: white; padding: 6px 12px; min-height: 46px;
+      display: flex; justify-content: center; align-items: center; flex-wrap: wrap;
+      gap: 6px 12px; flex-shrink: 0;
       margin-top: auto; border-top: 1px solid rgba(255,255,255,0.1);
     }
     .bottom-title {
-      font-size: 0.9rem; color: #aab4cf; font-weight: bold; white-space: nowrap;
+      font-size: 0.88rem; color: #aab4cf; font-weight: bold; white-space: nowrap;
     }
-    .mini-remote { display: flex; align-items: center; gap: 6px; }
+    .mini-remote {
+      display: flex; justify-content: center; align-items: center;
+      flex-wrap: wrap; gap: 5px;
+    }
     .status-dot {
-      font-size: 0.82rem; background: rgba(255,255,255,0.12); padding: 4px 10px;
+      font-size: 0.8rem; background: rgba(255,255,255,0.12); padding: 4px 9px;
       border-radius: 10px; white-space: nowrap;
     }
     .resp-badge {
-      font-size: 0.85rem; background: #1e3a8a; border: 1px solid #60a5fa; color: #dbeafe;
-      padding: 4px 11px; border-radius: 10px; font-weight: bold; cursor: pointer;
+      font-size: 0.82rem; background: #1e3a8a; border: 1px solid #60a5fa; color: #dbeafe;
+      padding: 4px 10px; border-radius: 10px; font-weight: bold; cursor: pointer;
       white-space: nowrap; transition: all 0.15s;
     }
     .resp-badge:hover { background: #2563eb; color: white; }
@@ -142,13 +147,20 @@
 
     .nav-btn {
       background: rgba(255,255,255,0.14); border: 1px solid rgba(255,255,255,0.22);
-      color: #f1f5ff; padding: 4px 10px; border-radius: 7px; font-size: 0.85rem;
+      color: #f1f5ff; padding: 4px 9px; border-radius: 7px; font-size: 0.82rem;
       font-weight: bold; cursor: pointer; white-space: nowrap; transition: background 0.15s;
     }
     .nav-btn:hover { background: rgba(255,255,255,0.28); }
     .nav-btn.push { background: #2b9348; border-color: #2b9348; color: white; }
     .nav-btn.reveal { background: #7209b7; border-color: #7209b7; color: white; }
     .nav-btn.finish { background: #d90429; border-color: #d90429; color: white; }
+
+    @media (max-width: 1120px) {
+      .bottom-title { display: none; }
+      .teacher-bottom-bar { padding: 5px 8px; }
+      .mini-remote { gap: 4px; }
+      .status-dot, .resp-badge, .nav-btn { font-size: 0.78rem; padding: 4px 7px; }
+    }
 
     /* ==================== 학생 로그인 화면 ==================== */
     .login-wrap {
@@ -668,7 +680,7 @@
       </div>
     </div>
 
-    <!-- 학생 문제 풀이 화면 (우측 상단 문제 듣기 버튼 제거: 소리는 교사 PC에서만 재생) -->
+    <!-- 학생 문제 풀이 화면 -->
     <div id="student-quiz" class="hidden" style="display:flex; flex-direction:column; height:100%;">
       <div class="q-top">
         <div class="q-top-left">
@@ -909,7 +921,7 @@
   </div>
 </div>
 
-<!-- 교사 전용 하단 컨트롤 바 -->
+<!-- 교사 전용 하단 컨트롤 바 (중앙 정렬) -->
 <footer id="teacher-bottom-bar" class="teacher-bottom-bar hidden">
   <span class="bottom-title">🧭 코딩탐험대</span>
   <div class="mini-remote">
