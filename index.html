@@ -98,16 +98,16 @@
     }
     .q-text {
       flex: 1; font-size: clamp(1.7rem, 3vw, 2.5rem); font-weight: bold;
-      line-height: 1.4; word-break: keep-all;
+      line-height: 1.45; word-break: keep-all;
     }
 
-    /* 보기 버튼 영역 */
-    .options-area { height: 44%; min-height: 190px; flex-shrink: 0; display: flex; flex-direction: column; }
+    /* 보기 버튼 영역 (여유로운 줄간격과 안쪽 여백 적용) */
+    .options-area { height: 45%; min-height: 200px; flex-shrink: 0; display: flex; flex-direction: column; }
     .options-grid {
       flex: 1; display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr;
       gap: 14px; min-height: 0;
     }
-.opt-btn {
+    .opt-btn {
       height: 100%; width: 100%; padding: 16px 24px;
       font-size: clamp(1.35rem, 2.2vw, 1.95rem); font-weight: bold; color: white;
       border: none; border-radius: 20px; cursor: pointer; transition: transform 0.1s, opacity 0.2s;
@@ -115,10 +115,9 @@
       display: flex; align-items: center; justify-content: center; text-align: center;
       line-height: 1.5; word-break: keep-all; overflow-wrap: break-word; overflow: hidden;
     }
-    /* 문장 길이에 따른 자동 글씨 크기 축소 및 넉넉한 줄간격 */
     .opt-btn.text-md { font-size: clamp(1.1rem, 1.6vw, 1.4rem); line-height: 1.55; padding: 14px 22px; }
     .opt-btn.text-lg { font-size: clamp(0.95rem, 1.3vw, 1.15rem); line-height: 1.55; padding: 12px 18px; }
-    
+
     .opt-btn:active { transform: scale(0.98); }
     .opt-btn.selected { outline: 7px solid #222; transform: scale(0.98); }
     .opt-0 { background: var(--red); }
@@ -316,8 +315,9 @@
       <div class="form-group">
         <label>🔊 문제 읽기 범위</label>
         <select id="cfg-read-options">
-          <option value="question_only">문제 내용만 읽기 (추천)</option>
-          <option value="with_options">문제와 보기까지 모두 읽기</option>
+          <option value="auto">자동 (1번 보기가 10글자 넘으면 보기도 읽기 - 추천)</option>
+          <option value="question_only">항상 문제 내용만 읽기</option>
+          <option value="with_options">항상 문제와 보기까지 모두 읽기</option>
         </select>
       </div>
 
@@ -364,7 +364,7 @@
   // ==================== 기본 설정 (여기에 주소를 미리 적어두면 게스트 모드에서도 입력 불필요!) ====================
   const DEFAULT_CONFIG = {
     teacherPw: "1234",
-    readOptions: "question_only",
+    readOptions: "auto",
     firebaseUrl: "", // 예: "https://grade1-quiz-default-rtdb.firebaseio.com"
     formUrl: "",     // 예: "https://docs.google.com/forms/d/e/.../formResponse"
     entryGrade: "", entryClass: "", entryNum: "", entryName: "", entryScore: "",
@@ -425,7 +425,7 @@
     loadConfigInputs();
     renderQuestionList();
     renderTeacherView();
-    await loadFromCloud(); // 게스트 모드에서도 클라우드에서 즉시 복원!
+    await loadFromCloud();
     startSyncListener();
   };
 
@@ -496,7 +496,7 @@
     }
   });
 
-  // ==================== 음성 안내 (TTS) ====================
+  // ==================== 스마트 음성 안내 (TTS) ====================
   function speakText(text) {
     if (!window.speechSynthesis) return;
     window.speechSynthesis.cancel();
@@ -514,14 +514,14 @@
     window.speechSynthesis.speak(utter);
   }
 
-function speakCurrentQuestion() {
+  function speakCurrentQuestion() {
     const q = questions[currentIdx];
     if (!q) return;
 
     let script = q.text;
 
     if (q.type === "choice") {
-      // 1번 보기(options[0])의 공백 제외 글자 수 계산
+      // 1번 보기의 공백 제외 글자 수 계산 (10글자 초과 시 자동 보기 읽기)
       const firstOptLen = (q.options[0] || "").replace(/\s+/g, "").length;
       const shouldReadOptions =
         config.readOptions === "with_options" ||
@@ -535,6 +535,7 @@ function speakCurrentQuestion() {
     }
     speakText(script);
   }
+
   // ==================== 화면 모드 전환 ====================
   function switchMode(mode) {
     document.body.classList.remove("allow-scroll");
@@ -569,7 +570,6 @@ function speakCurrentQuestion() {
   }
 
   async function openTeacherAuth() {
-    // 비밀번호 확인 전 클라우드에서 최신 비밀번호 동기화
     await loadFromCloud();
     const currentPw = config.teacherPw || "1234";
     const pw = prompt("선생님 비밀번호를 입력하세요:");
@@ -925,7 +925,7 @@ function speakCurrentQuestion() {
 
   function loadConfigInputs() {
     document.getElementById("cfg-teacher-pw").value = config.teacherPw || "1234";
-    document.getElementById("cfg-read-options").value = config.readOptions || "question_only";
+    document.getElementById("cfg-read-options").value = config.readOptions || "auto";
     document.getElementById("cfg-firebase").value = config.firebaseUrl || "";
     document.getElementById("cfg-form-url").value = config.formUrl || "";
     document.getElementById("cfg-entry-grade").value = config.entryGrade || "";
