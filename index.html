@@ -514,19 +514,27 @@
     window.speechSynthesis.speak(utter);
   }
 
-  function speakCurrentQuestion() {
+function speakCurrentQuestion() {
     const q = questions[currentIdx];
     if (!q) return;
 
     let script = q.text;
-    if (config.readOptions === "with_options" && q.type === "choice") {
-      const ordinals = ["첫 번째", "두 번째", "세 번째", "네 번째"];
-      const optScript = q.options.map((opt, idx) => `${ordinals[idx]}, ${opt}`).join(". ");
-      script += `. ${optScript}.`;
+
+    if (q.type === "choice") {
+      // 1번 보기(options[0])의 공백 제외 글자 수 계산
+      const firstOptLen = (q.options[0] || "").replace(/\s+/g, "").length;
+      const shouldReadOptions =
+        config.readOptions === "with_options" ||
+        (config.readOptions === "auto" && firstOptLen > 10);
+
+      if (shouldReadOptions) {
+        const ordinals = ["첫 번째", "두 번째", "세 번째", "네 번째"];
+        const optScript = q.options.map((opt, idx) => `${ordinals[idx]}, ${opt}`).join(". ");
+        script += `. ${optScript}.`;
+      }
     }
     speakText(script);
   }
-
   // ==================== 화면 모드 전환 ====================
   function switchMode(mode) {
     document.body.classList.remove("allow-scroll");
