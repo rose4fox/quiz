@@ -107,17 +107,18 @@
       flex: 1; display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr;
       gap: 14px; min-height: 0;
     }
-    .opt-btn {
-      height: 100%; width: 100%; padding: 12px 20px;
+.opt-btn {
+      height: 100%; width: 100%; padding: 16px 24px;
       font-size: clamp(1.35rem, 2.2vw, 1.95rem); font-weight: bold; color: white;
       border: none; border-radius: 20px; cursor: pointer; transition: transform 0.1s, opacity 0.2s;
       text-shadow: 0 1px 3px rgba(0,0,0,0.28);
       display: flex; align-items: center; justify-content: center; text-align: center;
-      line-height: 1.3; word-break: keep-all; overflow-wrap: break-word; overflow: hidden;
+      line-height: 1.5; word-break: keep-all; overflow-wrap: break-word; overflow: hidden;
     }
-    .opt-btn.text-md { font-size: clamp(1.1rem, 1.65vw, 1.45rem); line-height: 1.25; }
-    .opt-btn.text-lg { font-size: clamp(0.95rem, 1.35vw, 1.2rem); line-height: 1.2; padding: 10px 16px; }
-
+    /* 문장 길이에 따른 자동 글씨 크기 축소 및 넉넉한 줄간격 */
+    .opt-btn.text-md { font-size: clamp(1.1rem, 1.6vw, 1.4rem); line-height: 1.55; padding: 14px 22px; }
+    .opt-btn.text-lg { font-size: clamp(0.95rem, 1.3vw, 1.15rem); line-height: 1.55; padding: 12px 18px; }
+    
     .opt-btn:active { transform: scale(0.98); }
     .opt-btn.selected { outline: 7px solid #222; transform: scale(0.98); }
     .opt-0 { background: var(--red); }
@@ -154,6 +155,10 @@
       display: flex; justify-content: space-between; align-items: center;
       padding: 12px; border-bottom: 1px solid #eee;
     }
+    .cloud-badge {
+      display: inline-block; background: #e6f4ea; color: #1e8e3e; padding: 4px 10px;
+      border-radius: 8px; font-size: 0.85rem; font-weight: bold; margin-left: 8px;
+    }
   </style>
 </head>
 <body>
@@ -161,7 +166,6 @@
 <header>
   <h1>🧭 퀴즈챌린지! 우리는 코딩탐험대!</h1>
 
-  <!-- 교사 라이브 모드 리모컨 -->
   <div id="teacher-mini-bar" class="mini-remote hidden">
     <span id="tc-push-status" class="status-dot">🔴 대기중</span>
     <button class="nav-btn" onclick="prevQuestion()" title="이전 문제 (←)">◀</button>
@@ -240,12 +244,15 @@
   <!-- ==================== 3. 교사 출제·설정 화면 ==================== -->
   <section id="teacher-setup-section" class="hidden">
     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
-      <h2 style="margin:0;">📝 문제 출제 및 시스템 설정</h2>
+      <div>
+        <h2 style="margin:0; display:inline-block;">📝 문제 출제 및 클라우드 설정</h2>
+        <span id="cloud-sync-indicator" class="cloud-badge">☁️ 클라우드 대기중</span>
+      </div>
       <button class="btn-big" style="width:auto; padding:12px 24px; font-size:1.1rem;" onclick="backToLiveBoard()">📺 수업 화면으로 돌아가기</button>
     </div>
 
     <div class="card">
-      <h3>✏️ 새 문제 추가하기 (최대 10문항 권장)</h3>
+      <h3>✏️ 새 문제 추가하기 (추가 즉시 Firebase 클라우드에 자동 백업됩니다)</h3>
       <div class="form-group">
         <label>문제 유형</label>
         <select id="new-q-type" onchange="toggleOptionInputs()">
@@ -289,16 +296,20 @@
         </div>
       </div>
 
-      <button class="btn-big" onclick="addQuestion()">➕ 문제 저장하기</button>
+      <button class="btn-big" onclick="addQuestion()">➕ 문제 저장하기 (클라우드 자동 저장)</button>
 
       <h3 style="margin-top:30px;">📋 등록된 문제 목록</h3>
       <div id="question-list"></div>
     </div>
 
     <div class="card">
-      <h3>⚙️ 교사 비밀번호 · 음성 · 구글 폼 · 실시간 전송 설정</h3>
+      <h3>⚙️ 교사 비밀번호 · 음성 · 구글 폼 · Firebase 설정</h3>
+      <p style="font-size:0.9rem; color:#555; line-height:1.5;">
+        * 게스트 모드 컴퓨터실에서는 아래 설정을 입력하고 <b>[💾 클라우드에 영구 저장하기]</b>를 누르시면 다음 수업에서도 그대로 불러옵니다.<br>
+        * <code>DEFAULT_CONFIG</code> 코드 안에 주소를 미리 넣어두시면 매번 입력할 필요조차 없습니다.
+      </p>
       <div class="form-group">
-        <label>🔑 교사 화면 비밀번호 설정</label>
+        <label>🔑 교사 화면 비밀번호 설정 (클라우드에 저장되어 모든 PC에 적용됩니다)</label>
         <input type="text" id="cfg-teacher-pw" placeholder="예: 1234" />
       </div>
 
@@ -313,7 +324,7 @@
       <hr style="border:none; border-top:1px solid #eee; margin:20px 0;" />
 
       <div class="form-group">
-        <label>Firebase Realtime DB URL (실시간 학생 화면 전송용)</label>
+        <label>Firebase Realtime DB URL (실시간 전송 및 문제/설정 클라우드 저장용)</label>
         <input type="text" id="cfg-firebase" placeholder="예: https://grade1-quiz-default-rtdb.firebaseio.com" />
       </div>
       <div class="form-group">
@@ -344,18 +355,18 @@
         <input type="text" id="cfg-entry-q10" placeholder="10번 entry.번호" />
       </div>
 
-      <button class="btn-big" style="margin-top:14px;" onclick="saveSettings()">💾 설정 저장하기</button>
+      <button class="btn-big" style="margin-top:14px;" onclick="saveSettings()">💾 클라우드에 영구 저장하기</button>
     </div>
   </section>
 </main>
 
 <script>
-  // ==================== 기본 설정 ====================
+  // ==================== 기본 설정 (여기에 주소를 미리 적어두면 게스트 모드에서도 입력 불필요!) ====================
   const DEFAULT_CONFIG = {
     teacherPw: "1234",
     readOptions: "question_only",
-    firebaseUrl: "",
-    formUrl: "",
+    firebaseUrl: "", // 예: "https://grade1-quiz-default-rtdb.firebaseio.com"
+    formUrl: "",     // 예: "https://docs.google.com/forms/d/e/.../formResponse"
     entryGrade: "", entryClass: "", entryNum: "", entryName: "", entryScore: "",
     entryQ1: "", entryQ2: "", entryQ3: "", entryQ4: "", entryQ5: "",
     entryQ6: "", entryQ7: "", entryQ8: "", entryQ9: "", entryQ10: ""
@@ -391,14 +402,12 @@
 
   const bc = new BroadcastChannel("grade1_quiz_channel");
 
-  // 브라우저의 가장 자연스러운 한국어 목소리 찾기
   function loadBestKoreanVoice() {
     if (!window.speechSynthesis) return;
     const voices = window.speechSynthesis.getVoices();
     const koVoices = voices.filter(v => v.lang.includes("ko"));
     if (koVoices.length === 0) return;
 
-    // Google 한국의 또는 Microsoft Natural(자연스러운 음성) 최우선 선택
     bestKoreanVoice =
       koVoices.find(v => v.name.includes("Google")) ||
       koVoices.find(v => v.name.includes("Natural")) ||
@@ -410,13 +419,57 @@
     window.speechSynthesis.onvoiceschanged = loadBestKoreanVoice;
   }
 
-  window.onload = () => {
+  // ==================== 초기화: 접속 즉시 Firebase에서 저장된 문제·비밀번호·설정 불러오기 ====================
+  window.onload = async () => {
     loadBestKoreanVoice();
     loadConfigInputs();
     renderQuestionList();
     renderTeacherView();
+    await loadFromCloud(); // 게스트 모드에서도 클라우드에서 즉시 복원!
     startSyncListener();
   };
+
+  async function loadFromCloud() {
+    if (!config.firebaseUrl) return;
+    const url = config.firebaseUrl.replace(/\/$/, "") + "/quiz_bank.json";
+    try {
+      const res = await fetch(url);
+      const data = await res.json();
+      if (data) {
+        if (data.config) {
+          config = Object.assign({}, config, data.config);
+          localStorage.setItem("quiz_1st_config", JSON.stringify(config));
+          loadConfigInputs();
+        }
+        if (data.questions && Array.isArray(data.questions)) {
+          questions = data.questions;
+          localStorage.setItem("quiz_1st_questions", JSON.stringify(questions));
+          renderQuestionList();
+          renderTeacherView();
+        }
+        document.getElementById("cloud-sync-indicator").innerText = "☁️ 클라우드 동기화 완료";
+      }
+    } catch (e) {
+      console.error("클라우드 불러오기 실패:", e);
+    }
+  }
+
+  async function syncBankToCloud() {
+    localStorage.setItem("quiz_1st_questions", JSON.stringify(questions));
+    localStorage.setItem("quiz_1st_config", JSON.stringify(config));
+
+    if (!config.firebaseUrl) return;
+    const url = config.firebaseUrl.replace(/\/$/, "") + "/quiz_bank.json";
+    try {
+      await fetch(url, {
+        method: "PUT",
+        body: JSON.stringify({ config, questions, updatedAt: Date.now() })
+      });
+      document.getElementById("cloud-sync-indicator").innerText = "☁️ 클라우드 저장됨 (" + new Date().toLocaleTimeString() + ")";
+    } catch (e) {
+      alert("클라우드 저장 중 오류가 발생했습니다. Firebase 주소를 확인해주세요.");
+    }
+  }
 
   function getOptionSizeClass(text) {
     const len = (text || "").length;
@@ -443,13 +496,12 @@
     }
   });
 
-  // ==================== 개선된 음성 안내 (TTS) ====================
+  // ==================== 음성 안내 (TTS) ====================
   function speakText(text) {
     if (!window.speechSynthesis) return;
     window.speechSynthesis.cancel();
     if (!bestKoreanVoice) loadBestKoreanVoice();
 
-    // O, X 단독 알파벳을 한국어 발음으로 자연스럽게 치환
     const cleanText = text
       .replace(/\bO\b/g, "오")
       .replace(/\bX\b/g, "엑스");
@@ -457,8 +509,8 @@
     const utter = new SpeechSynthesisUtterance(cleanText);
     utter.lang = "ko-KR";
     if (bestKoreanVoice) utter.voice = bestKoreanVoice;
-    utter.rate = 0.95;  // 너무 느리지 않고 자연스러운 표준 속도
-    utter.pitch = 1.0;  // 인위적인 높낮이 제거
+    utter.rate = 0.95;
+    utter.pitch = 1.0;
     window.speechSynthesis.speak(utter);
   }
 
@@ -466,9 +518,7 @@
     const q = questions[currentIdx];
     if (!q) return;
 
-    // "1번 문제..." 접두어 없이 문제 본문만 깔끔하게 읽기
     let script = q.text;
-
     if (config.readOptions === "with_options" && q.type === "choice") {
       const ordinals = ["첫 번째", "두 번째", "세 번째", "네 번째"];
       const optScript = q.options.map((opt, idx) => `${ordinals[idx]}, ${opt}`).join(". ");
@@ -510,7 +560,9 @@
     document.getElementById("teacher-setup-section").classList.remove("hidden");
   }
 
-  function openTeacherAuth() {
+  async function openTeacherAuth() {
+    // 비밀번호 확인 전 클라우드에서 최신 비밀번호 동기화
+    await loadFromCloud();
     const currentPw = config.teacherPw || "1234";
     const pw = prompt("선생님 비밀번호를 입력하세요:");
     if (pw === currentPw) {
@@ -783,7 +835,7 @@
     });
   }
 
-  // ==================== 문제 관리 & 설정 ====================
+  // ==================== 문제 관리 & 클라우드 저장 ====================
   function toggleOptionInputs() {
     const type = document.getElementById("new-q-type").value;
     document.getElementById("choice-inputs").classList.toggle("hidden", type !== "choice");
@@ -800,7 +852,7 @@
     reader.readAsDataURL(file);
   }
 
-  function addQuestion() {
+  async function addQuestion() {
     const type = document.getElementById("new-q-type").value;
     const text = document.getElementById("new-q-text").value.trim();
     const imgUrl = document.getElementById("new-q-img-url").value.trim();
@@ -826,7 +878,7 @@
     }
 
     questions.push(newQ);
-    localStorage.setItem("quiz_1st_questions", JSON.stringify(questions));
+    await syncBankToCloud();
     
     document.getElementById("new-q-text").value = "";
     document.getElementById("new-q-img-url").value = "";
@@ -835,14 +887,14 @@
 
     renderQuestionList();
     renderTeacherView();
-    alert("문제가 추가되었습니다!");
+    alert("문제가 클라우드에 저장되었습니다!");
   }
 
-  function deleteQuestion(idx) {
+  async function deleteQuestion(idx) {
     if (!confirm("이 문제를 삭제할까요?")) return;
     questions.splice(idx, 1);
-    localStorage.setItem("quiz_1st_questions", JSON.stringify(questions));
     if (currentIdx >= questions.length) currentIdx = Math.max(0, questions.length - 1);
+    await syncBankToCloud();
     renderQuestionList();
     renderTeacherView();
   }
@@ -879,7 +931,7 @@
     }
   }
 
-  function saveSettings() {
+  async function saveSettings() {
     const newPw = document.getElementById("cfg-teacher-pw").value.trim();
     if (!newPw) {
       alert("교사 비밀번호를 입력해주세요.");
@@ -900,8 +952,8 @@
       config[`entryQ${i}`] = document.getElementById(`cfg-entry-q${i}`).value.trim();
     }
 
-    localStorage.setItem("quiz_1st_config", JSON.stringify(config));
-    alert("설정이 저장되었습니다!");
+    await syncBankToCloud();
+    alert("설정과 비밀번호가 클라우드에 영구 저장되었습니다!");
   }
 </script>
 
