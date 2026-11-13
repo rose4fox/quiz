@@ -71,6 +71,46 @@
     }
     .hidden { display: none !important; }
 
+    /* ==================== 교사 비밀번호 인증 모달 ==================== */
+    .modal-backdrop {
+      position: fixed; inset: 0;
+      background: rgba(15, 23, 42, 0.55);
+      backdrop-filter: blur(2px);
+      display: flex; align-items: center; justify-content: center;
+      z-index: 9999; padding: 16px;
+    }
+    .modal-box {
+      background: #ffffff; border-radius: 22px;
+      padding: 28px 24px; width: 100%; max-width: 380px;
+      box-shadow: 0 18px 40px rgba(0, 0, 0, 0.22);
+      text-align: center;
+    }
+    .modal-box h3 {
+      margin: 0 0 8px 0; font-size: 1.35rem; color: #1a2340;
+    }
+    .modal-box p {
+      margin: 0 0 18px 0; font-size: 0.95rem; color: #555;
+    }
+    .pw-modal-input {
+      width: 100%; padding: 14px; font-size: 1.5rem; font-weight: bold;
+      text-align: center; letter-spacing: 0.35em;
+      border: 2.5px solid #c5d7fb; border-radius: 14px;
+      margin-bottom: 18px;
+    }
+    .pw-modal-input:focus {
+      outline: none; border-color: var(--primary);
+      box-shadow: 0 0 0 4px rgba(74, 108, 247, 0.16);
+    }
+    .modal-btn-row {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
+    }
+    .modal-btn {
+      padding: 13px; border: none; border-radius: 12px;
+      font-size: 1.05rem; font-weight: bold; cursor: pointer;
+    }
+    .modal-btn.cancel { background: #e2e8f0; color: #334155; }
+    .modal-btn.confirm { background: var(--primary); color: white; }
+
     /* ==================== 교사 하단 리모컨 바 ==================== */
     .teacher-bottom-bar {
       background: #23293a; color: white; padding: 6px 18px; height: 46px;
@@ -560,7 +600,7 @@
 
   <!-- ==================== 3. 교사 출제·설정 화면 ==================== -->
   <section id="teacher-setup-section" class="hidden">
-    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; flex-wrap:wrap; gap:10px;">
       <div>
         <h2 style="margin:0; display:inline-block;">📝 문제 출제 및 클라우드 설정</h2>
         <span id="cloud-sync-indicator" class="cloud-badge">☁️ 클라우드 대기중</span>
@@ -569,7 +609,7 @@
     </div>
 
     <div id="question-editor-card" class="card editor-card">
-      <h3 id="editor-heading">✏️ 새 문제 추가하기 (추가 즉시 Firebase 클라우드에 자동 백업됩니다)</h3>
+      <h3 id="editor-heading">✏️ 새 문제 추가하기 (최대 20문항 · 추가 즉시 Firebase 클라우드에 자동 백업됩니다)</h3>
       <div class="form-group">
         <label>문제 유형</label>
         <select id="new-q-type" onchange="toggleOptionInputs()">
@@ -624,7 +664,7 @@
         <button id="cancel-edit-btn" class="btn-cancel-edit hidden" onclick="cancelEditQuestion()">취소</button>
       </div>
 
-      <h3 style="margin-top:30px;">📋 등록된 문제 목록 (순서 이동 · 수정 · 삭제)</h3>
+      <h3 id="question-list-heading" style="margin-top:30px;">📋 등록된 문제 목록 (순서 이동 · 수정 · 삭제)</h3>
       <div id="question-list"></div>
     </div>
 
@@ -636,7 +676,7 @@
       </p>
       <div class="form-group">
         <label>🔑 교사 화면 비밀번호 설정 (클라우드에 저장되어 모든 PC에 적용됩니다)</label>
-        <input type="text" id="cfg-teacher-pw" placeholder="예: 1234" />
+        <input type="password" id="cfg-teacher-pw" placeholder="비밀번호 입력 (예: 1234)" autocomplete="new-password" />
       </div>
 
       <div class="form-group">
@@ -669,7 +709,7 @@
         <input type="text" id="cfg-entry-score" placeholder="점수 entry.번호" />
       </div>
 
-      <label style="font-weight:bold; display:block; margin-top:14px;">문항별(1번~10번) 구글 폼 entry 번호</label>
+      <label style="font-weight:bold; display:block; margin-top:14px;">문항별(1번~20번) 구글 폼 entry 번호</label>
       <div class="entry-grid">
         <input type="text" id="cfg-entry-q1" placeholder="1번 entry.번호" />
         <input type="text" id="cfg-entry-q2" placeholder="2번 entry.번호" />
@@ -681,12 +721,47 @@
         <input type="text" id="cfg-entry-q8" placeholder="8번 entry.번호" />
         <input type="text" id="cfg-entry-q9" placeholder="9번 entry.번호" />
         <input type="text" id="cfg-entry-q10" placeholder="10번 entry.번호" />
+        <input type="text" id="cfg-entry-q11" placeholder="11번 entry.번호" />
+        <input type="text" id="cfg-entry-q12" placeholder="12번 entry.번호" />
+        <input type="text" id="cfg-entry-q13" placeholder="13번 entry.번호" />
+        <input type="text" id="cfg-entry-q14" placeholder="14번 entry.번호" />
+        <input type="text" id="cfg-entry-q15" placeholder="15번 entry.번호" />
+        <input type="text" id="cfg-entry-q16" placeholder="16번 entry.번호" />
+        <input type="text" id="cfg-entry-q17" placeholder="17번 entry.번호" />
+        <input type="text" id="cfg-entry-q18" placeholder="18번 entry.번호" />
+        <input type="text" id="cfg-entry-q19" placeholder="19번 entry.번호" />
+        <input type="text" id="cfg-entry-q20" placeholder="20번 entry.번호" />
       </div>
 
       <button class="btn-big" style="margin-top:14px;" onclick="saveSettings()">💾 클라우드에 영구 저장하기</button>
     </div>
+
+    <!-- 하단 수업 화면 복귀 버튼 -->
+    <div style="display:flex; justify-content:flex-end; margin-top:8px; margin-bottom:24px;">
+      <button class="btn-big" style="width:auto; padding:14px 28px; font-size:1.15rem; background:#23293a;" onclick="backToLiveBoard()">📺 수업 화면으로 돌아가기</button>
+    </div>
   </section>
 </main>
+
+<!-- 교사 비밀번호 입력 모달 (입력 시 * 처리) -->
+<div id="teacher-auth-modal" class="modal-backdrop hidden" onclick="if(event.target === this) closeTeacherAuth()">
+  <div class="modal-box">
+    <h3>🔑 교사 모드 인증</h3>
+    <p>선생님 비밀번호를 입력하세요</p>
+    <input
+      type="password"
+      id="teacher-auth-input"
+      class="pw-modal-input"
+      placeholder="••••"
+      autocomplete="off"
+      onkeydown="if(event.key === 'Enter') submitTeacherAuth(); else if(event.key === 'Escape') closeTeacherAuth();"
+    />
+    <div class="modal-btn-row">
+      <button class="modal-btn cancel" onclick="closeTeacherAuth()">취소</button>
+      <button class="modal-btn confirm" onclick="submitTeacherAuth()">확인</button>
+    </div>
+  </div>
+</div>
 
 <!-- 교사 전용 하단 컨트롤 바 -->
 <footer id="teacher-bottom-bar" class="teacher-bottom-bar hidden">
@@ -710,6 +785,8 @@
 
 <script>
   // ==================== 기본 설정 ====================
+  const MAX_QUESTIONS = 20;
+
   const DEFAULT_CONFIG = {
     teacherPw: "1234",
     readOptions: "auto", // "auto" | "none" | "question_only" | "with_options"
@@ -717,7 +794,9 @@
     formUrl: "",
     entryGrade: "", entryClass: "", entryNum: "", entryName: "", entryScore: "",
     entryQ1: "", entryQ2: "", entryQ3: "", entryQ4: "", entryQ5: "",
-    entryQ6: "", entryQ7: "", entryQ8: "", entryQ9: "", entryQ10: ""
+    entryQ6: "", entryQ7: "", entryQ8: "", entryQ9: "", entryQ10: "",
+    entryQ11: "", entryQ12: "", entryQ13: "", entryQ14: "", entryQ15: "",
+    entryQ16: "", entryQ17: "", entryQ18: "", entryQ19: "", entryQ20: ""
   };
 
   let questions = JSON.parse(localStorage.getItem("quiz_1st_questions")) || [
@@ -1076,14 +1155,35 @@
     document.getElementById("teacher-setup-section").classList.remove("hidden");
   }
 
+  // ==================== 교사 비밀번호 인증 모달 (* 마스킹 처리) ====================
   async function openTeacherAuth() {
     await loadFromCloud();
+    const modal = document.getElementById("teacher-auth-modal");
+    const pwInput = document.getElementById("teacher-auth-input");
+    pwInput.value = "";
+    modal.classList.remove("hidden");
+    setTimeout(() => pwInput.focus(), 50);
+  }
+
+  function closeTeacherAuth() {
+    const modal = document.getElementById("teacher-auth-modal");
+    const pwInput = document.getElementById("teacher-auth-input");
+    pwInput.value = "";
+    modal.classList.add("hidden");
+  }
+
+  function submitTeacherAuth() {
+    const pwInput = document.getElementById("teacher-auth-input");
+    const enteredPw = pwInput.value;
     const currentPw = config.teacherPw || "1234";
-    const pw = prompt("선생님 비밀번호를 입력하세요:");
-    if (pw === currentPw) {
+
+    if (enteredPw === currentPw) {
+      closeTeacherAuth();
       switchMode("teacher");
-    } else if (pw !== null) {
+    } else {
       alert("비밀번호가 틀렸습니다.");
+      pwInput.value = "";
+      pwInput.focus();
     }
   }
 
@@ -1402,10 +1502,10 @@
     if (config.entryName) formData.append(config.entryName, studentInfo.name);
     if (config.entryScore) formData.append(config.entryScore, totalScore);
 
-    const qEntries = [
-      config.entryQ1, config.entryQ2, config.entryQ3, config.entryQ4, config.entryQ5,
-      config.entryQ6, config.entryQ7, config.entryQ8, config.entryQ9, config.entryQ10
-    ];
+    const qEntries = [];
+    for (let i = 1; i <= MAX_QUESTIONS; i++) {
+      qEntries.push(config[`entryQ${i}`]);
+    }
 
     questions.forEach((q, idx) => {
       const entryId = qEntries[idx];
@@ -1502,7 +1602,7 @@
     document.getElementById("edit-img-status").classList.add("hidden");
 
     document.getElementById("question-editor-card").classList.remove("editing-mode");
-    document.getElementById("editor-heading").innerText = "✏️ 새 문제 추가하기 (추가 즉시 Firebase 클라우드에 자동 백업됩니다)";
+    document.getElementById("editor-heading").innerText = `✏️ 새 문제 추가하기 (최대 ${MAX_QUESTIONS}문항 · 추가 즉시 Firebase 클라우드에 자동 백업됩니다)`;
     document.getElementById("save-question-btn").innerText = "➕ 문제 저장하기 (클라우드 자동 저장)";
     document.getElementById("save-question-btn").style.background = "";
     document.getElementById("cancel-edit-btn").classList.add("hidden");
@@ -1518,6 +1618,11 @@
 
     if (!text) {
       alert("문제 내용을 입력하세요.");
+      return;
+    }
+
+    if (editingIdx < 0 && questions.length >= MAX_QUESTIONS) {
+      alert(`최대 ${MAX_QUESTIONS}문항까지만 출제할 수 있습니다.\n기존 문제를 삭제하거나 수정해 주세요.`);
       return;
     }
 
@@ -1588,6 +1693,11 @@
   }
 
   function renderQuestionList() {
+    const heading = document.getElementById("question-list-heading");
+    if (heading) {
+      heading.innerText = `📋 등록된 문제 목록 (${questions.length} / ${MAX_QUESTIONS}문항 · 순서 이동 · 수정 · 삭제)`;
+    }
+
     const list = document.getElementById("question-list");
     list.innerHTML = "";
     questions.forEach((q, i) => {
@@ -1622,8 +1732,9 @@
     document.getElementById("cfg-entry-name").value = config.entryName || "";
     document.getElementById("cfg-entry-score").value = config.entryScore || "";
 
-    for (let i = 1; i <= 10; i++) {
-      document.getElementById(`cfg-entry-q${i}`).value = config[`entryQ${i}`] || "";
+    for (let i = 1; i <= MAX_QUESTIONS; i++) {
+      const el = document.getElementById(`cfg-entry-q${i}`);
+      if (el) el.value = config[`entryQ${i}`] || "";
     }
   }
 
@@ -1644,8 +1755,9 @@
     config.entryName = document.getElementById("cfg-entry-name").value.trim();
     config.entryScore = document.getElementById("cfg-entry-score").value.trim();
 
-    for (let i = 1; i <= 10; i++) {
-      config[`entryQ${i}`] = document.getElementById(`cfg-entry-q${i}`).value.trim();
+    for (let i = 1; i <= MAX_QUESTIONS; i++) {
+      const el = document.getElementById(`cfg-entry-q${i}`);
+      if (el) config[`entryQ${i}`] = el.value.trim();
     }
 
     await syncBankToCloud();
