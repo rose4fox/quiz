@@ -117,7 +117,7 @@
     .modal-btn.cancel { background: #e2e8f0; color: #334155; }
     .modal-btn.confirm { background: var(--primary); color: white; }
 
-    /* ==================== 교사 하단 리모컨 바 (중앙 정렬 & 태블릿 대응) ==================== */
+    /* ==================== 교사 하단 리모컨 바 (컴팩트 & 중앙 정렬) ==================== */
     .teacher-bottom-bar {
       background: #23293a; color: white; padding: 6px 12px; min-height: 46px;
       display: flex; justify-content: center; align-items: center; flex-wrap: wrap;
@@ -153,13 +153,17 @@
     .nav-btn:hover { background: rgba(255,255,255,0.28); }
     .nav-btn.push { background: #2b9348; border-color: #2b9348; color: white; }
     .nav-btn.reveal { background: #7209b7; border-color: #7209b7; color: white; }
-    .nav-btn.finish { background: #d90429; border-color: #d90429; color: white; }
+    .nav-btn.finish {
+      background: #d90429; border-color: #d90429; color: white;
+      margin-left: 14px;
+    }
 
     @media (max-width: 1120px) {
       .bottom-title { display: none; }
       .teacher-bottom-bar { padding: 5px 8px; }
       .mini-remote { gap: 4px; }
       .status-dot, .resp-badge, .nav-btn { font-size: 0.78rem; padding: 4px 7px; }
+      .nav-btn.finish { margin-left: 10px; }
     }
 
     /* ==================== 교사 대기실 (학생 입장 확인 화면) ==================== */
@@ -1104,7 +1108,7 @@
   </div>
 </div>
 
-<!-- 교사 전용 하단 컨트롤 바 (중앙 정렬 · 수업 중 초기화 버튼 숨김) -->
+<!-- 교사 전용 하단 컨트롤 바 (출제·설정 버튼 제거, 다음-종료 간격 분리, 컴팩트 크기 유지) -->
 <footer id="teacher-bottom-bar" class="teacher-bottom-bar hidden">
   <span class="bottom-title">🧭 코딩탐험대</span>
   <div class="mini-remote">
@@ -1119,7 +1123,6 @@
     <button class="nav-btn reveal" onclick="revealAnswerOnBoard()" title="단축키: Enter">✨ 정답</button>
     <button class="nav-btn" onclick="nextQuestion()" title="단축키: 오른쪽 방향키 (→)">다음 ▶</button>
     <button class="nav-btn finish" onclick="finishQuizForAll()" title="퀴즈 종료 및 구글폼 전송">🏁 종료</button>
-    <button class="nav-btn" style="background:#3d465e;" onclick="openSetupTab()">📝 출제·설정</button>
     <button class="nav-btn" onclick="switchMode('student')">👦 나가기</button>
   </div>
 </footer>
@@ -1769,7 +1772,6 @@
       document.getElementById("student-header-bar").classList.remove("hidden");
       document.getElementById("student-section").classList.remove("hidden");
     } else {
-      // 이전 퀴즈가 종료된 상태였다면 새 반 입장 대기실로 들어가기 전 자동 초기화
       if (isQuizEndedState) {
         isQuizEndedState = false;
         currentIdx = 0;
@@ -2019,10 +2021,22 @@
 
   async function finishQuizForAll() {
     const { total, missingList } = getResponseSummary();
-    let msg = "퀴즈를 종료하고 모든 학생의 점수와 답안을 구글 폼으로 전송할까요?";
-    if (isPushedToStudent && total > 0 && missingList.length > 0) {
-      msg = `아직 마지막 문제를 안 푼 학생이 ${missingList.length}명(${missingList.join(", ")}) 있습니다.\n그래도 퀴즈를 종료하고 결과를 전송할까요?`;
+    const isLastQuestion = (currentIdx >= questions.length - 1);
+    let msg = "";
+
+    if (!isLastQuestion) {
+      msg = `⚠️ [주의! 아직 퀴즈가 끝나지 않았습니다]\n\n` +
+            `전체 ${questions.length}문제 중 현재 ${currentIdx + 1}번 문제까지만 진행되었습니다.\n` +
+            `지금 종료하면 ${currentIdx + 2}번~${questions.length}번 문제는 모두 미응답(0점) 처리되며, 다시 이어서 풀 수 없습니다.\n\n` +
+            `그래도 지금 퀴즈를 중단하고 종료할까요?`;
+    } else if (isPushedToStudent && total > 0 && missingList.length > 0) {
+      msg = `⚠️ 아직 마지막 문제를 풀지 않은 학생이 ${missingList.length}명(${missingList.join(", ")}) 있습니다.\n\n` +
+            `지금 종료하면 해당 학생들의 마지막 문제는 미응답 처리됩니다.\n` +
+            `그래도 퀴즈를 종료하고 결과를 처리할까요?`;
+    } else {
+      msg = `전체 ${questions.length}문제를 모두 마쳤습니다.\n퀴즈를 종료하고 학생들의 결과를 처리할까요?`;
     }
+
     if (!confirm(msg)) return;
 
     // 1. 학생 기기에 결과 제출 신호 전송
