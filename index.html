@@ -55,7 +55,6 @@
       box-shadow: 0 8px 24px rgba(74, 108, 247, 0.08);
       display: flex; flex-direction: column; justify-content: space-between; overflow: hidden;
     }
-    /* 빔프로젝터 투사용 카드: 하단이 학생 모니터에 가려지지 않도록 위쪽 84% 영역 사용 */
     main.projector-mode .full-card {
       flex: none;
       height: 84vh;
@@ -95,7 +94,7 @@
     /* ==================== 학생 로그인 화면 ==================== */
     .login-wrap {
       margin: auto; width: 100%; max-width: 780px; text-align: center;
-      display: flex; flex-direction: column; gap: 28px;
+      display: flex; flex-direction: column; gap: 22px;
     }
     .welcome-badge {
       display: inline-block; background: #fff4d6; color: #b26a00;
@@ -107,7 +106,7 @@
     }
     .login-box {
       background: #f5f8ff; border: 2px solid #dce6ff; border-radius: 24px;
-      padding: 28px 24px;
+      padding: 26px 24px 20px 24px;
     }
     .login-grid {
       display: grid; grid-template-columns: 1fr 1fr 1fr 1.4fr; gap: 16px;
@@ -127,6 +126,26 @@
       outline: none; border-style: solid; border-color: var(--primary);
       background: #ffffff; box-shadow: 0 0 0 5px rgba(74, 108, 247, 0.18);
     }
+
+    /* 한/영 키 실시간 안내 배지 */
+    .ime-guide {
+      margin-top: 16px;
+      padding: 10px 18px;
+      border-radius: 14px;
+      font-size: 1.1rem;
+      font-weight: bold;
+      background: #e8f0fe;
+      color: #2b50c7;
+      border: 1.5px solid #c5d7fb;
+      transition: all 0.2s;
+    }
+    .ime-guide.warn-eng {
+      background: #fff3cd;
+      color: #9c5700;
+      border-color: #ffca3a;
+      transform: scale(1.01);
+    }
+
     .btn-start {
       width: 100%; max-width: 420px; margin: 4px auto 0 auto;
       padding: 20px 32px; font-size: 1.65rem; font-weight: bold;
@@ -193,7 +212,6 @@
       border-radius: 10px; font-size: 1.05rem; font-weight: bold; cursor: pointer;
     }
 
-    /* 메인 2단 그리드: 왼쪽(문제+이미지 62%) | 오른쪽(보기 1~4 세로 38%) */
     .quiz-split-grid {
       flex: 1;
       display: grid;
@@ -203,7 +221,6 @@
       overflow: hidden;
     }
 
-    /* 왼쪽 칼럼: 상단 문제 + 하단 이미지 */
     .left-pane {
       display: flex;
       flex-direction: column;
@@ -212,7 +229,6 @@
       overflow: hidden;
     }
 
-    /* 이미지가 없을 때: 왼쪽 전체 영역 정중앙에 문제 배치 */
     .left-pane.no-img .question-box {
       flex: 1;
       background: #f8faff;
@@ -226,7 +242,6 @@
       overflow: hidden;
     }
 
-    /* 이미지가 있을 때: 위쪽 문제 박스(42%) + 아래쪽 이미지 박스(58%) */
     .left-pane.with-img .question-box {
       flex: 0 0 auto;
       max-height: 44%;
@@ -271,7 +286,6 @@
     .q-text.q-lg { font-size: clamp(1.15rem, 1.7vw, 1.48rem); line-height: 1.4; }
     .q-text.q-xl { font-size: clamp(1.0rem, 1.4vw, 1.25rem); line-height: 1.36; }
 
-    /* 오른쪽 칼럼: 보기 1~4 세로 4단 (OX일 때는 세로 2단) */
     .right-pane {
       display: flex;
       flex-direction: column;
@@ -383,6 +397,11 @@
             <input type="text" id="st-name" maxlength="15" />
           </div>
         </div>
+
+        <!-- 이름 칸 클릭/이동 및 영문 자판 감지 시 나타나는 한/영 키 안내 -->
+        <div id="ime-guide-box" class="ime-guide hidden">
+          💡 한글이 안 써지면 키보드의 <b>[한/영]</b> 키를 눌러주세요!
+        </div>
       </div>
 
       <button class="btn-start" onclick="startStudent()">시작하기 🚀</button>
@@ -411,7 +430,7 @@
       </div>
     </div>
 
-    <!-- 학생 문제 풀이 화면 (좌: 문제+이미지 / 우: 보기 1~4 세로 배치) -->
+    <!-- 학생 문제 풀이 화면 -->
     <div id="student-quiz" class="hidden" style="display:flex; flex-direction:column; height:100%;">
       <div class="q-top">
         <span class="badge" id="st-q-num">문제 1</span>
@@ -441,7 +460,7 @@
     </div>
   </section>
 
-  <!-- ==================== 2. 교사 수업 진행 화면 (좌: 문제+이미지 / 우: 보기 1~4 세로 배치) ==================== -->
+  <!-- ==================== 2. 교사 수업 진행 화면 ==================== -->
   <section id="teacher-live-section" class="full-card hidden">
     <div class="q-top">
       <span class="badge" id="tc-q-num">문제 1 / 1</span>
@@ -661,12 +680,37 @@
     loadConfigInputs();
     renderQuestionList();
     renderTeacherView();
+    setupNameImeHelper();
     await loadFromCloud();
     startSyncListener();
 
     const classInput = document.getElementById("st-class");
     if (classInput) classInput.focus();
   };
+
+  // 이름 입력칸 포커스/입력 시 실시간 한/영 키 안내 도우미
+  function setupNameImeHelper() {
+    const nameInput = document.getElementById("st-name");
+    const guideBox = document.getElementById("ime-guide-box");
+    if (!nameInput || !guideBox) return;
+
+    nameInput.addEventListener("focus", () => {
+      guideBox.classList.remove("hidden");
+    });
+
+    nameInput.addEventListener("input", () => {
+      const val = nameInput.value;
+      // 영문 알파벳이 포함되어 있으면 한/영 키 전환 안내를 주황색으로 강조
+      if (/[a-zA-Z]/.test(val)) {
+        guideBox.classList.remove("hidden");
+        guideBox.classList.add("warn-eng");
+        guideBox.innerHTML = "⌨️ 지금 영어로 써지고 있어요! <b>[한/영]</b> 키를 눌러 한글로 바꿔주세요.";
+      } else {
+        guideBox.classList.remove("warn-eng");
+        guideBox.innerHTML = "💡 한글이 안 써지면 키보드의 <b>[한/영]</b> 키를 눌러주세요!";
+      }
+    });
+  }
 
   async function loadFromCloud() {
     if (!config.firebaseUrl) return;
@@ -713,7 +757,6 @@
   function applyQuestionSizing(textEl, text, hasImg) {
     textEl.classList.remove("q-md", "q-lg", "q-xl");
     const len = (text || "").length;
-    // 이미지가 있으면 위쪽 문제 박스 높이가 44%로 줄어들므로 글자 수 가중치 부여
     const effectiveLen = hasImg ? len * 1.45 : len;
     if (effectiveLen >= 120) textEl.classList.add("q-xl");
     else if (effectiveLen >= 80) textEl.classList.add("q-lg");
