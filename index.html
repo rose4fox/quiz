@@ -844,7 +844,7 @@
 
       <div class="form-group">
         <label>Firebase Realtime DB URL (실시간 전송 및 문제/설정 클라우드 저장용)</label>
-        <input type="text" id="cfg-firebase" placeholder="예: https://grade1-quiz-default-rtdb.firebaseio.com" />
+        <input type="text" id="cfg-firebase" placeholder="예: https://coding-quiz-2026-default-rtdb.asia-southeast1.firebasedatabase.app" />
       </div>
       <div class="form-group">
         <label>구글 폼 전송 주소 (formResponse URL)</label>
@@ -860,17 +860,17 @@
         <input type="text" id="cfg-entry-score" placeholder="점수 entry.번호" />
       </div>
 
-      <label style="font-weight:bold; display:block; margin-top:14px;">문항별(1번~20번) 구글 폼 entry 번호</label>
+      <label style="font-weight:bold; display:block; margin-top:14px;">문항별(01번~20번) 구글 폼 entry 번호</label>
       <div class="entry-grid">
-        <input type="text" id="cfg-entry-q1" placeholder="1번 entry.번호" />
-        <input type="text" id="cfg-entry-q2" placeholder="2번 entry.번호" />
-        <input type="text" id="cfg-entry-q3" placeholder="3번 entry.번호" />
-        <input type="text" id="cfg-entry-q4" placeholder="4번 entry.번호" />
-        <input type="text" id="cfg-entry-q5" placeholder="5번 entry.번호" />
-        <input type="text" id="cfg-entry-q6" placeholder="6번 entry.번호" />
-        <input type="text" id="cfg-entry-q7" placeholder="7번 entry.번호" />
-        <input type="text" id="cfg-entry-q8" placeholder="8번 entry.번호" />
-        <input type="text" id="cfg-entry-q9" placeholder="9번 entry.번호" />
+        <input type="text" id="cfg-entry-q01" placeholder="1번 entry.번호" />
+        <input type="text" id="cfg-entry-q02" placeholder="2번 entry.번호" />
+        <input type="text" id="cfg-entry-q03" placeholder="3번 entry.번호" />
+        <input type="text" id="cfg-entry-q04" placeholder="4번 entry.번호" />
+        <input type="text" id="cfg-entry-q05" placeholder="5번 entry.번호" />
+        <input type="text" id="cfg-entry-q06" placeholder="6번 entry.번호" />
+        <input type="text" id="cfg-entry-q07" placeholder="7번 entry.번호" />
+        <input type="text" id="cfg-entry-q08" placeholder="8번 entry.번호" />
+        <input type="text" id="cfg-entry-q09" placeholder="9번 entry.번호" />
         <input type="text" id="cfg-entry-q10" placeholder="10번 entry.번호" />
         <input type="text" id="cfg-entry-q11" placeholder="11번 entry.번호" />
         <input type="text" id="cfg-entry-q12" placeholder="12번 entry.번호" />
@@ -943,11 +943,11 @@
     timeLimit: 0, // 0이면 제한 없음, 양수면 제한 초(sec)
     countdownSound: "on", // "on" | "off" (교사 PC 전용 마림바 효과음)
     readOptions: "auto", // "auto" | "none" | "question_only" | "with_options"
-    firebaseUrl: "",
+    firebaseUrl: "https://coding-quiz-2026-default-rtdb.asia-southeast1.firebasedatabase.app",
     formUrl: "",
     entryGrade: "", entryClass: "", entryNum: "", entryName: "", entryScore: "",
-    entryQ1: "", entryQ2: "", entryQ3: "", entryQ4: "", entryQ5: "",
-    entryQ6: "", entryQ7: "", entryQ8: "", entryQ9: "", entryQ10: "",
+    entryQ01: "", entryQ02: "", entryQ03: "", entryQ04: "", entryQ05: "",
+    entryQ06: "", entryQ07: "", entryQ08: "", entryQ09: "", entryQ10: "",
     entryQ11: "", entryQ12: "", entryQ13: "", entryQ14: "", entryQ15: "",
     entryQ16: "", entryQ17: "", entryQ18: "", entryQ19: "", entryQ20: ""
   };
@@ -970,6 +970,9 @@
   ];
 
   let config = Object.assign({}, DEFAULT_CONFIG, JSON.parse(localStorage.getItem("quiz_1st_config")) || {});
+  if (!config.firebaseUrl) {
+    config.firebaseUrl = DEFAULT_CONFIG.firebaseUrl;
+  }
   if (!["auto", "none", "question_only", "with_options"].includes(config.readOptions)) {
     config.readOptions = "auto";
   }
@@ -1128,6 +1131,21 @@
     });
   }
 
+  // 기존 entryQ1~entryQ9 키가 클라우드에 남아있다면 entryQ01~entryQ09로 자동 이관
+  function normalizeEntryKeys(cfg) {
+    for (let i = 1; i <= MAX_QUESTIONS; i++) {
+      const paddedKey = `entryQ${String(i).padStart(2, "0")}`;
+      const legacyKey = `entryQ${i}`;
+      if (!cfg[paddedKey] && cfg[legacyKey]) {
+        cfg[paddedKey] = cfg[legacyKey];
+      }
+      if (legacyKey !== paddedKey) {
+        delete cfg[legacyKey];
+      }
+    }
+    return cfg;
+  }
+
   async function loadFromCloud() {
     if (!config.firebaseUrl) return;
     const url = config.firebaseUrl.replace(/\/$/, "") + "/quiz_bank.json";
@@ -1136,7 +1154,10 @@
       const data = await res.json();
       if (data) {
         if (data.config) {
-          config = Object.assign({}, config, data.config);
+          config = normalizeEntryKeys(Object.assign({}, config, data.config));
+          if (!config.firebaseUrl) {
+            config.firebaseUrl = DEFAULT_CONFIG.firebaseUrl;
+          }
           if (!["auto", "none", "question_only", "with_options"].includes(config.readOptions)) {
             config.readOptions = "auto";
           }
@@ -1161,6 +1182,7 @@
   }
 
   async function syncBankToCloud() {
+    config = normalizeEntryKeys(config);
     localStorage.setItem("quiz_1st_questions", JSON.stringify(questions));
     localStorage.setItem("quiz_1st_config", JSON.stringify(config));
 
@@ -1894,7 +1916,8 @@
 
     const qEntries = [];
     for (let i = 1; i <= MAX_QUESTIONS; i++) {
-      qEntries.push(config[`entryQ${i}`]);
+      const numStr = String(i).padStart(2, "0");
+      qEntries.push(config[`entryQ${numStr}`]);
     }
 
     questions.forEach((q, idx) => {
@@ -2116,7 +2139,7 @@
     document.getElementById("cfg-time-limit").value = String(Number(config.timeLimit) || 0);
     document.getElementById("cfg-countdown-sound").value = config.countdownSound || "on";
     document.getElementById("cfg-read-options").value = config.readOptions || "auto";
-    document.getElementById("cfg-firebase").value = config.firebaseUrl || "";
+    document.getElementById("cfg-firebase").value = config.firebaseUrl || DEFAULT_CONFIG.firebaseUrl;
     document.getElementById("cfg-form-url").value = config.formUrl || "";
     document.getElementById("cfg-entry-grade").value = config.entryGrade || "";
     document.getElementById("cfg-entry-class").value = config.entryClass || "";
@@ -2125,8 +2148,9 @@
     document.getElementById("cfg-entry-score").value = config.entryScore || "";
 
     for (let i = 1; i <= MAX_QUESTIONS; i++) {
-      const el = document.getElementById(`cfg-entry-q${i}`);
-      if (el) el.value = config[`entryQ${i}`] || "";
+      const numStr = String(i).padStart(2, "0");
+      const el = document.getElementById(`cfg-entry-q${numStr}`);
+      if (el) el.value = config[`entryQ${numStr}`] || "";
     }
   }
 
@@ -2141,7 +2165,7 @@
     config.timeLimit = Number(document.getElementById("cfg-time-limit").value) || 0;
     config.countdownSound = document.getElementById("cfg-countdown-sound").value;
     config.readOptions = document.getElementById("cfg-read-options").value;
-    config.firebaseUrl = document.getElementById("cfg-firebase").value.trim();
+    config.firebaseUrl = document.getElementById("cfg-firebase").value.trim() || DEFAULT_CONFIG.firebaseUrl;
     config.formUrl = document.getElementById("cfg-form-url").value.trim();
     config.entryGrade = document.getElementById("cfg-entry-grade").value.trim();
     config.entryClass = document.getElementById("cfg-entry-class").value.trim();
@@ -2150,8 +2174,9 @@
     config.entryScore = document.getElementById("cfg-entry-score").value.trim();
 
     for (let i = 1; i <= MAX_QUESTIONS; i++) {
-      const el = document.getElementById(`cfg-entry-q${i}`);
-      if (el) config[`entryQ${i}`] = el.value.trim();
+      const numStr = String(i).padStart(2, "0");
+      const el = document.getElementById(`cfg-entry-q${numStr}`);
+      if (el) config[`entryQ${numStr}`] = el.value.trim();
     }
 
     await syncBankToCloud();
