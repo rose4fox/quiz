@@ -155,7 +155,7 @@
     .nav-btn.reveal { background: #7209b7; border-color: #7209b7; color: white; }
     .nav-btn.finish { background: #d90429; border-color: #d90429; color: white; }
 
-    @media (max-width: 1180px) {
+    @media (max-width: 1120px) {
       .bottom-title { display: none; }
       .teacher-bottom-bar { padding: 5px 8px; }
       .mini-remote { gap: 4px; }
@@ -358,9 +358,23 @@
       margin: auto; width: 100%; max-width: 820px; text-align: center;
       display: flex; flex-direction: column; align-items: center; gap: clamp(10px, 2.2vh, 22px);
     }
+    .nametag-row {
+      display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 8px;
+    }
     .student-nametag {
       background: #eef2ff; border: 2px solid #c7d5ff; color: var(--primary);
       padding: 8px 20px; border-radius: 30px; font-size: clamp(1.05rem, 2vw, 1.3rem); font-weight: bold;
+    }
+    .btn-edit-info {
+      background: #ffffff; border: 2px solid #c7d5ff; color: #3b5bdb;
+      padding: 7px 14px; border-radius: 24px; font-size: clamp(0.9rem, 1.6vw, 1.05rem); font-weight: bold;
+      cursor: pointer; transition: background 0.15s, transform 0.1s;
+    }
+    .btn-edit-info:hover {
+      background: #eef2ff;
+    }
+    .btn-edit-info:active {
+      transform: scale(0.97);
     }
     .bounce-icon {
       font-size: clamp(3.4rem, 7vh, 5.2rem); line-height: 1;
@@ -730,7 +744,10 @@
     </div>
 
     <div id="student-wait" class="wait-wrap hidden">
-      <div id="st-nametag" class="student-nametag">🎒 1학년 1반 1번 홍길동</div>
+      <div class="nametag-row">
+        <div id="st-nametag" class="student-nametag">🎒 1학년 1반 1번 홍길동</div>
+        <button class="btn-edit-info" onclick="editStudentInfo()" title="학년·반·번호·이름을 잘못 적었을 때 눌러서 고쳐요">✏️ 다시 쓰기</button>
+      </div>
       <div class="bounce-icon">👀</div>
       <div>
         <h2 class="wait-title">선생님 화면을 봐주세요!</h2>
@@ -848,7 +865,7 @@
 
     <div class="lobby-footer-actions">
       <div class="lobby-sub-btns">
-        <button class="btn-lobby-sub" onclick="resetStudentRoster()">🔄 명단 초기화 (새 반 수업)</button>
+        <button class="btn-lobby-sub" onclick="resetStudentRoster()">🔄 명단 초기화</button>
         <button class="btn-lobby-sub" onclick="openSetupTab()">📝 출제·설정</button>
         <button class="btn-lobby-sub" onclick="switchMode('student')">👦 학생 화면으로 나가기</button>
       </div>
@@ -881,19 +898,18 @@
     </div>
   </section>
 
-  <!-- ==================== 2-C. 교사 퀴즈 종료 화면 (중복 종료 방지) ==================== -->
+  <!-- ==================== 2-C. 교사 퀴즈 종료 화면 ==================== -->
   <section id="teacher-end-section" class="full-card hidden">
     <div class="teacher-end-wrap">
       <div style="font-size: 5rem; line-height: 1;">🏁</div>
       <span id="tc-end-summary-badge" class="teacher-end-badge">✅ 결과 전송 완료 · 총 0명 참여</span>
       <h2 class="teacher-end-title">퀴즈가 모두 종료되었습니다!</h2>
       <p class="teacher-end-desc">
-        학생들의 점수와 문항별 응답이 구글 폼으로 전송되었습니다.<br>
-        다음 반 수업을 진행하려면 아래 <b>[새 반 수업을 위해 초기화]</b> 버튼을 눌러주세요.
+        학생들의 점수와 문항별 응답이 구글 폼으로 전송되었으며,<br>
+        다음 반 수업을 위해 기존 입장 명단이 자동으로 초기화되었습니다.
       </p>
       <div class="teacher-end-actions">
-        <button class="btn-lobby-sub" onclick="openTeacherLobby()">👥 대기실로 돌아가기</button>
-        <button class="btn-lobby-start" onclick="resetAndGoToLobby()">🔄 새 반 수업을 위해 초기화 & 대기실로 가기</button>
+        <button class="btn-lobby-start" onclick="openTeacherLobby()">👥 새 반 대기실 열기</button>
         <button class="btn-lobby-sub" onclick="switchMode('student')">👦 학생 화면으로 나가기</button>
       </div>
     </div>
@@ -1089,7 +1105,7 @@
   </div>
 </div>
 
-<!-- 교사 전용 하단 컨트롤 바 (중앙 정렬) -->
+<!-- 교사 전용 하단 컨트롤 바 (중앙 정렬 · 수업 중 초기화 버튼 숨김) -->
 <footer id="teacher-bottom-bar" class="teacher-bottom-bar hidden">
   <span class="bottom-title">🧭 코딩탐험대</span>
   <div class="mini-remote">
@@ -1098,7 +1114,6 @@
       👥 응답: 0 / 0명
     </button>
     <button class="nav-btn" onclick="openTeacherLobby()" title="학생 입장 대기실 화면으로 이동">👥 대기실</button>
-    <button class="nav-btn" onclick="resetStudentRoster()" title="새 반 수업을 위해 접속 인원 명단 초기화">🔄 초기화</button>
     <button class="nav-btn" onclick="prevQuestion()" title="단축키: 왼쪽 방향키 (←)">◀</button>
     <button class="nav-btn" onclick="speakCurrentQuestion(true)" title="단축키: R (수동 읽기)">🔊 읽기</button>
     <button class="nav-btn push" onclick="pushToStudents()" title="단축키: Space">📢 학생전송</button>
@@ -1163,6 +1178,7 @@
   let isAnswerRevealed = false;
   let isTeacherLiveMode = false;
   let isTeacherLobbyMode = false;
+  let isQuizEndedState = false;
   let studentInfo = null;
   let studentKey = "";
   let studentAnswers = {};
@@ -1239,7 +1255,6 @@
     if (!isTeacherLiveMode) return;
     if ((config.countdownSound || "on") !== "on") return;
 
-    // 5초 -> 1초로 갈수록 부드럽게 음정이 올라가는 마림바 펜타토닉 톤
     const tickNotes = {
       5: 523.25, // C5 (도)
       4: 587.33, // D5 (레)
@@ -1251,7 +1266,6 @@
     if (tickNotes[remainingSec]) {
       playMarimbaNote(tickNotes[remainingSec], 0.22, 0.16, 0);
     } else if (remainingSec === 0) {
-      // 종료 시 경쾌하고 따뜻한 마림바 2화음 (C5 -> G5)
       playMarimbaNote(523.25, 0.26, 0.16, 0);
       playMarimbaNote(783.99, 0.42, 0.18, 0.11);
     }
@@ -1411,7 +1425,6 @@
     const limit = Number(seconds) || 0;
     if (limit <= 0) return;
 
-    // 버튼 클릭 시점에 교사 PC 오디오 컨텍스트 활성화
     ensureMarimbaAudio();
 
     const badge = document.getElementById("tc-timer-badge");
@@ -1537,6 +1550,17 @@
     }
   }
 
+  async function removeStudentFromRoster(targetKey) {
+    if (!targetKey) return;
+    delete liveRoster[targetKey];
+    bc.postMessage({ type: "STUDENT_LEAVE", key: targetKey });
+
+    if (config.firebaseUrl) {
+      const url = config.firebaseUrl.replace(/\/$/, "") + `/live_responses/${encodeURIComponent(targetKey)}.json`;
+      await fetch(url, { method: "DELETE" }).catch(() => {});
+    }
+  }
+
   function fetchRosterOnce() {
     if (!config.firebaseUrl) return;
     const url = config.firebaseUrl.replace(/\/$/, "") + "/live_responses.json";
@@ -1565,7 +1589,6 @@
     if (!countPill || !emptyEl || !gridEl) return;
 
     const entries = Object.values(liveRoster || {}).filter(item => item && item.info);
-    // 학년 -> 반 -> 번호 순 정렬
     entries.sort((a, b) => {
       const ga = Number(a.info.grade) || 0, gb = Number(b.info.grade) || 0;
       if (ga !== gb) return ga - gb;
@@ -1639,6 +1662,7 @@
     liveRoster = {};
     updateResponseCounterUI();
     renderTeacherLobby();
+    bc.postMessage({ type: "ROSTER_CLEARED" });
     if (config.firebaseUrl) {
       const url = config.firebaseUrl.replace(/\/$/, "") + "/live_responses.json";
       await fetch(url, { method: "DELETE" }).catch(() => {});
@@ -1649,14 +1673,8 @@
     if (!confirm("새로운 반 수업을 위해 현재 접속된 학생 응답 명단을 모두 초기화할까요?")) return;
     await clearRosterData();
     currentIdx = 0;
+    renderTeacherLobby();
     alert("학생 명단이 초기화되었습니다.");
-  }
-
-  async function resetAndGoToLobby() {
-    if (!confirm("기존 반 학생 명단을 초기화하고 1번 문제 대기실로 이동할까요?")) return;
-    await clearRosterData();
-    currentIdx = 0;
-    openTeacherLobby();
   }
 
   // ==================== 키보드 단축키 ====================
@@ -1752,6 +1770,12 @@
       document.getElementById("student-header-bar").classList.remove("hidden");
       document.getElementById("student-section").classList.remove("hidden");
     } else {
+      // 이전 퀴즈가 종료된 상태였다면 새 반 입장 대기실로 들어가기 전 자동 초기화
+      if (isQuizEndedState) {
+        isQuizEndedState = false;
+        currentIdx = 0;
+        clearRosterData();
+      }
       openTeacherLobby();
     }
   }
@@ -1765,6 +1789,12 @@
     isTeacherLobbyMode = true;
     isPushedToStudent = false;
     isAnswerRevealed = false;
+
+    if (isQuizEndedState) {
+      isQuizEndedState = false;
+      currentIdx = 0;
+      clearRosterData();
+    }
 
     document.body.classList.remove("allow-scroll");
     document.getElementById("main-container").classList.add("projector-mode");
@@ -1806,6 +1836,7 @@
     isTeacherLiveMode = false;
     isTeacherLobbyMode = false;
     isPushedToStudent = false;
+    isQuizEndedState = true;
 
     document.body.classList.remove("allow-scroll");
     document.getElementById("main-container").classList.add("projector-mode");
@@ -1987,14 +2018,22 @@
     }
   }
 
-  function finishQuizForAll() {
+  async function finishQuizForAll() {
     const { total, missingList } = getResponseSummary();
     let msg = "퀴즈를 종료하고 모든 학생의 점수와 답안을 구글 폼으로 전송할까요?";
     if (isPushedToStudent && total > 0 && missingList.length > 0) {
       msg = `아직 마지막 문제를 안 푼 학생이 ${missingList.length}명(${missingList.join(", ")}) 있습니다.\n그래도 퀴즈를 종료하고 결과를 전송할까요?`;
     }
     if (!confirm(msg)) return;
+
+    // 1. 학생 기기에 결과 제출 신호 전송
     broadcastState("FINISH_QUIZ");
+
+    // 2. 다음 반 수업을 위해 기존 입장 명단 자동 초기화
+    await clearRosterData();
+    currentIdx = 0;
+
+    // 3. 교사 화면을 완료 화면으로 전환하여 중복 종료 방지
     openTeacherEndScreen(total);
   }
 
@@ -2023,8 +2062,21 @@
   let lastTimestamp = 0;
   function startSyncListener() {
     bc.onmessage = (e) => {
-      if (e.data && e.data.type === "STUDENT_PROGRESS") {
+      if (!e.data) return;
+      if (e.data.type === "STUDENT_PROGRESS") {
         liveRoster[e.data.key] = e.data;
+        updateResponseCounterUI();
+        renderTeacherLobby();
+        return;
+      }
+      if (e.data.type === "STUDENT_LEAVE") {
+        delete liveRoster[e.data.key];
+        updateResponseCounterUI();
+        renderTeacherLobby();
+        return;
+      }
+      if (e.data.type === "ROSTER_CLEARED") {
+        liveRoster = {};
         updateResponseCounterUI();
         renderTeacherLobby();
         return;
@@ -2089,6 +2141,36 @@
     document.getElementById("student-wait").classList.remove("hidden");
 
     reportStudentProgress();
+  }
+
+  // 학생이 인적사항을 잘못 입력했을 때 대기 화면에서 다시 입력 화면으로 복귀
+  async function editStudentInfo() {
+    const prevKey = studentKey;
+    const prevInfo = studentInfo;
+
+    studentInfo = null;
+    studentKey = "";
+    studentAnswers = {};
+    hasSubmittedToForm = false;
+
+    if (prevKey) {
+      await removeStudentFromRoster(prevKey);
+    }
+
+    if (prevInfo) {
+      document.getElementById("st-grade").value = prevInfo.grade || "1";
+      document.getElementById("st-class").value = prevInfo.cls || "";
+      document.getElementById("st-num").value = prevInfo.num || "";
+      document.getElementById("st-name").value = prevInfo.name || "";
+    }
+
+    document.getElementById("student-wait").classList.add("hidden");
+    document.getElementById("student-quiz").classList.add("hidden");
+    document.getElementById("student-end").classList.add("hidden");
+    document.getElementById("student-login").classList.remove("hidden");
+
+    const nameInput = document.getElementById("st-name");
+    if (nameInput) nameInput.focus();
   }
 
   function handleIncomingState(data) {
