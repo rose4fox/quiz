@@ -419,7 +419,7 @@
     .q-text.q-lg { font-size: clamp(1.0rem, 1.65vw, 1.45rem); line-height: 1.38; }
     .q-text.q-xl { font-size: clamp(0.92rem, 1.35vw, 1.22rem); line-height: 1.34; }
 
-    /* 오른쪽 보기 영역: 버튼 확대 시 모서리가 깎이지 않도록 여유 패딩과 visible 적용 */
+    /* 오른쪽 보기 영역 */
     .right-pane {
       display: flex;
       flex-direction: column;
@@ -445,6 +445,7 @@
     }
 
     .opt-btn {
+      position: relative;
       height: 100%; width: 100%;
       padding: clamp(8px, 1.4vh, 12px) clamp(12px, 1.8vw, 20px);
       font-size: clamp(1.1rem, 1.95vw, 1.75rem); font-weight: bold; color: white;
@@ -457,31 +458,60 @@
     .opt-btn.text-lg { font-size: clamp(0.85rem, 1.2vw, 1.1rem); line-height: 1.36; padding: 6px 12px; }
 
     .opt-btn:active:not(:disabled) { transform: scale(0.98); }
-    .opt-btn.selected { box-shadow: inset 0 0 0 5px #222; transform: scale(0.98); }
+
+    /* 학생 선택 표시: 정답 공개(검은 테두리+블러)와 혼동되지 않도록 부드러운 흰색 외곽선과 체크 배지 사용 */
+    .opt-btn.selected {
+      box-shadow: inset 0 0 0 4px rgba(255, 255, 255, 0.92), 0 4px 12px rgba(0, 0, 0, 0.16);
+      transform: scale(0.985);
+    }
+    .opt-btn.opt-2.selected {
+      box-shadow: inset 0 0 0 4px #4a6cf7, 0 4px 12px rgba(0, 0, 0, 0.14);
+    }
+    .opt-btn.selected::after,
+    .ox-btn.selected::after {
+      content: "✓";
+      position: absolute;
+      top: 8px;
+      right: 10px;
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      background: #ffffff;
+      color: var(--primary);
+      font-size: 1rem;
+      font-weight: 900;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-shadow: none;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.22);
+    }
+
+    /* 시간 종료 시 다른 보기를 블러/흐림 처리하지 않고 색상 그대로 유지한 채 클릭만 잠금 */
     .opt-btn:disabled, .ox-btn:disabled {
-      opacity: 0.45;
       cursor: not-allowed;
-      filter: grayscale(25%);
     }
-    .opt-btn.selected:disabled, .ox-btn.selected:disabled {
-      opacity: 0.85;
-      filter: none;
-    }
+
     .opt-0 { background: var(--red); }
     .opt-1 { background: var(--blue); }
     .opt-2 { background: var(--yellow); color: #222; text-shadow: none; }
     .opt-3 { background: var(--green); }
 
     .ox-btn {
+      position: relative;
       height: 100%; width: 100%; font-size: clamp(2.8rem, 6vh, 5.2rem);
       border-radius: 20px; border: none; color: white; font-weight: bold; cursor: pointer;
       display: flex; align-items: center; justify-content: center;
       transition: transform 0.1s, opacity 0.2s, box-shadow 0.15s;
     }
-    .ox-btn.selected { box-shadow: inset 0 0 0 6px #222; transform: scale(0.98); }
+    .ox-btn.selected {
+      box-shadow: inset 0 0 0 5px rgba(255, 255, 255, 0.92), 0 4px 12px rgba(0, 0, 0, 0.16);
+      transform: scale(0.985);
+    }
     .ox-o { background: var(--blue); }
     .ox-x { background: var(--red); }
 
+    /* 교사 화면 전용 정답 공개 연출 */
     .dimmed { opacity: 0.28; }
     .correct-reveal {
       box-shadow: inset 0 0 0 6px #1b4332, 0 8px 20px rgba(27, 67, 50, 0.32);
@@ -687,7 +717,7 @@
           <span class="badge" id="st-q-num">문제 1</span>
           <span id="st-timer-badge" class="timer-badge hidden">⏱️ 15초</span>
         </div>
-        <span id="st-feedback" style="font-size:clamp(0.98rem, 1.8vw, 1.3rem); font-weight:bold; color:var(--primary); text-align:right; word-break:keep-all;"></span>
+        <span id="st-feedback" style="font-size:clamp(0.95rem, 1.7vw, 1.25rem); font-weight:bold; color:var(--primary); text-align:right; word-break:keep-all;"></span>
       </div>
       <div class="quiz-split-grid">
         <div id="st-left-pane" class="left-pane no-img">
@@ -1303,8 +1333,13 @@
 
     const fb = document.getElementById("st-feedback");
     if (fb) {
-      const hasPicked = studentAnswers[currentIdx] !== undefined;
-      fb.innerText = hasPicked ? "⏰ 시간 종료! (선택한 답이 저장되었어요)" : "⏰ 시간이 끝났어요!";
+      const picked = studentAnswers[currentIdx];
+      if (picked !== undefined) {
+        const pickedLabel = (picked === "O" || picked === "X") ? picked : `${Number(picked) + 1}번`;
+        fb.innerText = `⏰ 시간 종료! (${pickedLabel} 선택 · 앞 화면에서 정답 확인)`;
+      } else {
+        fb.innerText = "⏰ 시간 종료! 앞 화면에서 정답을 확인해요";
+      }
     }
   }
 
@@ -1890,7 +1925,12 @@
     studentAnswers[currentIdx] = val;
     document.querySelectorAll("#st-options-container button").forEach(b => b.classList.remove("selected"));
     btnEl.classList.add("selected");
-    document.getElementById("st-feedback").innerText = "✅ 답을 선택했어요!";
+
+    const pickedLabel = (val === "O" || val === "X") ? val : `${Number(val) + 1}번`;
+    const hasTimer = Number(config.timeLimit) > 0;
+    document.getElementById("st-feedback").innerText = hasTimer
+      ? `✋ ${pickedLabel}을(를) 골랐어요 (시간 안에 바꿀 수 있어요)`
+      : `✋ ${pickedLabel}을(를) 골랐어요`;
 
     reportStudentProgress();
   }
