@@ -79,11 +79,21 @@
     .mini-remote { display: flex; align-items: center; gap: 6px; }
     .status-dot {
       font-size: 0.82rem; background: rgba(255,255,255,0.12); padding: 4px 10px;
-      border-radius: 10px; margin-right: 4px; white-space: nowrap;
+      border-radius: 10px; white-space: nowrap;
     }
+    .resp-badge {
+      font-size: 0.85rem; background: #1e3a8a; border: 1px solid #60a5fa; color: #dbeafe;
+      padding: 4px 11px; border-radius: 10px; font-weight: bold; cursor: pointer;
+      white-space: nowrap; transition: all 0.15s;
+    }
+    .resp-badge:hover { background: #2563eb; color: white; }
+    .resp-badge.all-done {
+      background: #14532d; border-color: #4ade80; color: #dcfce7;
+    }
+
     .nav-btn {
       background: rgba(255,255,255,0.14); border: 1px solid rgba(255,255,255,0.22);
-      color: #f1f5ff; padding: 4px 11px; border-radius: 7px; font-size: 0.86rem;
+      color: #f1f5ff; padding: 4px 10px; border-radius: 7px; font-size: 0.85rem;
       font-weight: bold; cursor: pointer; white-space: nowrap; transition: background 0.15s;
     }
     .nav-btn:hover { background: rgba(255,255,255,0.28); }
@@ -127,7 +137,6 @@
       background: #ffffff; box-shadow: 0 0 0 5px rgba(74, 108, 247, 0.18);
     }
 
-    /* 한/영 키 실시간 안내 배지 */
     .ime-guide {
       margin-top: 16px;
       padding: 10px 18px;
@@ -398,7 +407,6 @@
           </div>
         </div>
 
-        <!-- 이름 칸 클릭/이동 및 영문 자판 감지 시 나타나는 한/영 키 안내 -->
         <div id="ime-guide-box" class="ime-guide hidden">
           💡 한글이 안 써지면 키보드의 <b>[한/영]</b> 키를 눌러주세요!
         </div>
@@ -600,11 +608,15 @@
   </section>
 </main>
 
-<!-- 교사 전용 하단 컨트롤 바 -->
+<!-- 교사 전용 하단 컨트롤 바 (실시간 응답 카운터 + 미응답자 확인 포함) -->
 <footer id="teacher-bottom-bar" class="teacher-bottom-bar hidden">
-  <span class="bottom-title">🧭 퀴즈챌린지! 우리는 코딩탐험대!</span>
+  <span class="bottom-title">🧭 코딩탐험대</span>
   <div class="mini-remote">
     <span id="tc-push-status" class="status-dot">🔴 대기중</span>
+    <button id="tc-resp-counter" class="resp-badge" onclick="showMissingStudents()" title="클릭하면 아직 안 누른 학생 명단을 봅니다">
+      👥 응답: 0 / 0명
+    </button>
+    <button class="nav-btn" onclick="resetStudentRoster()" title="새 반 수업을 위해 접속 인원 명단 초기화">🔄 초기화</button>
     <button class="nav-btn" onclick="prevQuestion()" title="단축키: 왼쪽 방향키 (←)">◀</button>
     <button class="nav-btn" onclick="speakCurrentQuestion()" title="단축키: R">🔊 읽기</button>
     <button class="nav-btn push" onclick="pushToStudents()" title="단축키: Space">📢 학생전송</button>
@@ -652,9 +664,11 @@
   let isAnswerRevealed = false;
   let isTeacherLiveMode = false;
   let studentInfo = null;
+  let studentKey = "";
   let studentAnswers = {};
   let uploadedBase64 = "";
   let bestKoreanVoice = null;
+  let liveRoster = {}; // 접속 학생 및 문항별 응답 상태 저장
 
   const bc = new BroadcastChannel("grade1_quiz_channel");
 
@@ -683,12 +697,12 @@
     setupNameImeHelper();
     await loadFromCloud();
     startSyncListener();
+    startTeacherRosterPolling();
 
     const classInput = document.getElementById("st-class");
     if (classInput) classInput.focus();
   };
 
-  // 이름 입력칸 포커스/입력 시 실시간 한/영 키 안내 도우미
   function setupNameImeHelper() {
     const nameInput = document.getElementById("st-name");
     const guideBox = document.getElementById("ime-guide-box");
@@ -700,7 +714,6 @@
 
     nameInput.addEventListener("input", () => {
       const val = nameInput.value;
-      // 영문 알파벳이 포함되어 있으면 한/영 키 전환 안내를 주황색으로 강조
       if (/[a-zA-Z]/.test(val)) {
         guideBox.classList.remove("hidden");
         guideBox.classList.add("warn-eng");
@@ -768,6 +781,98 @@
     if (len >= 34) return "text-lg";
     if (len >= 18) return "text-md";
     return "";
+  }
+
+  // ==================== 실시간 학생 응답 현황 집계 (교사용) ====================
+  function reportStudentProgress() {
+    if (!studentInfo || !studentKey) return;
+    const payload = {
+      type: "STUDENT_PROGRESS",
+      key: studentKey,
+      info: studentInfo,
+      answered: studentAnswers,
+      updatedAt: Date.now()
+    };
+    bc.postMessage(payload);
+
+    if (config.firebaseUrl) {
+      const url = config.firebaseUrl.replace(/\/$/, "") + `/live_responses/${encodeURIComponent(studentKey)}.json`;
+      fetch(url, {
+        method: "PUT",
+        body: JSON.stringify({
+          info: studentInfo,
+          answered: studentAnswers,
+          updatedAt: Date.now()
+        })
+      }).catch(() => {});
+    }
+  }
+
+  function startTeacherRosterPolling() {
+    setInterval(() => {
+      if (!isTeacherLiveMode || !config.firebaseUrl) return;
+      const url = config.firebaseUrl.replace(/\/$/, "") + "/live_responses.json";
+      fetch(url)
+        .then(res => res.json())
+        .then(data => {
+          liveRoster = data || {};
+          updateResponseCounterUI();
+        })
+        .catch(() => {});
+    }, 1500);
+  }
+
+  function getResponseSummary() {
+    const entries = Object.values(liveRoster || {});
+    const total = entries.length;
+    let answeredCount = 0;
+    const missingList = [];
+
+    entries.forEach(item => {
+      const hasAnsweredCurrent = item.answered && item.answered[currentIdx] !== undefined;
+      if (hasAnsweredCurrent) {
+        answeredCount++;
+      } else if (item.info) {
+        missingList.push(`${item.info.num}번 ${item.info.name}`);
+      }
+    });
+    return { total, answeredCount, missingList };
+  }
+
+  function updateResponseCounterUI() {
+    const badge = document.getElementById("tc-resp-counter");
+    if (!badge) return;
+    const { total, answeredCount } = getResponseSummary();
+    badge.innerText = `👥 응답: ${answeredCount} / ${total}명`;
+    if (total > 0 && answeredCount === total) {
+      badge.classList.add("all-done");
+    } else {
+      badge.classList.remove("all-done");
+    }
+  }
+
+  function showMissingStudents() {
+    const { total, answeredCount, missingList } = getResponseSummary();
+    if (total === 0) {
+      alert("아직 접속한 학생이 없습니다.");
+      return;
+    }
+    if (missingList.length === 0) {
+      alert(`🎉 접속한 ${total}명 모두 ${currentIdx + 1}번 문제에 응답했습니다!`);
+    } else {
+      alert(`📋 ${currentIdx + 1}번 문제 응답 현황 (${answeredCount}/${total}명 완료)\n\n⏳ 아직 안 누른 학생 (${missingList.length}명):\n${missingList.join(", ")}`);
+    }
+  }
+
+  async function resetStudentRoster() {
+    if (!confirm("새로운 반 수업을 위해 현재 접속된 학생 응답 명단을 모두 초기화할까요?")) return;
+    liveRoster = {};
+    updateResponseCounterUI();
+    if (config.firebaseUrl) {
+      const url = config.firebaseUrl.replace(/\/$/, "") + "/live_responses.json";
+      await fetch(url, { method: "DELETE" }).catch(() => {});
+    }
+    alert("학생 명단이 초기화되었습니다.");
   }
 
   // ==================== 키보드 단축키 ====================
@@ -930,6 +1035,7 @@
 
     const statusEl = document.getElementById("tc-push-status");
     statusEl.innerText = isPushedToStudent ? "🟢 학생전송됨" : "🔴 대기중";
+    updateResponseCounterUI();
   }
 
   function showQuestionOnTeacher() {
@@ -958,11 +1064,20 @@
   }
 
   function nextQuestion() {
+    // 학생들에게 문제를 보낸 상태라면 미응답자가 남아있는지 확인
+    if (isPushedToStudent) {
+      const { total, missingList } = getResponseSummary();
+      if (total > 0 && missingList.length > 0) {
+        const ok = confirm(`아직 ${missingList.length}명(${missingList.join(", ")})이 답을 고르지 않았습니다.\n그래도 다음 문제로 넘어갈까요?`);
+        if (!ok) return;
+      }
+    }
+
     if (currentIdx < questions.length - 1) {
       currentIdx++;
       showQuestionOnTeacher();
     } else {
-      alert("마지막 문제입니다.");
+      alert("마지막 문제입니다. [🏁 종료] 버튼을 눌러 결과를 전송하세요.");
     }
   }
 
@@ -974,7 +1089,12 @@
   }
 
   function finishQuizForAll() {
-    if (!confirm("퀴즈를 종료하고 모든 학생의 점수와 답안을 구글 폼으로 전송할까요?")) return;
+    const { total, missingList } = getResponseSummary();
+    let msg = "퀴즈를 종료하고 모든 학생의 점수와 답안을 구글 폼으로 전송할까요?";
+    if (isPushedToStudent && total > 0 && missingList.length > 0) {
+      msg = `아직 마지막 문제를 안 푼 학생이 ${missingList.length}명(${missingList.join(", ")}) 있습니다.\n그래도 퀴즈를 종료하고 결과를 전송할까요?`;
+    }
+    if (!confirm(msg)) return;
     broadcastState("FINISH_QUIZ");
     alert("학생 화면에 결과 전송 신호를 보냈습니다!");
   }
@@ -1002,7 +1122,14 @@
 
   let lastTimestamp = 0;
   function startSyncListener() {
-    bc.onmessage = (e) => handleIncomingState(e.data);
+    bc.onmessage = (e) => {
+      if (e.data && e.data.type === "STUDENT_PROGRESS") {
+        liveRoster[e.data.key] = e.data;
+        updateResponseCounterUI();
+        return;
+      }
+      handleIncomingState(e.data);
+    };
 
     setInterval(() => {
       if (!config.firebaseUrl || !studentInfo) return;
@@ -1052,13 +1179,17 @@
     }
 
     studentInfo = { grade, cls, num, name };
+    studentKey = `${grade}_${cls}_${num}_${name}`;
     document.getElementById("st-nametag").innerText = `🎒 ${grade}학년 ${cls}반 ${num}번 ${name}`;
     document.getElementById("student-login").classList.add("hidden");
     document.getElementById("student-wait").classList.remove("hidden");
+
+    // 교사 화면에 접속 알림 전송
+    reportStudentProgress();
   }
 
   function handleIncomingState(data) {
-    if (!studentInfo) return;
+    if (!studentInfo || !data) return;
     if (data.allQuestions) questions = data.allQuestions;
 
     if (data.action === "SHOW_TEACHER_ONLY") {
@@ -1132,6 +1263,9 @@
     document.querySelectorAll("#st-options-container button").forEach(b => b.classList.remove("selected"));
     btnEl.classList.add("selected");
     document.getElementById("st-feedback").innerText = "✅ 답을 선택했어요!";
+
+    // 교사 화면에 현재 문제 응답 완료 보고
+    reportStudentProgress();
   }
 
   function submitToGoogleForm() {
