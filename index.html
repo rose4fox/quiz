@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>퀴즈챌린지! 우리는 코딩탐험대!</title>
   <style>
     :root {
@@ -16,25 +16,27 @@
       --green: #8ac926;
       --text: #222222;
     }
-    * { box-sizing: border-box; font-family: 'Malgun Gothic', '맑은 고딕', sans-serif; }
+    * { box-sizing: border-box; font-family: 'Malgun Gothic', '맑은 고딕', sans-serif; -webkit-tap-highlight-color: transparent; }
     
     html, body {
-      margin: 0; padding: 0; height: 100%; background: var(--bg); color: var(--text);
+      margin: 0; padding: 0;
+      height: 100%; height: 100dvh; /* 태블릿 주소창·하단바 제외한 실제 가시 높이 */
+      background: var(--bg); color: var(--text);
       display: flex; flex-direction: column; overflow: hidden;
     }
-    body.allow-scroll { overflow-y: auto; height: auto; min-height: 100vh; }
+    body.allow-scroll { overflow-y: auto; height: auto; min-height: 100dvh; }
 
-    /* 학생용 상단 헤더 */
+    /* 학생용 상단 헤더 (태블릿 높이 절약을 위해 슬림하게 조정) */
     header {
-      background: var(--primary); color: white; padding: 8px 20px; height: 52px;
+      background: var(--primary); color: white; padding: 6px 16px; height: 46px;
       display: flex; justify-content: space-between; align-items: center; flex-shrink: 0;
       box-shadow: 0 2px 6px rgba(0,0,0,0.12);
     }
-    header h1 { margin: 0; font-size: 1.25rem; white-space: nowrap; }
+    header h1 { margin: 0; font-size: clamp(1.05rem, 2vw, 1.25rem); white-space: nowrap; }
 
     .gear-btn {
       background: rgba(255,255,255,0.18); border: none; color: white;
-      width: 34px; height: 34px; border-radius: 50%; font-size: 1.1rem;
+      width: 32px; height: 32px; border-radius: 50%; font-size: 1.05rem;
       cursor: pointer; display: flex; align-items: center; justify-content: center;
     }
     .gear-btn:hover { background: rgba(255,255,255,0.32); }
@@ -42,7 +44,8 @@
     /* 메인 작업 영역 */
     main {
       flex: 1; width: 100%; max-width: 1320px; margin: 0 auto;
-      padding: 14px 20px; display: flex; flex-direction: column; overflow: hidden;
+      padding: clamp(8px, 1.5vh, 14px) clamp(10px, 2vw, 20px);
+      display: flex; flex-direction: column; overflow: hidden; min-height: 0;
     }
     main.projector-mode {
       padding: 12px 22px 8px 22px;
@@ -51,9 +54,10 @@
     body.allow-scroll main { overflow: visible; display: block; max-width: 960px; padding: 20px; }
 
     .full-card {
-      flex: 1; background: var(--card); border-radius: 24px; padding: 20px 28px;
+      flex: 1; background: var(--card); border-radius: clamp(16px, 2.5vw, 24px);
+      padding: clamp(12px, 2vh, 20px) clamp(14px, 2.5vw, 28px);
       box-shadow: 0 8px 24px rgba(74, 108, 247, 0.08);
-      display: flex; flex-direction: column; justify-content: space-between; overflow: hidden;
+      display: flex; flex-direction: column; justify-content: space-between; overflow: hidden; min-height: 0;
     }
     main.projector-mode .full-card {
       flex: none;
@@ -101,47 +105,48 @@
     .nav-btn.reveal { background: #7209b7; border-color: #7209b7; color: white; }
     .nav-btn.finish { background: #d90429; border-color: #d90429; color: white; }
 
-    /* ==================== 학생 로그인 화면 ==================== */
+    /* ==================== 학생 로그인 화면 (태블릿·PC 반응형) ==================== */
     .login-wrap {
       margin: auto; width: 100%; max-width: 780px; text-align: center;
-      display: flex; flex-direction: column; gap: 22px;
+      display: flex; flex-direction: column; gap: clamp(12px, 2.5vh, 22px);
     }
     .welcome-badge {
       display: inline-block; background: #fff4d6; color: #b26a00;
-      padding: 8px 20px; border-radius: 30px; font-weight: bold; font-size: 1.15rem;
+      padding: 6px 18px; border-radius: 30px; font-weight: bold; font-size: clamp(0.95rem, 1.8vw, 1.15rem);
       margin: 0 auto;
     }
     .login-title {
-      margin: 8px 0 0 0; font-size: clamp(1.8rem, 3vw, 2.3rem); color: #1a2340;
+      margin: 6px 0 0 0; font-size: clamp(1.5rem, 3vw, 2.3rem); color: #1a2340;
     }
     .login-box {
-      background: #f5f8ff; border: 2px solid #dce6ff; border-radius: 24px;
-      padding: 26px 24px 20px 24px;
+      background: #f5f8ff; border: 2px solid #dce6ff; border-radius: 22px;
+      padding: clamp(16px, 3vh, 26px) clamp(14px, 2.5vw, 24px) clamp(14px, 2.2vh, 20px);
     }
     .login-grid {
-      display: grid; grid-template-columns: 1fr 1fr 1fr 1.4fr; gap: 16px;
+      display: grid; grid-template-columns: 1fr 1fr 1fr 1.4fr; gap: clamp(10px, 1.8vw, 16px);
     }
     .input-field {
-      display: flex; flex-direction: column; gap: 8px; text-align: center;
+      display: flex; flex-direction: column; gap: 6px; text-align: center;
     }
     .input-field label {
-      font-size: 1.15rem; font-weight: bold; color: #4a6cf7;
+      font-size: clamp(1rem, 1.8vw, 1.15rem); font-weight: bold; color: #4a6cf7;
     }
     .input-field input {
-      padding: 18px 12px; font-size: 1.6rem; font-weight: bold; color: #111111;
+      padding: clamp(12px, 2vh, 18px) 8px;
+      font-size: clamp(1.3rem, 2.4vw, 1.6rem); font-weight: bold; color: #111111;
       background: #ffffff; border: 2.5px dashed #9fb5f5; border-radius: 16px;
       text-align: center; width: 100%; transition: all 0.15s;
     }
     .input-field input:focus {
       outline: none; border-style: solid; border-color: var(--primary);
-      background: #ffffff; box-shadow: 0 0 0 5px rgba(74, 108, 247, 0.18);
+      background: #ffffff; box-shadow: 0 0 0 4px rgba(74, 108, 247, 0.18);
     }
 
     .ime-guide {
-      margin-top: 16px;
-      padding: 10px 18px;
-      border-radius: 14px;
-      font-size: 1.1rem;
+      margin-top: 12px;
+      padding: 8px 14px;
+      border-radius: 12px;
+      font-size: clamp(0.95rem, 1.6vw, 1.1rem);
       font-weight: bold;
       background: #e8f0fe;
       color: #2b50c7;
@@ -152,20 +157,19 @@
       background: #fff3cd;
       color: #9c5700;
       border-color: #ffca3a;
-      transform: scale(1.01);
     }
 
     .btn-start {
-      width: 100%; max-width: 420px; margin: 4px auto 0 auto;
-      padding: 20px 32px; font-size: 1.65rem; font-weight: bold;
+      width: 100%; max-width: 400px; margin: 2px auto 0 auto;
+      padding: clamp(14px, 2.2vh, 20px) 28px; font-size: clamp(1.35rem, 2.4vw, 1.65rem); font-weight: bold;
       background: linear-gradient(135deg, #4a6cf7, #3b5bdb); color: white;
-      border: none; border-radius: 20px; cursor: pointer;
-      box-shadow: 0 6px 0 var(--primary-dark), 0 12px 20px rgba(74, 108, 247, 0.25);
+      border: none; border-radius: 18px; cursor: pointer;
+      box-shadow: 0 5px 0 var(--primary-dark), 0 10px 18px rgba(74, 108, 247, 0.25);
       transition: transform 0.1s, box-shadow 0.1s;
     }
     .btn-start:active {
-      transform: translateY(4px);
-      box-shadow: 0 2px 0 var(--primary-dark), 0 6px 12px rgba(74, 108, 247, 0.2);
+      transform: translateY(3px);
+      box-shadow: 0 2px 0 var(--primary-dark), 0 5px 10px rgba(74, 108, 247, 0.2);
     }
 
     .btn-big {
@@ -173,59 +177,59 @@
       background: var(--primary); color: white; border: none; border-radius: 16px; cursor: pointer;
     }
 
-    /* ==================== 학생 대기 화면 ==================== */
+    /* ==================== 학생 대기 화면 (갤럭시탭 S6 라이트 높이 최적화) ==================== */
     .wait-wrap {
       margin: auto; width: 100%; max-width: 820px; text-align: center;
-      display: flex; flex-direction: column; align-items: center; gap: 22px;
+      display: flex; flex-direction: column; align-items: center; gap: clamp(10px, 2.2vh, 22px);
     }
     .student-nametag {
       background: #eef2ff; border: 2px solid #c7d5ff; color: var(--primary);
-      padding: 10px 24px; border-radius: 30px; font-size: 1.3rem; font-weight: bold;
+      padding: 8px 20px; border-radius: 30px; font-size: clamp(1.05rem, 2vw, 1.3rem); font-weight: bold;
     }
     .bounce-icon {
-      font-size: 5.2rem; line-height: 1;
+      font-size: clamp(3.4rem, 7vh, 5.2rem); line-height: 1;
       animation: gentleBounce 2s infinite ease-in-out;
     }
     @keyframes gentleBounce {
       0%, 100% { transform: translateY(0); }
-      50% { transform: translateY(-10px); }
+      50% { transform: translateY(-8px); }
     }
     .wait-title {
-      margin: 0; font-size: clamp(2rem, 3.2vw, 2.6rem); color: #1a2340;
+      margin: 0; font-size: clamp(1.6rem, 3.2vw, 2.6rem); color: #1a2340;
     }
     .wait-sub {
-      margin: 0; font-size: 1.3rem; color: #555; line-height: 1.5;
+      margin: 4px 0 0 0; font-size: clamp(1rem, 1.8vw, 1.3rem); color: #555; line-height: 1.4;
     }
     .guide-steps {
-      display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px;
-      width: 100%; margin-top: 8px;
+      display: grid; grid-template-columns: repeat(3, 1fr); gap: clamp(10px, 1.8vw, 16px);
+      width: 100%; margin-top: 4px;
     }
     .step-card {
-      background: #f8faff; border: 2px solid #e1e8ff; border-radius: 20px;
-      padding: 20px 14px; display: flex; flex-direction: column; align-items: center; gap: 8px;
+      background: #f8faff; border: 2px solid #e1e8ff; border-radius: 18px;
+      padding: clamp(12px, 2vh, 20px) 10px; display: flex; flex-direction: column; align-items: center; gap: 6px;
     }
-    .step-emoji { font-size: 2.4rem; }
-    .step-text { font-size: 1.15rem; font-weight: bold; color: #333; }
+    .step-emoji { font-size: clamp(1.8rem, 3.5vh, 2.4rem); }
+    .step-text { font-size: clamp(0.95rem, 1.7vw, 1.15rem); font-weight: bold; color: #333; }
 
     /* ==================== 좌·우 분할 퀴즈 레이아웃 ==================== */
     .q-top {
       display: flex; justify-content: space-between; align-items: center;
-      flex-shrink: 0; margin-bottom: 12px;
+      flex-shrink: 0; margin-bottom: clamp(8px, 1.4vh, 12px);
     }
     .badge {
-      background: #eef2ff; color: var(--primary); padding: 6px 16px;
-      border-radius: 12px; font-weight: bold; font-size: 1.2rem;
+      background: #eef2ff; color: var(--primary); padding: 5px 14px;
+      border-radius: 12px; font-weight: bold; font-size: clamp(1rem, 1.8vw, 1.2rem);
     }
     .tts-btn {
-      background: #ff9f1c; color: white; border: none; padding: 8px 16px;
-      border-radius: 10px; font-size: 1.05rem; font-weight: bold; cursor: pointer;
+      background: #ff9f1c; color: white; border: none; padding: 7px 14px;
+      border-radius: 10px; font-size: clamp(0.92rem, 1.6vw, 1.05rem); font-weight: bold; cursor: pointer;
     }
 
     .quiz-split-grid {
       flex: 1;
       display: grid;
-      grid-template-columns: 1.62fr 1fr;
-      gap: 24px;
+      grid-template-columns: 1.45fr 1fr; /* 태블릿 가로화면에서도 보기 버튼 폭 충분히 확보 */
+      gap: clamp(12px, 2vw, 24px);
       min-height: 0;
       overflow: hidden;
     }
@@ -233,7 +237,7 @@
     .left-pane {
       display: flex;
       flex-direction: column;
-      gap: 16px;
+      gap: clamp(10px, 1.6vh, 16px);
       min-height: 0;
       overflow: hidden;
     }
@@ -242,8 +246,8 @@
       flex: 1;
       background: #f8faff;
       border: 2px solid #e3eaff;
-      border-radius: 22px;
-      padding: 28px 32px;
+      border-radius: 20px;
+      padding: clamp(16px, 3vh, 28px) clamp(18px, 2.5vw, 32px);
       display: flex;
       align-items: center;
       justify-content: center;
@@ -253,11 +257,11 @@
 
     .left-pane.with-img .question-box {
       flex: 0 0 auto;
-      max-height: 44%;
+      max-height: 45%;
       background: #f8faff;
       border: 2px solid #e3eaff;
-      border-radius: 20px;
-      padding: 18px 24px;
+      border-radius: 18px;
+      padding: clamp(10px, 1.8vh, 18px) clamp(14px, 2vw, 24px);
       display: flex;
       align-items: center;
       justify-content: flex-start;
@@ -269,8 +273,8 @@
       min-height: 0;
       background: #ffffff;
       border: 2px solid #e3eaff;
-      border-radius: 20px;
-      padding: 16px;
+      border-radius: 18px;
+      padding: clamp(8px, 1.5vh, 16px);
       display: flex;
       align-items: center;
       justify-content: center;
@@ -279,21 +283,21 @@
     .q-img {
       max-width: 100%;
       max-height: 100%;
-      border-radius: 12px;
+      border-radius: 10px;
       object-fit: contain;
     }
 
     .q-text {
       width: 100%;
-      font-size: clamp(1.75rem, 2.8vw, 2.4rem);
+      font-size: clamp(1.35rem, 2.6vw, 2.35rem);
       font-weight: bold;
-      line-height: 1.48;
+      line-height: 1.45;
       word-break: keep-all;
       overflow-wrap: break-word;
     }
-    .q-text.q-md { font-size: clamp(1.4rem, 2.1vw, 1.85rem); line-height: 1.44; }
-    .q-text.q-lg { font-size: clamp(1.15rem, 1.7vw, 1.48rem); line-height: 1.4; }
-    .q-text.q-xl { font-size: clamp(1.0rem, 1.4vw, 1.25rem); line-height: 1.36; }
+    .q-text.q-md { font-size: clamp(1.15rem, 2.0vw, 1.8rem); line-height: 1.4; }
+    .q-text.q-lg { font-size: clamp(1.0rem, 1.65vw, 1.45rem); line-height: 1.38; }
+    .q-text.q-xl { font-size: clamp(0.92rem, 1.35vw, 1.22rem); line-height: 1.34; }
 
     .right-pane {
       display: flex;
@@ -306,7 +310,7 @@
       display: grid;
       grid-template-columns: 1fr;
       grid-template-rows: repeat(4, 1fr);
-      gap: 12px;
+      gap: clamp(8px, 1.4vh, 12px);
       min-height: 0;
     }
     .ox-col {
@@ -314,34 +318,35 @@
       display: grid;
       grid-template-columns: 1fr;
       grid-template-rows: repeat(2, 1fr);
-      gap: 18px;
+      gap: clamp(12px, 2vh, 18px);
       min-height: 0;
     }
 
     .opt-btn {
-      height: 100%; width: 100%; padding: 12px 20px;
-      font-size: clamp(1.3rem, 2.0vw, 1.8rem); font-weight: bold; color: white;
-      border: none; border-radius: 18px; cursor: pointer; transition: transform 0.1s, opacity 0.2s;
+      height: 100%; width: 100%;
+      padding: clamp(8px, 1.4vh, 12px) clamp(12px, 1.8vw, 20px);
+      font-size: clamp(1.1rem, 1.95vw, 1.75rem); font-weight: bold; color: white;
+      border: none; border-radius: 16px; cursor: pointer; transition: transform 0.1s, opacity 0.2s;
       text-shadow: 0 1px 3px rgba(0,0,0,0.28);
       display: flex; align-items: center; justify-content: center; text-align: center;
-      line-height: 1.45; word-break: keep-all; overflow-wrap: break-word; overflow: hidden;
+      line-height: 1.4; word-break: keep-all; overflow-wrap: break-word; overflow: hidden;
     }
-    .opt-btn.text-md { font-size: clamp(1.05rem, 1.5vw, 1.35rem); line-height: 1.45; padding: 10px 18px; }
-    .opt-btn.text-lg { font-size: clamp(0.92rem, 1.25vw, 1.12rem); line-height: 1.42; padding: 8px 14px; }
+    .opt-btn.text-md { font-size: clamp(0.95rem, 1.45vw, 1.3rem); line-height: 1.4; padding: 8px 14px; }
+    .opt-btn.text-lg { font-size: clamp(0.85rem, 1.2vw, 1.1rem); line-height: 1.36; padding: 6px 12px; }
 
     .opt-btn:active { transform: scale(0.98); }
-    .opt-btn.selected { outline: 6px solid #222; transform: scale(0.98); }
+    .opt-btn.selected { outline: 5px solid #222; transform: scale(0.98); }
     .opt-0 { background: var(--red); }
     .opt-1 { background: var(--blue); }
     .opt-2 { background: var(--yellow); color: #222; text-shadow: none; }
     .opt-3 { background: var(--green); }
 
     .ox-btn {
-      height: 100%; width: 100%; font-size: clamp(3.5rem, 6vw, 5.5rem);
-      border-radius: 22px; border: none; color: white; font-weight: bold; cursor: pointer;
+      height: 100%; width: 100%; font-size: clamp(2.8rem, 6vh, 5.2rem);
+      border-radius: 20px; border: none; color: white; font-weight: bold; cursor: pointer;
       display: flex; align-items: center; justify-content: center;
     }
-    .ox-btn.selected { outline: 7px solid #222; transform: scale(0.98); }
+    .ox-btn.selected { outline: 6px solid #222; transform: scale(0.98); }
     .ox-o { background: var(--blue); }
     .ox-x { background: var(--red); }
 
@@ -349,7 +354,37 @@
     .correct-reveal { outline: 7px solid #1b4332; transform: scale(1.01); box-shadow: 0 8px 24px rgba(0,0,0,0.2); }
 
     .center-box { margin: auto; text-align: center; }
-    .center-box h2 { font-size: 2.2rem; color: var(--primary); margin: 16px 0; }
+    .center-box h2 { font-size: clamp(1.6rem, 3vw, 2.2rem); color: var(--primary); margin: 16px 0; }
+
+    /* ==================== 태블릿 세로 모드(Portrait) 자동 전환 ==================== */
+    @media (max-width: 820px) and (orientation: portrait) {
+      .login-grid {
+        grid-template-columns: 1fr 1fr;
+      }
+      .quiz-split-grid {
+        grid-template-columns: 1fr;
+        grid-template-rows: 1.15fr 1fr;
+        gap: 14px;
+      }
+      .left-pane.with-img {
+        flex-direction: row;
+      }
+      .left-pane.with-img .question-box {
+        flex: 1.3;
+        max-height: 100%;
+      }
+      .left-pane.with-img .q-img-wrap {
+        flex: 1;
+      }
+      .options-col {
+        grid-template-columns: 1fr 1fr;
+        grid-template-rows: 1fr 1fr;
+      }
+      .ox-col {
+        grid-template-columns: 1fr 1fr;
+        grid-template-rows: 1fr;
+      }
+    }
 
     /* 출제/설정 폼 */
     .form-group { margin-bottom: 14px; }
@@ -359,10 +394,38 @@
     }
     .entry-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin: 12px 0; }
     .entry-grid input { padding: 10px; border: 1px solid #ccc; border-radius: 8px; font-size: 0.95rem; text-align: center; width: 100%; }
+    
     .q-list-item {
-      display: flex; justify-content: space-between; align-items: center;
-      padding: 12px; border-bottom: 1px solid #eee;
+      display: flex; justify-content: space-between; align-items: center; gap: 12px;
+      padding: 12px; border-bottom: 1px solid #eee; border-radius: 10px;
+      transition: background 0.15s;
     }
+    .q-list-item.editing-highlight {
+      background: #fff8e6; border: 2px solid #ffca3a;
+    }
+    .q-item-info { flex: 1; line-height: 1.45; }
+    .q-item-actions { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
+    .icon-action-btn {
+      border: none; padding: 6px 10px; border-radius: 8px; font-size: 0.9rem;
+      font-weight: bold; cursor: pointer; transition: opacity 0.15s;
+    }
+    .icon-action-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+    .btn-move { background: #e9eef8; color: #334155; }
+    .btn-move:hover:not(:disabled) { background: #d5e0f5; }
+    .btn-edit { background: #ff9f1c; color: white; }
+    .btn-del { background: #ff595e; color: white; }
+
+    .editor-card.editing-mode {
+      border: 2.5px solid #ff9f1c;
+      background: #fffdf7;
+    }
+    .edit-btn-row { display: flex; gap: 10px; }
+    .btn-cancel-edit {
+      padding: 18px 24px; font-size: 1.2rem; font-weight: bold;
+      background: #64748b; color: white; border: none; border-radius: 16px; cursor: pointer;
+      white-space: nowrap;
+    }
+
     .cloud-badge {
       display: inline-block; background: #e6f4ea; color: #1e8e3e; padding: 4px 10px;
       border-radius: 8px; font-size: 0.85rem; font-weight: bold; margin-left: 8px;
@@ -442,7 +505,7 @@
     <div id="student-quiz" class="hidden" style="display:flex; flex-direction:column; height:100%;">
       <div class="q-top">
         <span class="badge" id="st-q-num">문제 1</span>
-        <span id="st-feedback" style="font-size:1.3rem; font-weight:bold; color:var(--primary);"></span>
+        <span id="st-feedback" style="font-size:clamp(1rem, 1.8vw, 1.3rem); font-weight:bold; color:var(--primary);"></span>
         <button class="tts-btn" onclick="speakCurrentQuestion()">🔊 문제 다시 듣기</button>
       </div>
       <div class="quiz-split-grid">
@@ -461,10 +524,10 @@
     </div>
 
     <div id="student-end" class="center-box hidden">
-      <div style="font-size: 5rem;">🎉</div>
+      <div style="font-size: 4.5rem;">🎉</div>
       <h2>참 잘했어요! 모든 퀴즈가 끝났습니다.</h2>
-      <p id="st-final-score" style="font-size: 2rem; font-weight: bold; color: var(--primary);"></p>
-      <p id="st-submit-status" style="color: #2b9348; font-weight: bold; font-size: 1.25rem;">선생님께 점수와 답안을 보내는 중...</p>
+      <p id="st-final-score" style="font-size: clamp(1.5rem, 2.8vw, 2rem); font-weight: bold; color: var(--primary);"></p>
+      <p id="st-submit-status" style="color: #2b9348; font-weight: bold; font-size: clamp(1.05rem, 1.8vw, 1.25rem);">선생님께 점수와 답안을 보내는 중...</p>
     </div>
   </section>
 
@@ -498,8 +561,8 @@
       <button class="btn-big" style="width:auto; padding:12px 24px; font-size:1.1rem;" onclick="backToLiveBoard()">📺 수업 화면으로 돌아가기</button>
     </div>
 
-    <div class="card">
-      <h3>✏️ 새 문제 추가하기 (추가 즉시 Firebase 클라우드에 자동 백업됩니다)</h3>
+    <div id="question-editor-card" class="card editor-card">
+      <h3 id="editor-heading">✏️ 새 문제 추가하기 (추가 즉시 Firebase 클라우드에 자동 백업됩니다)</h3>
       <div class="form-group">
         <label>문제 유형</label>
         <select id="new-q-type" onchange="toggleOptionInputs()">
@@ -515,6 +578,12 @@
         <label>그림 넣기 (이미지 파일 선택 또는 인터넷 이미지 주소 입력)</label>
         <input type="file" id="new-q-file" accept="image/*" onchange="handleImageUpload(event)" />
         <input type="text" id="new-q-img-url" placeholder="또는 이미지 URL 붙여넣기" style="margin-top:6px;" />
+        <div id="edit-img-status" class="hidden" style="margin-top:8px; padding:8px 12px; background:#f1f5ff; border-radius:8px; font-size:0.9rem;">
+          <span id="edit-img-label">🖼️ 기존에 등록된 그림이 있습니다.</span>
+          <label style="display:inline-flex; align-items:center; gap:6px; margin-left:12px; color:#d90429; cursor:pointer;">
+            <input type="checkbox" id="remove-existing-img" style="width:auto;" /> 기존 그림 지우기
+          </label>
+        </div>
       </div>
 
       <div id="choice-inputs">
@@ -543,9 +612,12 @@
         </div>
       </div>
 
-      <button class="btn-big" onclick="addQuestion()">➕ 문제 저장하기 (클라우드 자동 저장)</button>
+      <div class="edit-btn-row">
+        <button id="save-question-btn" class="btn-big" onclick="saveQuestion()">➕ 문제 저장하기 (클라우드 자동 저장)</button>
+        <button id="cancel-edit-btn" class="btn-cancel-edit hidden" onclick="cancelEditQuestion()">취소</button>
+      </div>
 
-      <h3 style="margin-top:30px;">📋 등록된 문제 목록</h3>
+      <h3 style="margin-top:30px;">📋 등록된 문제 목록 (순서 이동 · 수정 · 삭제)</h3>
       <div id="question-list"></div>
     </div>
 
@@ -608,7 +680,7 @@
   </section>
 </main>
 
-<!-- 교사 전용 하단 컨트롤 바 (실시간 응답 카운터 + 미응답자 확인 포함) -->
+<!-- 교사 전용 하단 컨트롤 바 -->
 <footer id="teacher-bottom-bar" class="teacher-bottom-bar hidden">
   <span class="bottom-title">🧭 코딩탐험대</span>
   <div class="mini-remote">
@@ -658,8 +730,12 @@
   ];
 
   let config = Object.assign({}, DEFAULT_CONFIG, JSON.parse(localStorage.getItem("quiz_1st_config")) || {});
+  if (!["auto", "question_only", "with_options"].includes(config.readOptions)) {
+    config.readOptions = "auto";
+  }
 
   let currentIdx = 0;
+  let editingIdx = -1;
   let isPushedToStudent = false;
   let isAnswerRevealed = false;
   let isTeacherLiveMode = false;
@@ -668,7 +744,7 @@
   let studentAnswers = {};
   let uploadedBase64 = "";
   let bestKoreanVoice = null;
-  let liveRoster = {}; // 접속 학생 및 문항별 응답 상태 저장
+  let liveRoster = {};
 
   const bc = new BroadcastChannel("grade1_quiz_channel");
 
@@ -734,6 +810,9 @@
       if (data) {
         if (data.config) {
           config = Object.assign({}, config, data.config);
+          if (!["auto", "question_only", "with_options"].includes(config.readOptions)) {
+            config.readOptions = "auto";
+          }
           localStorage.setItem("quiz_1st_config", JSON.stringify(config));
           loadConfigInputs();
         }
@@ -771,19 +850,19 @@
     textEl.classList.remove("q-md", "q-lg", "q-xl");
     const len = (text || "").length;
     const effectiveLen = hasImg ? len * 1.45 : len;
-    if (effectiveLen >= 120) textEl.classList.add("q-xl");
-    else if (effectiveLen >= 80) textEl.classList.add("q-lg");
-    else if (effectiveLen >= 42) textEl.classList.add("q-md");
+    if (effectiveLen >= 115) textEl.classList.add("q-xl");
+    else if (effectiveLen >= 75) textEl.classList.add("q-lg");
+    else if (effectiveLen >= 38) textEl.classList.add("q-md");
   }
 
   function getOptionSizeClass(text) {
     const len = (text || "").length;
-    if (len >= 34) return "text-lg";
-    if (len >= 18) return "text-md";
+    if (len >= 30) return "text-lg";
+    if (len >= 15) return "text-md";
     return "";
   }
 
-  // ==================== 실시간 학생 응답 현황 집계 (교사용) ====================
+  // ==================== 실시간 학생 응답 현황 집계 ====================
   function reportStudentProgress() {
     if (!studentInfo || !studentKey) return;
     const payload = {
@@ -894,9 +973,15 @@
   });
 
   // ==================== 스마트 음성 안내 (TTS) ====================
+  function stopSpeech() {
+    if (window.speechSynthesis) {
+      window.speechSynthesis.cancel();
+    }
+  }
+
   function speakText(text) {
     if (!window.speechSynthesis) return;
-    window.speechSynthesis.cancel();
+    stopSpeech();
     if (!bestKoreanVoice) loadBestKoreanVoice();
 
     const cleanText = text
@@ -916,12 +1001,13 @@
     if (!q) return;
 
     let script = q.text;
+    const mode = document.getElementById("cfg-read-options")?.value || config.readOptions || "auto";
 
     if (q.type === "choice") {
       const firstOptLen = (q.options[0] || "").replace(/\s+/g, "").length;
       const shouldReadOptions =
-        config.readOptions === "with_options" ||
-        (config.readOptions === "auto" && firstOptLen > 10);
+        mode === "with_options" ||
+        (mode === "auto" && firstOptLen > 10);
 
       if (shouldReadOptions) {
         const ordinals = ["첫 번째", "두 번째", "세 번째", "네 번째"];
@@ -934,6 +1020,7 @@
 
   // ==================== 화면 모드 전환 ====================
   function switchMode(mode) {
+    stopSpeech();
     document.body.classList.remove("allow-scroll");
     const mainEl = document.getElementById("main-container");
     mainEl.classList.remove("projector-mode");
@@ -952,6 +1039,7 @@
   }
 
   function backToLiveBoard() {
+    cancelEditQuestion();
     isTeacherLiveMode = true;
     document.body.classList.remove("allow-scroll");
     document.getElementById("main-container").classList.add("projector-mode");
@@ -964,6 +1052,7 @@
   }
 
   function openSetupTab() {
+    stopSpeech();
     isTeacherLiveMode = false;
     document.body.classList.add("allow-scroll");
     document.getElementById("main-container").classList.remove("projector-mode");
@@ -988,6 +1077,7 @@
   // ==================== 교사 수업 화면 로직 ====================
   function renderTeacherView() {
     if (questions.length === 0) return;
+    if (currentIdx >= questions.length) currentIdx = Math.max(0, questions.length - 1);
     const q = questions[currentIdx];
     document.getElementById("tc-q-num").innerText = `문제 ${currentIdx + 1} / ${questions.length}`;
     
@@ -1060,11 +1150,12 @@
       const ordinals = ["첫 번째", "두 번째", "세 번째", "네 번째"];
       const ansText = q.type === "ox" ? q.answer : `${ordinals[q.answer]}, ${q.options[q.answer]}`;
       speakText(`정답은 ${ansText} 입니다.`);
+    } else {
+      stopSpeech();
     }
   }
 
   function nextQuestion() {
-    // 학생들에게 문제를 보낸 상태라면 미응답자가 남아있는지 확인
     if (isPushedToStudent) {
       const { total, missingList } = getResponseSummary();
       if (total > 0 && missingList.length > 0) {
@@ -1095,6 +1186,7 @@
       msg = `아직 마지막 문제를 안 푼 학생이 ${missingList.length}명(${missingList.join(", ")}) 있습니다.\n그래도 퀴즈를 종료하고 결과를 전송할까요?`;
     }
     if (!confirm(msg)) return;
+    stopSpeech();
     broadcastState("FINISH_QUIZ");
     alert("학생 화면에 결과 전송 신호를 보냈습니다!");
   }
@@ -1184,7 +1276,6 @@
     document.getElementById("student-login").classList.add("hidden");
     document.getElementById("student-wait").classList.remove("hidden");
 
-    // 교사 화면에 접속 알림 전송
     reportStudentProgress();
   }
 
@@ -1193,6 +1284,7 @@
     if (data.allQuestions) questions = data.allQuestions;
 
     if (data.action === "SHOW_TEACHER_ONLY") {
+      stopSpeech();
       document.getElementById("student-wait").classList.remove("hidden");
       document.getElementById("student-quiz").classList.add("hidden");
       document.getElementById("student-end").classList.add("hidden");
@@ -1254,6 +1346,7 @@
       }
     } 
     else if (data.action === "FINISH_QUIZ") {
+      stopSpeech();
       submitToGoogleForm();
     }
   }
@@ -1264,7 +1357,6 @@
     btnEl.classList.add("selected");
     document.getElementById("st-feedback").innerText = "✅ 답을 선택했어요!";
 
-    // 교사 화면에 현재 문제 응답 완료 보고
     reportStudentProgress();
   }
 
@@ -1321,7 +1413,7 @@
     });
   }
 
-  // ==================== 문제 관리 & 클라우드 저장 ====================
+  // ==================== 문제 추가 · 수정 · 순서 이동 · 삭제 ====================
   function toggleOptionInputs() {
     const type = document.getElementById("new-q-type").value;
     document.getElementById("choice-inputs").classList.toggle("hidden", type !== "choice");
@@ -1338,46 +1430,140 @@
     reader.readAsDataURL(file);
   }
 
-  async function addQuestion() {
+  function startEditQuestion(idx) {
+    const q = questions[idx];
+    if (!q) return;
+
+    editingIdx = idx;
+    uploadedBase64 = "";
+    document.getElementById("new-q-file").value = "";
+    document.getElementById("remove-existing-img").checked = false;
+
+    document.getElementById("new-q-type").value = q.type;
+    toggleOptionInputs();
+
+    document.getElementById("new-q-text").value = q.text;
+    document.getElementById("new-q-img-url").value = (q.img && !q.img.startsWith("data:")) ? q.img : "";
+
+    const imgStatusBox = document.getElementById("edit-img-status");
+    if (q.img) {
+      imgStatusBox.classList.remove("hidden");
+    } else {
+      imgStatusBox.classList.add("hidden");
+    }
+
+    if (q.type === "ox") {
+      document.getElementById("ox-answer").value = q.answer;
+    } else {
+      document.getElementById("opt-0").value = q.options[0] || "";
+      document.getElementById("opt-1").value = q.options[1] || "";
+      document.getElementById("opt-2").value = q.options[2] || "";
+      document.getElementById("opt-3").value = q.options[3] || "";
+      document.getElementById("choice-answer").value = String(q.answer);
+    }
+
+    document.getElementById("question-editor-card").classList.add("editing-mode");
+    document.getElementById("editor-heading").innerText = `🛠️ ${idx + 1}번 문제 수정하기`;
+    document.getElementById("save-question-btn").innerText = `💾 ${idx + 1}번 문제 수정 완료`;
+    document.getElementById("save-question-btn").style.background = "#ff9f1c";
+    document.getElementById("cancel-edit-btn").classList.remove("hidden");
+
+    renderQuestionList();
+    document.getElementById("question-editor-card").scrollIntoView({ behavior: "smooth" });
+  }
+
+  function cancelEditQuestion() {
+    editingIdx = -1;
+    uploadedBase64 = "";
+    document.getElementById("new-q-text").value = "";
+    document.getElementById("new-q-img-url").value = "";
+    document.getElementById("new-q-file").value = "";
+    document.getElementById("opt-0").value = "";
+    document.getElementById("opt-1").value = "";
+    document.getElementById("opt-2").value = "";
+    document.getElementById("opt-3").value = "";
+    document.getElementById("remove-existing-img").checked = false;
+    document.getElementById("edit-img-status").classList.add("hidden");
+
+    document.getElementById("question-editor-card").classList.remove("editing-mode");
+    document.getElementById("editor-heading").innerText = "✏️ 새 문제 추가하기 (추가 즉시 Firebase 클라우드에 자동 백업됩니다)";
+    document.getElementById("save-question-btn").innerText = "➕ 문제 저장하기 (클라우드 자동 저장)";
+    document.getElementById("save-question-btn").style.background = "";
+    document.getElementById("cancel-edit-btn").classList.add("hidden");
+
+    renderQuestionList();
+  }
+
+  async function saveQuestion() {
     const type = document.getElementById("new-q-type").value;
     const text = document.getElementById("new-q-text").value.trim();
     const imgUrl = document.getElementById("new-q-img-url").value.trim();
-    const finalImg = uploadedBase64 || imgUrl;
+    const removeOldImg = document.getElementById("remove-existing-img").checked;
 
     if (!text) {
       alert("문제 내용을 입력하세요.");
       return;
     }
 
-    let newQ = { type, text, img: finalImg };
+    let finalImg = "";
+    if (uploadedBase64) {
+      finalImg = uploadedBase64;
+    } else if (imgUrl) {
+      finalImg = imgUrl;
+    } else if (editingIdx >= 0 && !removeOldImg) {
+      finalImg = questions[editingIdx].img || "";
+    }
+
+    let builtQ = { type, text, img: finalImg };
     if (type === "ox") {
-      newQ.options = ["O", "X"];
-      newQ.answer = document.getElementById("ox-answer").value;
+      builtQ.options = ["O", "X"];
+      builtQ.answer = document.getElementById("ox-answer").value;
     } else {
-      newQ.options = [
+      builtQ.options = [
         document.getElementById("opt-0").value || "보기 1",
         document.getElementById("opt-1").value || "보기 2",
         document.getElementById("opt-2").value || "보기 3",
         document.getElementById("opt-3").value || "보기 4"
       ];
-      newQ.answer = document.getElementById("choice-answer").value;
+      builtQ.answer = document.getElementById("choice-answer").value;
     }
 
-    questions.push(newQ);
-    await syncBankToCloud();
-    
-    document.getElementById("new-q-text").value = "";
-    document.getElementById("new-q-img-url").value = "";
-    document.getElementById("new-q-file").value = "";
-    uploadedBase64 = "";
+    if (editingIdx >= 0) {
+      const targetNum = editingIdx + 1;
+      questions[editingIdx] = builtQ;
+      await syncBankToCloud();
+      cancelEditQuestion();
+      renderTeacherView();
+      alert(`${targetNum}번 문제가 수정되었습니다!`);
+    } else {
+      questions.push(builtQ);
+      await syncBankToCloud();
+      cancelEditQuestion();
+      renderTeacherView();
+      alert("새 문제가 클라우드에 저장되었습니다!");
+    }
+  }
 
+  async function moveQuestion(idx, direction) {
+    const targetIdx = idx + direction;
+    if (targetIdx < 0 || targetIdx >= questions.length) return;
+
+    if (editingIdx >= 0) cancelEditQuestion();
+
+    const temp = questions[idx];
+    questions[idx] = questions[targetIdx];
+    questions[targetIdx] = temp;
+
+    await syncBankToCloud();
     renderQuestionList();
     renderTeacherView();
-    alert("문제가 클라우드에 저장되었습니다!");
   }
 
   async function deleteQuestion(idx) {
-    if (!confirm("이 문제를 삭제할까요?")) return;
+    if (!confirm(`${idx + 1}번 문제를 삭제할까요?`)) return;
+    if (editingIdx === idx) cancelEditQuestion();
+    else if (editingIdx > idx) editingIdx--;
+
     questions.splice(idx, 1);
     if (currentIdx >= questions.length) currentIdx = Math.max(0, questions.length - 1);
     await syncBankToCloud();
@@ -1389,13 +1575,21 @@
     const list = document.getElementById("question-list");
     list.innerHTML = "";
     questions.forEach((q, i) => {
+      const isEditingThis = (i === editingIdx);
+      const ansLabel = q.type === 'ox' ? q.answer : `${Number(q.answer) + 1}번`;
       list.innerHTML += `
-        <div class="q-list-item">
-          <div>
-            <strong>${i + 1}번 [${q.type === 'ox' ? 'OX' : '객관식'}]</strong> ${q.text}
-            ${q.img ? '🖼️' : ''}
+        <div class="q-list-item ${isEditingThis ? 'editing-highlight' : ''}">
+          <div class="q-item-info">
+            <strong>${i + 1}번 [${q.type === 'ox' ? 'OX' : '객관식'} · 정답: ${ansLabel}]</strong>
+            ${q.img ? '🖼️' : ''}<br>
+            <span>${q.text}</span>
           </div>
-          <button onclick="deleteQuestion(${i})" style="background:#ff595e; color:white; border:none; padding:6px 12px; border-radius:8px; cursor:pointer;">삭제</button>
+          <div class="q-item-actions">
+            <button class="icon-action-btn btn-move" onclick="moveQuestion(${i}, -1)" ${i === 0 ? 'disabled' : ''} title="위로 이동">▲</button>
+            <button class="icon-action-btn btn-move" onclick="moveQuestion(${i}, 1)" ${i === questions.length - 1 ? 'disabled' : ''} title="아래로 이동">▼</button>
+            <button class="icon-action-btn btn-edit" onclick="startEditQuestion(${i})">✏️ 수정</button>
+            <button class="icon-action-btn btn-del" onclick="deleteQuestion(${i})">삭제</button>
+          </div>
         </div>
       `;
     });
