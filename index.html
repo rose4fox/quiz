@@ -187,6 +187,7 @@
       background: #ffffff; box-shadow: 0 0 0 4px rgba(74, 108, 247, 0.18);
     }
 
+    /* 안내 문구 영역: 공간을 미리 확보하여 나타날 때 버튼 위치가 밀리지 않도록 고정 */
     .ime-guide {
       margin-top: 12px;
       padding: 8px 14px;
@@ -196,7 +197,13 @@
       background: #e8f0fe;
       color: #2b50c7;
       border: 1.5px solid #c5d7fb;
-      transition: all 0.2s;
+      transition: opacity 0.2s, background 0.2s;
+      visibility: hidden;
+      opacity: 0;
+    }
+    .ime-guide.show {
+      visibility: visible;
+      opacity: 1;
     }
     .ime-guide.warn-eng {
       background: #fff3cd;
@@ -560,7 +567,7 @@
           </div>
         </div>
 
-        <div id="ime-guide-box" class="ime-guide hidden">
+        <div id="ime-guide-box" class="ime-guide">
           💡 한글이 안 써지면 키보드의 <b>[한/영]</b> 키를 눌러주세요!
         </div>
       </div>
@@ -573,7 +580,7 @@
       <div class="bounce-icon">👀</div>
       <div>
         <h2 class="wait-title">선생님 화면을 봐주세요!</h2>
-        <p class="wait-sub">선생님이 화면에 문제를 보여준 다음, 신호를 보내면 학생 화면에 버튼이 나타납니다.</p>
+        <p class="wait-sub">선생님이 문제를 보여주신 뒤 신호를 보내면 여기에 버튼이 나타납니다.</p>
       </div>
       <div class="guide-steps">
         <!-- 1. 앞 화면 보기 (커스텀 벡터 일러스트) -->
@@ -958,14 +965,13 @@
     if (!nameInput || !guideBox) return;
 
     nameInput.addEventListener("focus", () => {
-      guideBox.classList.remove("hidden");
+      guideBox.classList.add("show");
     });
 
     nameInput.addEventListener("input", () => {
       const val = nameInput.value;
       if (/[a-zA-Z]/.test(val)) {
-        guideBox.classList.remove("hidden");
-        guideBox.classList.add("warn-eng");
+        guideBox.classList.add("show", "warn-eng");
         guideBox.innerHTML = "⌨️ 지금 영어로 써지고 있어요! <b>[한/영]</b> 키를 눌러 한글로 바꿔주세요.";
       } else {
         guideBox.classList.remove("warn-eng");
