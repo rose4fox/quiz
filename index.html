@@ -41,26 +41,25 @@
 
     /* 메인 작업 영역 */
     main {
-      flex: 1; width: 100%; max-width: 1260px; margin: 0 auto;
+      flex: 1; width: 100%; max-width: 1320px; margin: 0 auto;
       padding: 14px 20px; display: flex; flex-direction: column; overflow: hidden;
     }
-    /* 빔프로젝터 모드: 하단이 학생 모니터에 가려지므로 위쪽으로 바짝 끌어올려 배치 */
     main.projector-mode {
-      padding: 12px 24px 10px 24px;
+      padding: 12px 22px 8px 22px;
       justify-content: flex-start;
     }
     body.allow-scroll main { overflow: visible; display: block; max-width: 960px; padding: 20px; }
 
     .full-card {
-      flex: 1; background: var(--card); border-radius: 24px; padding: 22px 34px;
+      flex: 1; background: var(--card); border-radius: 24px; padding: 20px 28px;
       box-shadow: 0 8px 24px rgba(74, 108, 247, 0.08);
       display: flex; flex-direction: column; justify-content: space-between; overflow: hidden;
     }
-    /* 빔프로젝터 투사용 카드: 전체 높이의 82%만 사용해 하단 18% 여유 공간 확보 */
+    /* 빔프로젝터 투사용 카드: 하단이 학생 모니터에 가려지지 않도록 위쪽 84% 영역 사용 */
     main.projector-mode .full-card {
       flex: none;
-      height: 82vh;
-      padding: 20px 34px 26px 34px;
+      height: 84vh;
+      padding: 18px 28px 22px 28px;
     }
 
     .card {
@@ -180,35 +179,72 @@
     .step-emoji { font-size: 2.4rem; }
     .step-text { font-size: 1.15rem; font-weight: bold; color: #333; }
 
-    /* ==================== 문제 상단 & 본문 (4:6 비율 + 여유 공간 + 가운데 정렬) ==================== */
-    .q-top { display: flex; justify-content: space-between; align-items: center; flex-shrink: 0; margin-bottom: 10px; }
-    .badge { background: #eef2ff; color: var(--primary); padding: 6px 16px; border-radius: 12px; font-weight: bold; font-size: 1.2rem; }
+    /* ==================== 좌·우 분할 퀴즈 레이아웃 ==================== */
+    .q-top {
+      display: flex; justify-content: space-between; align-items: center;
+      flex-shrink: 0; margin-bottom: 12px;
+    }
+    .badge {
+      background: #eef2ff; color: var(--primary); padding: 6px 16px;
+      border-radius: 12px; font-weight: bold; font-size: 1.2rem;
+    }
     .tts-btn {
       background: #ff9f1c; color: white; border: none; padding: 8px 16px;
       border-radius: 10px; font-size: 1.05rem; font-weight: bold; cursor: pointer;
     }
 
-    /* 이미지가 없을 때: 가운데 정렬 */
-    .q-body {
-      flex: 1; display: flex; align-items: center; justify-content: center;
-      padding: 10px 16px 22px 16px; min-height: 0; overflow: hidden;
-    }
-    .q-body.no-img .q-text {
-      text-align: center;
-      max-width: 92%;
+    /* 메인 2단 그리드: 왼쪽(문제+이미지 62%) | 오른쪽(보기 1~4 세로 38%) */
+    .quiz-split-grid {
+      flex: 1;
+      display: grid;
+      grid-template-columns: 1.62fr 1fr;
+      gap: 24px;
+      min-height: 0;
+      overflow: hidden;
     }
 
-    /* 이미지가 있을 때: 4 : 6 비율 + 충분한 간격과 안쪽 여백 */
-    .q-body.with-img {
-      gap: 36px;
-      justify-content: space-between;
-      padding: 8px 12px 24px 12px;
+    /* 왼쪽 칼럼: 상단 문제 + 하단 이미지 */
+    .left-pane {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      min-height: 0;
+      overflow: hidden;
+    }
+
+    /* 이미지가 없을 때: 왼쪽 전체 영역 정중앙에 문제 배치 */
+    .left-pane.no-img .question-box {
+      flex: 1;
+      background: #f8faff;
+      border: 2px solid #e3eaff;
+      border-radius: 22px;
+      padding: 28px 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      overflow: hidden;
+    }
+
+    /* 이미지가 있을 때: 위쪽 문제 박스(42%) + 아래쪽 이미지 박스(58%) */
+    .left-pane.with-img .question-box {
+      flex: 0 0 auto;
+      max-height: 44%;
+      background: #f8faff;
+      border: 2px solid #e3eaff;
+      border-radius: 20px;
+      padding: 18px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: flex-start;
+      text-align: left;
+      overflow: hidden;
     }
     .q-img-wrap {
-      flex: 0 0 38%;
-      height: 100%;
-      background: #f8faff;
-      border: 2px solid #e4ebfa;
+      flex: 1;
+      min-height: 0;
+      background: #ffffff;
+      border: 2px solid #e3eaff;
       border-radius: 20px;
       padding: 16px;
       display: flex;
@@ -222,51 +258,64 @@
       border-radius: 12px;
       object-fit: contain;
     }
-    .q-body.with-img .q-text {
-      flex: 1;
-      text-align: left;
-      padding-right: 8px;
-    }
 
     .q-text {
-      font-size: clamp(1.85rem, 3.1vw, 2.55rem); font-weight: bold;
-      line-height: 1.5; word-break: keep-all; overflow-wrap: break-word;
+      width: 100%;
+      font-size: clamp(1.75rem, 2.8vw, 2.4rem);
+      font-weight: bold;
+      line-height: 1.48;
+      word-break: keep-all;
+      overflow-wrap: break-word;
     }
-    .q-text.q-md { font-size: clamp(1.45rem, 2.25vw, 1.9rem); line-height: 1.45; }
-    .q-text.q-lg { font-size: clamp(1.2rem, 1.8vw, 1.55rem); line-height: 1.42; }
-    .q-text.q-xl { font-size: clamp(1.05rem, 1.5vw, 1.3rem); line-height: 1.38; }
+    .q-text.q-md { font-size: clamp(1.4rem, 2.1vw, 1.85rem); line-height: 1.44; }
+    .q-text.q-lg { font-size: clamp(1.15rem, 1.7vw, 1.48rem); line-height: 1.4; }
+    .q-text.q-xl { font-size: clamp(1.0rem, 1.4vw, 1.25rem); line-height: 1.36; }
 
-    /* 보기 버튼 영역 */
-    .options-area { height: 35%; min-height: 155px; flex-shrink: 0; display: flex; flex-direction: column; transition: height 0.2s; }
-    .options-area.tall-options { height: 45%; min-height: 200px; }
-
-    .options-grid {
-      flex: 1; display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr;
-      gap: 14px; min-height: 0;
+    /* 오른쪽 칼럼: 보기 1~4 세로 4단 (OX일 때는 세로 2단) */
+    .right-pane {
+      display: flex;
+      flex-direction: column;
+      min-height: 0;
+      overflow: hidden;
     }
+    .options-col {
+      flex: 1;
+      display: grid;
+      grid-template-columns: 1fr;
+      grid-template-rows: repeat(4, 1fr);
+      gap: 12px;
+      min-height: 0;
+    }
+    .ox-col {
+      flex: 1;
+      display: grid;
+      grid-template-columns: 1fr;
+      grid-template-rows: repeat(2, 1fr);
+      gap: 18px;
+      min-height: 0;
+    }
+
     .opt-btn {
-      height: 100%; width: 100%; padding: 14px 22px;
-      font-size: clamp(1.35rem, 2.2vw, 1.95rem); font-weight: bold; color: white;
+      height: 100%; width: 100%; padding: 12px 20px;
+      font-size: clamp(1.3rem, 2.0vw, 1.8rem); font-weight: bold; color: white;
       border: none; border-radius: 18px; cursor: pointer; transition: transform 0.1s, opacity 0.2s;
       text-shadow: 0 1px 3px rgba(0,0,0,0.28);
       display: flex; align-items: center; justify-content: center; text-align: center;
       line-height: 1.45; word-break: keep-all; overflow-wrap: break-word; overflow: hidden;
     }
-    .opt-btn.text-md { font-size: clamp(1.1rem, 1.6vw, 1.4rem); line-height: 1.5; padding: 12px 20px; }
-    .opt-btn.text-lg { font-size: clamp(0.95rem, 1.3vw, 1.15rem); line-height: 1.5; padding: 10px 16px; }
+    .opt-btn.text-md { font-size: clamp(1.05rem, 1.5vw, 1.35rem); line-height: 1.45; padding: 10px 18px; }
+    .opt-btn.text-lg { font-size: clamp(0.92rem, 1.25vw, 1.12rem); line-height: 1.42; padding: 8px 14px; }
 
     .opt-btn:active { transform: scale(0.98); }
-    .opt-btn.selected { outline: 7px solid #222; transform: scale(0.98); }
+    .opt-btn.selected { outline: 6px solid #222; transform: scale(0.98); }
     .opt-0 { background: var(--red); }
     .opt-1 { background: var(--blue); }
     .opt-2 { background: var(--yellow); color: #222; text-shadow: none; }
     .opt-3 { background: var(--green); }
 
-    /* OX 전용 버튼 */
-    .ox-grid { flex: 1; display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
     .ox-btn {
-      height: 100%; font-size: clamp(3.2rem, 5.5vw, 5rem); border-radius: 22px; border: none;
-      color: white; font-weight: bold; cursor: pointer;
+      height: 100%; width: 100%; font-size: clamp(3.5rem, 6vw, 5.5rem);
+      border-radius: 22px; border: none; color: white; font-weight: bold; cursor: pointer;
       display: flex; align-items: center; justify-content: center;
     }
     .ox-btn.selected { outline: 7px solid #222; transform: scale(0.98); }
@@ -274,7 +323,7 @@
     .ox-x { background: var(--red); }
 
     .dimmed { opacity: 0.28; }
-    .correct-reveal { outline: 8px solid #1b4332; transform: scale(1.01); box-shadow: 0 8px 24px rgba(0,0,0,0.2); }
+    .correct-reveal { outline: 7px solid #1b4332; transform: scale(1.01); box-shadow: 0 8px 24px rgba(0,0,0,0.2); }
 
     .center-box { margin: auto; text-align: center; }
     .center-box h2 { font-size: 2.2rem; color: var(--primary); margin: 16px 0; }
@@ -362,20 +411,25 @@
       </div>
     </div>
 
-    <div id="student-quiz" class="hidden" style="display:flex; flex-direction:column; height:100%; justify-content:space-between;">
+    <!-- 학생 문제 풀이 화면 (좌: 문제+이미지 / 우: 보기 1~4 세로 배치) -->
+    <div id="student-quiz" class="hidden" style="display:flex; flex-direction:column; height:100%;">
       <div class="q-top">
         <span class="badge" id="st-q-num">문제 1</span>
         <span id="st-feedback" style="font-size:1.3rem; font-weight:bold; color:var(--primary);"></span>
         <button class="tts-btn" onclick="speakCurrentQuestion()">🔊 문제 다시 듣기</button>
       </div>
-      <div id="st-q-body" class="q-body no-img">
-        <div id="st-q-img-wrap" class="q-img-wrap hidden">
-          <img id="st-q-img" class="q-img" src="" alt="문제 그림" />
+      <div class="quiz-split-grid">
+        <div id="st-left-pane" class="left-pane no-img">
+          <div class="question-box">
+            <div class="q-text" id="st-q-text">문제가 여기에 표시됩니다.</div>
+          </div>
+          <div id="st-q-img-wrap" class="q-img-wrap hidden">
+            <img id="st-q-img" class="q-img" src="" alt="문제 그림" />
+          </div>
         </div>
-        <div class="q-text" id="st-q-text">문제가 여기에 표시됩니다.</div>
-      </div>
-      <div id="st-options-area" class="options-area">
-        <div id="st-options-container" class="options-grid"></div>
+        <div class="right-pane">
+          <div id="st-options-container" class="options-col"></div>
+        </div>
       </div>
     </div>
 
@@ -387,19 +441,23 @@
     </div>
   </section>
 
-  <!-- ==================== 2. 교사 수업 진행 화면 ==================== -->
+  <!-- ==================== 2. 교사 수업 진행 화면 (좌: 문제+이미지 / 우: 보기 1~4 세로 배치) ==================== -->
   <section id="teacher-live-section" class="full-card hidden">
     <div class="q-top">
       <span class="badge" id="tc-q-num">문제 1 / 1</span>
     </div>
-    <div id="tc-q-body" class="q-body no-img">
-      <div id="tc-q-img-wrap" class="q-img-wrap hidden">
-        <img id="tc-q-img" class="q-img" src="" alt="문제 그림" />
+    <div class="quiz-split-grid">
+      <div id="tc-left-pane" class="left-pane no-img">
+        <div class="question-box">
+          <div class="q-text" id="tc-q-text">문제를 등록해주세요.</div>
+        </div>
+        <div id="tc-q-img-wrap" class="q-img-wrap hidden">
+          <img id="tc-q-img" class="q-img" src="" alt="문제 그림" />
+        </div>
       </div>
-      <div class="q-text" id="tc-q-text">문제를 등록해주세요.</div>
-    </div>
-    <div id="tc-options-area" class="options-area">
-      <div id="tc-options-preview" class="options-grid"></div>
+      <div class="right-pane">
+        <div id="tc-options-preview" class="options-col"></div>
+      </div>
     </div>
   </section>
 
@@ -655,25 +713,17 @@
   function applyQuestionSizing(textEl, text, hasImg) {
     textEl.classList.remove("q-md", "q-lg", "q-xl");
     const len = (text || "").length;
-    const effectiveLen = hasImg ? len * 1.35 : len;
-    if (effectiveLen >= 130) textEl.classList.add("q-xl");
-    else if (effectiveLen >= 85) textEl.classList.add("q-lg");
-    else if (effectiveLen >= 45) textEl.classList.add("q-md");
-  }
-
-  function applyOptionsAreaSizing(areaEl, q) {
-    if (q.type === "choice") {
-      const maxLen = Math.max(...q.options.map(o => (o || "").length));
-      areaEl.classList.toggle("tall-options", maxLen >= 14);
-    } else {
-      areaEl.classList.remove("tall-options");
-    }
+    // 이미지가 있으면 위쪽 문제 박스 높이가 44%로 줄어들므로 글자 수 가중치 부여
+    const effectiveLen = hasImg ? len * 1.45 : len;
+    if (effectiveLen >= 120) textEl.classList.add("q-xl");
+    else if (effectiveLen >= 80) textEl.classList.add("q-lg");
+    else if (effectiveLen >= 42) textEl.classList.add("q-md");
   }
 
   function getOptionSizeClass(text) {
     const len = (text || "").length;
-    if (len >= 32) return "text-lg";
-    if (len >= 16) return "text-md";
+    if (len >= 34) return "text-lg";
+    if (len >= 18) return "text-md";
     return "";
   }
 
@@ -793,7 +843,7 @@
     const q = questions[currentIdx];
     document.getElementById("tc-q-num").innerText = `문제 ${currentIdx + 1} / ${questions.length}`;
     
-    const tcBodyEl = document.getElementById("tc-q-body");
+    const tcLeftPane = document.getElementById("tc-left-pane");
     const tcImgWrap = document.getElementById("tc-q-img-wrap");
     const imgEl = document.getElementById("tc-q-img");
     const hasImg = Boolean(q.img);
@@ -801,24 +851,23 @@
     if (hasImg) {
       imgEl.src = q.img;
       tcImgWrap.classList.remove("hidden");
-      tcBodyEl.classList.remove("no-img");
-      tcBodyEl.classList.add("with-img");
+      tcLeftPane.classList.remove("no-img");
+      tcLeftPane.classList.add("with-img");
     } else {
       tcImgWrap.classList.add("hidden");
-      tcBodyEl.classList.remove("with-img");
-      tcBodyEl.classList.add("no-img");
+      tcLeftPane.classList.remove("with-img");
+      tcLeftPane.classList.add("no-img");
     }
 
     const tcTextEl = document.getElementById("tc-q-text");
     tcTextEl.innerText = q.text;
     applyQuestionSizing(tcTextEl, q.text, hasImg);
-    applyOptionsAreaSizing(document.getElementById("tc-options-area"), q);
 
     const prevBox = document.getElementById("tc-options-preview");
     prevBox.innerHTML = "";
 
     if (q.type === "ox") {
-      prevBox.className = "ox-grid";
+      prevBox.className = "ox-col";
       ["O", "X"].forEach(val => {
         const isCorrect = (q.answer === val);
         const revealClass = isAnswerRevealed ? (isCorrect ? "correct-reveal" : "dimmed") : "";
@@ -826,7 +875,7 @@
         prevBox.innerHTML += `<div class="ox-btn ${val === 'O' ? 'ox-o' : 'ox-x'} ${revealClass}">${val}${mark}</div>`;
       });
     } else {
-      prevBox.className = "options-grid";
+      prevBox.className = "options-col";
       q.options.forEach((opt, i) => {
         const isCorrect = (String(i) === String(q.answer));
         const revealClass = isAnswerRevealed ? (isCorrect ? "correct-reveal" : "dimmed") : "";
@@ -983,7 +1032,7 @@
 
       document.getElementById("st-q-num").innerText = `문제 ${currentIdx + 1}`;
       
-      const stBodyEl = document.getElementById("st-q-body");
+      const stLeftPane = document.getElementById("st-left-pane");
       const stImgWrap = document.getElementById("st-q-img-wrap");
       const imgEl = document.getElementById("st-q-img");
       const hasImg = Boolean(q.img);
@@ -991,25 +1040,24 @@
       if (hasImg) {
         imgEl.src = q.img;
         stImgWrap.classList.remove("hidden");
-        stBodyEl.classList.remove("no-img");
-        stBodyEl.classList.add("with-img");
+        stLeftPane.classList.remove("no-img");
+        stLeftPane.classList.add("with-img");
       } else {
         stImgWrap.classList.add("hidden");
-        stBodyEl.classList.remove("with-img");
-        stBodyEl.classList.add("no-img");
+        stLeftPane.classList.remove("with-img");
+        stLeftPane.classList.add("no-img");
       }
 
       const stTextEl = document.getElementById("st-q-text");
       stTextEl.innerText = q.text;
       applyQuestionSizing(stTextEl, q.text, hasImg);
-      applyOptionsAreaSizing(document.getElementById("st-options-area"), q);
       document.getElementById("st-feedback").innerText = "";
 
       const optContainer = document.getElementById("st-options-container");
       optContainer.innerHTML = "";
 
       if (q.type === "ox") {
-        optContainer.className = "ox-grid";
+        optContainer.className = "ox-col";
         ["O", "X"].forEach(val => {
           const btn = document.createElement("button");
           btn.className = `ox-btn ${val === 'O' ? 'ox-o' : 'ox-x'}`;
@@ -1019,7 +1067,7 @@
           optContainer.appendChild(btn);
         });
       } else {
-        optContainer.className = "options-grid";
+        optContainer.className = "options-col";
         q.options.forEach((opt, i) => {
           const btn = document.createElement("button");
           const sizeClass = getOptionSizeClass(opt);
