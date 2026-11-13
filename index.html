@@ -303,13 +303,35 @@
 
     /* ==================== 좌·우 분할 퀴즈 레이아웃 ==================== */
     .q-top {
-      display: flex; justify-content: space-between; align-items: center;
+      display: flex; justify-content: space-between; align-items: center; gap: 10px;
       flex-shrink: 0; margin-bottom: clamp(8px, 1.4vh, 12px);
+    }
+    .q-top-left {
+      display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
     }
     .badge {
       background: #eef2ff; color: var(--primary); padding: 5px 14px;
       border-radius: 12px; font-weight: bold; font-size: clamp(1rem, 1.8vw, 1.2rem);
     }
+    .timer-badge {
+      background: #fff4d6; color: #b26a00; border: 2px solid #ffd166;
+      padding: 4px 14px; border-radius: 12px; font-weight: bold;
+      font-size: clamp(1rem, 1.8vw, 1.25rem); white-space: nowrap;
+      transition: all 0.2s;
+    }
+    .timer-badge.urgent {
+      background: #ffe3e3; color: #c92a2a; border-color: #ff6b6b;
+      animation: pulseUrgent 0.8s infinite alternate;
+    }
+    .timer-badge.expired {
+      background: #f1f3f5; color: #495057; border-color: #adb5bd;
+      animation: none;
+    }
+    @keyframes pulseUrgent {
+      from { transform: scale(1); }
+      to { transform: scale(1.06); }
+    }
+
     .tts-btn {
       background: #ff9f1c; color: white; border: none; padding: 7px 14px;
       border-radius: 10px; font-size: clamp(0.92rem, 1.6vw, 1.05rem); font-weight: bold; cursor: pointer;
@@ -426,8 +448,17 @@
     .opt-btn.text-md { font-size: clamp(0.95rem, 1.45vw, 1.3rem); line-height: 1.4; padding: 8px 14px; }
     .opt-btn.text-lg { font-size: clamp(0.85rem, 1.2vw, 1.1rem); line-height: 1.36; padding: 6px 12px; }
 
-    .opt-btn:active { transform: scale(0.98); }
+    .opt-btn:active:not(:disabled) { transform: scale(0.98); }
     .opt-btn.selected { box-shadow: inset 0 0 0 5px #222; transform: scale(0.98); }
+    .opt-btn:disabled, .ox-btn:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+      filter: grayscale(25%);
+    }
+    .opt-btn.selected:disabled, .ox-btn.selected:disabled {
+      opacity: 0.85;
+      filter: none;
+    }
     .opt-0 { background: var(--red); }
     .opt-1 { background: var(--blue); }
     .opt-2 { background: var(--yellow); color: #222; text-shadow: none; }
@@ -644,7 +675,10 @@
     <!-- 학생 문제 풀이 화면 -->
     <div id="student-quiz" class="hidden" style="display:flex; flex-direction:column; height:100%;">
       <div class="q-top">
-        <span class="badge" id="st-q-num">문제 1</span>
+        <div class="q-top-left">
+          <span class="badge" id="st-q-num">문제 1</span>
+          <span id="st-timer-badge" class="timer-badge hidden">⏱️ 15초</span>
+        </div>
         <span id="st-feedback" style="font-size:clamp(1rem, 1.8vw, 1.3rem); font-weight:bold; color:var(--primary);"></span>
         <button class="tts-btn" onclick="speakCurrentQuestion(true)">🔊 문제 듣기</button>
       </div>
@@ -674,7 +708,10 @@
   <!-- ==================== 2. 교사 수업 진행 화면 ==================== -->
   <section id="teacher-live-section" class="full-card hidden">
     <div class="q-top">
-      <span class="badge" id="tc-q-num">문제 1 / 1</span>
+      <div class="q-top-left">
+        <span class="badge" id="tc-q-num">문제 1 / 1</span>
+        <span id="tc-timer-badge" class="timer-badge hidden">⏱️ 남은 시간: 15초</span>
+      </div>
     </div>
     <div class="quiz-split-grid">
       <div id="tc-left-pane" class="left-pane no-img">
@@ -762,7 +799,7 @@
     </div>
 
     <div class="card">
-      <h3>⚙️ 교사 비밀번호 · 음성 · 구글 폼 · Firebase 설정</h3>
+      <h3>⚙️ 교사 비밀번호 · 제한시간 · 음성 · 구글 폼 · Firebase 설정</h3>
       <p style="font-size:0.9rem; color:#555; line-height:1.5;">
         * 게스트 모드 컴퓨터실에서는 아래 설정을 입력하고 <b>[💾 클라우드에 영구 저장하기]</b>를 누르시면 다음 수업에서도 그대로 불러옵니다.<br>
         * <code>DEFAULT_CONFIG</code> 코드 안에 주소를 미리 넣어두시면 매번 입력할 필요조차 없습니다.
@@ -770,6 +807,19 @@
       <div class="form-group">
         <label>🔑 교사 화면 비밀번호 설정 (클라우드에 저장되어 모든 PC에 적용됩니다)</label>
         <input type="password" id="cfg-teacher-pw" placeholder="비밀번호 입력 (예: 1234)" autocomplete="new-password" />
+      </div>
+
+      <div class="form-group">
+        <label>⏱️ 문제 풀이 제한 시간 (학생전송 후 카운트다운 · 종료 시 버튼 자동 잠금)</label>
+        <select id="cfg-time-limit">
+          <option value="0">제한 없음 (선생님이 다음 문제로 넘길 때까지 계속 선택 가능)</option>
+          <option value="10">10초</option>
+          <option value="15">15초</option>
+          <option value="20">20초</option>
+          <option value="30">30초</option>
+          <option value="45">45초</option>
+          <option value="60">60초</option>
+        </select>
       </div>
 
       <div class="form-group">
@@ -829,7 +879,7 @@
       <button class="btn-big" style="margin-top:14px;" onclick="saveSettings()">💾 클라우드에 영구 저장하기</button>
     </div>
 
-    <!-- 하단 수업 화면 복귀 버튼 (상단 버튼과 동일 스타일 + 하단 여유 공간) -->
+    <!-- 하단 수업 화면 복귀 버튼 -->
     <div class="setup-bottom-actions">
       <button class="btn-return-live" onclick="backToLiveBoard()">📺 수업 화면으로 돌아가기</button>
     </div>
@@ -882,6 +932,7 @@
 
   const DEFAULT_CONFIG = {
     teacherPw: "1234",
+    timeLimit: 0, // 0이면 제한 없음, 양수면 제한 초(sec)
     readOptions: "auto", // "auto" | "none" | "question_only" | "with_options"
     firebaseUrl: "",
     formUrl: "",
@@ -913,6 +964,7 @@
   if (!["auto", "none", "question_only", "with_options"].includes(config.readOptions)) {
     config.readOptions = "auto";
   }
+  config.timeLimit = Number(config.timeLimit) || 0;
 
   let currentIdx = 0;
   let editingIdx = -1;
@@ -925,6 +977,11 @@
   let uploadedBase64 = "";
   let bestKoreanVoice = null;
   let liveRoster = {};
+
+  // 제한시간 타이머 관리 변수
+  let teacherTimerInterval = null;
+  let studentTimerInterval = null;
+  let isStudentInputLocked = false;
 
   const bc = new BroadcastChannel("grade1_quiz_channel");
 
@@ -992,6 +1049,7 @@
           if (!["auto", "none", "question_only", "with_options"].includes(config.readOptions)) {
             config.readOptions = "auto";
           }
+          config.timeLimit = Number(config.timeLimit) || 0;
           localStorage.setItem("quiz_1st_config", JSON.stringify(config));
           loadConfigInputs();
         }
@@ -1039,6 +1097,114 @@
     if (len >= 30) return "text-lg";
     if (len >= 15) return "text-md";
     return "";
+  }
+
+  // ==================== 제한시간 카운트다운 제어 ====================
+  function clearTeacherTimer() {
+    if (teacherTimerInterval) {
+      clearInterval(teacherTimerInterval);
+      teacherTimerInterval = null;
+    }
+    const badge = document.getElementById("tc-timer-badge");
+    if (badge) {
+      badge.classList.add("hidden");
+      badge.classList.remove("urgent", "expired");
+    }
+  }
+
+  function startTeacherCountdown(seconds) {
+    clearTeacherTimer();
+    const limit = Number(seconds) || 0;
+    if (limit <= 0) return;
+
+    const badge = document.getElementById("tc-timer-badge");
+    let remaining = limit;
+
+    const updateBadge = () => {
+      badge.classList.remove("hidden", "urgent", "expired");
+      if (remaining > 0) {
+        badge.innerText = `⏱️ 남은 시간: ${remaining}초`;
+        if (remaining <= 5) badge.classList.add("urgent");
+      } else {
+        badge.innerText = "⏰ 시간 종료!";
+        badge.classList.add("expired");
+      }
+    };
+
+    updateBadge();
+
+    teacherTimerInterval = setInterval(() => {
+      remaining--;
+      updateBadge();
+      if (remaining <= 0) {
+        clearInterval(teacherTimerInterval);
+        teacherTimerInterval = null;
+        // 시간 종료 신호 전파 (학생 버튼 즉시 잠금 동기화)
+        broadcastState("TIME_UP");
+      }
+    }, 1000);
+  }
+
+  function clearStudentTimer() {
+    if (studentTimerInterval) {
+      clearInterval(studentTimerInterval);
+      studentTimerInterval = null;
+    }
+    const badge = document.getElementById("st-timer-badge");
+    if (badge) {
+      badge.classList.add("hidden");
+      badge.classList.remove("urgent", "expired");
+    }
+  }
+
+  function lockStudentButtons() {
+    isStudentInputLocked = true;
+    clearStudentTimer();
+
+    const badge = document.getElementById("st-timer-badge");
+    if (badge) {
+      badge.classList.remove("hidden", "urgent");
+      badge.classList.add("expired");
+      badge.innerText = "⏰ 시간 종료";
+    }
+
+    document.querySelectorAll("#st-options-container button").forEach(btn => {
+      btn.disabled = true;
+    });
+
+    const fb = document.getElementById("st-feedback");
+    if (fb) {
+      const hasPicked = studentAnswers[currentIdx] !== undefined;
+      fb.innerText = hasPicked ? "⏰ 시간 종료! (선택한 답이 저장되었어요)" : "⏰ 시간이 끝났어요!";
+    }
+  }
+
+  function startStudentCountdown(seconds) {
+    clearStudentTimer();
+    isStudentInputLocked = false;
+
+    const limit = Number(seconds) || 0;
+    if (limit <= 0) return;
+
+    const badge = document.getElementById("st-timer-badge");
+    let remaining = limit;
+
+    const updateBadge = () => {
+      badge.classList.remove("hidden", "urgent", "expired");
+      if (remaining > 0) {
+        badge.innerText = `⏱️ ${remaining}초`;
+        if (remaining <= 5) badge.classList.add("urgent");
+      } else {
+        lockStudentButtons();
+      }
+    };
+
+    updateBadge();
+
+    studentTimerInterval = setInterval(() => {
+      remaining--;
+      updateBadge();
+    }, 1000);
   }
 
   // ==================== 실시간 학생 응답 현황 집계 ====================
@@ -1205,6 +1371,7 @@
   // ==================== 화면 모드 전환 ====================
   function switchMode(mode) {
     stopSpeech();
+    clearTeacherTimer();
     document.body.classList.remove("allow-scroll");
     const mainEl = document.getElementById("main-container");
     mainEl.classList.remove("projector-mode");
@@ -1237,6 +1404,7 @@
 
   function openSetupTab() {
     stopSpeech();
+    clearTeacherTimer();
     isTeacherLiveMode = false;
     document.body.classList.add("allow-scroll");
     document.getElementById("main-container").classList.remove("projector-mode");
@@ -1334,6 +1502,7 @@
   }
 
   function showQuestionOnTeacher() {
+    clearTeacherTimer();
     isPushedToStudent = false;
     isAnswerRevealed = false;
     renderTeacherView();
@@ -1344,7 +1513,9 @@
   function pushToStudents() {
     isPushedToStudent = true;
     renderTeacherView();
+    const limit = Number(config.timeLimit) || 0;
     broadcastState("PUSH_TO_STUDENT");
+    startTeacherCountdown(limit);
   }
 
   function revealAnswerOnBoard() {
@@ -1353,6 +1524,18 @@
     const mode = document.getElementById("cfg-read-options")?.value || config.readOptions || "auto";
 
     if (isAnswerRevealed) {
+      // 정답 공개 시 아직 타이머가 돌고 있었다면 종료 및 학생 버튼 잠금
+      if (teacherTimerInterval) {
+        clearTeacherTimer();
+        const badge = document.getElementById("tc-timer-badge");
+        if (badge) {
+          badge.classList.remove("hidden", "urgent");
+          badge.classList.add("expired");
+          badge.innerText = "⏰ 시간 종료!";
+        }
+        broadcastState("TIME_UP");
+      }
+
       if (mode === "none") return;
       const q = questions[currentIdx];
       const ordinals = ["첫 번째", "두 번째", "세 번째", "네 번째"];
@@ -1364,10 +1547,10 @@
   }
 
   function nextQuestion() {
-    if (isPushedToStudent) {
+    if (isPushedToStudent && teacherTimerInterval) {
       const { total, missingList } = getResponseSummary();
       if (total > 0 && missingList.length > 0) {
-        const ok = confirm(`아직 ${missingList.length}명(${missingList.join(", ")})이 답을 고르지 않았습니다.\n그래도 다음 문제로 넘어갈까요?`);
+        const ok = confirm(`아직 제한시간이 남았고 ${missingList.length}명(${missingList.join(", ")})이 답을 고르지 않았습니다.\n그래도 다음 문제로 넘어갈까요?`);
         if (!ok) return;
       }
     }
@@ -1395,6 +1578,7 @@
     }
     if (!confirm(msg)) return;
     stopSpeech();
+    clearTeacherTimer();
     broadcastState("FINISH_QUIZ");
     alert("학생 화면에 결과 전송 신호를 보냈습니다!");
   }
@@ -1405,6 +1589,7 @@
       action,
       currentIdx,
       isPushedToStudent,
+      timeLimit: Number(config.timeLimit) || 0,
       question: questions[currentIdx],
       allQuestions: questions,
       timestamp: Date.now()
@@ -1493,6 +1678,8 @@
 
     if (data.action === "SHOW_TEACHER_ONLY") {
       stopSpeech();
+      clearStudentTimer();
+      isStudentInputLocked = false;
       document.getElementById("student-wait").classList.remove("hidden");
       document.getElementById("student-quiz").classList.add("hidden");
       document.getElementById("student-end").classList.add("hidden");
@@ -1500,6 +1687,8 @@
     else if (data.action === "PUSH_TO_STUDENT") {
       currentIdx = data.currentIdx;
       const q = data.question;
+      const limit = Number(data.timeLimit) || 0;
+
       document.getElementById("student-wait").classList.add("hidden");
       document.getElementById("student-end").classList.add("hidden");
       document.getElementById("student-quiz").classList.remove("hidden");
@@ -1552,14 +1741,24 @@
           optContainer.appendChild(btn);
         });
       }
-    } 
+
+      startStudentCountdown(limit);
+    }
+    else if (data.action === "TIME_UP") {
+      if (data.currentIdx === currentIdx) {
+        lockStudentButtons();
+      }
+    }
     else if (data.action === "FINISH_QUIZ") {
       stopSpeech();
+      clearStudentTimer();
       submitToGoogleForm();
     }
   }
 
   function selectStudentAnswer(val, btnEl) {
+    if (isStudentInputLocked) return;
+
     studentAnswers[currentIdx] = val;
     document.querySelectorAll("#st-options-container button").forEach(b => b.classList.remove("selected"));
     btnEl.classList.add("selected");
@@ -1815,6 +2014,7 @@
 
   function loadConfigInputs() {
     document.getElementById("cfg-teacher-pw").value = config.teacherPw || "1234";
+    document.getElementById("cfg-time-limit").value = String(Number(config.timeLimit) || 0);
     document.getElementById("cfg-read-options").value = config.readOptions || "auto";
     document.getElementById("cfg-firebase").value = config.firebaseUrl || "";
     document.getElementById("cfg-form-url").value = config.formUrl || "";
@@ -1838,6 +2038,7 @@
     }
 
     config.teacherPw = newPw;
+    config.timeLimit = Number(document.getElementById("cfg-time-limit").value) || 0;
     config.readOptions = document.getElementById("cfg-read-options").value;
     config.firebaseUrl = document.getElementById("cfg-firebase").value.trim();
     config.formUrl = document.getElementById("cfg-form-url").value.trim();
