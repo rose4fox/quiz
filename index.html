@@ -738,7 +738,7 @@
       <div style="font-size: 4.5rem;">🎉</div>
       <h2>참 잘했어요! 모든 퀴즈가 끝났습니다.</h2>
       <p id="st-final-score" style="font-size: clamp(1.5rem, 2.8vw, 2rem); font-weight: bold; color: var(--primary);"></p>
-      <p id="st-submit-status" style="color: #2b9348; font-weight: bold; font-size: clamp(1.05rem, 1.8vw, 1.25rem);">선생님께 점수와 답안을 보내는 중...</p>
+      <p id="st-submit-status" style="color: #2b9348; font-weight: bold; font-size: clamp(1.05rem, 1.8vw, 1.25rem);">제출하는 중...</p>
     </div>
   </section>
 
@@ -1336,9 +1336,9 @@
       const picked = studentAnswers[currentIdx];
       if (picked !== undefined) {
         const pickedLabel = (picked === "O" || picked === "X") ? picked : `${Number(picked) + 1}번`;
-        fb.innerText = `⏰ 시간 종료! (${pickedLabel} 선택 · 앞 화면에서 정답 확인)`;
+        fb.innerText = `⏰ 시간 종료! (${pickedLabel} 선택 · 정답은 선생님 화면에서 확인)`;
       } else {
-        fb.innerText = "⏰ 시간 종료! 앞 화면에서 정답을 확인해요";
+        fb.innerText = "⏰ 시간 종료! 정답은 선생님 화면에서 확인";
       }
     }
   }
@@ -1952,7 +1952,7 @@
     document.getElementById("st-final-score").innerText = `${questions.length}문제 중 ${correctCount}개 정답! (${totalScore}점)`;
 
     if (!config.formUrl || !config.formUrl.includes("formResponse")) {
-      document.getElementById("st-submit-status").innerText = "점수 계산 완료! (구글 폼 주소 미설정 상태)";
+      document.getElementById("st-submit-status").innerText = "✅ 제출 완료";
       return;
     }
 
@@ -1986,7 +1986,7 @@
       body: formData
     })
     .then(() => {
-      document.getElementById("st-submit-status").innerText = "✅ 선생님 구글 폼 보고서에 저장되었어요!";
+      document.getElementById("st-submit-status").innerText = "✅ 제출 완료";
     })
     .catch(() => {
       document.getElementById("st-submit-status").innerText = "⚠️ 전송 중 오류가 발생했어요. 선생님께 말씀드려주세요.";
