@@ -41,19 +41,28 @@
 
     /* 메인 작업 영역 */
     main {
-      flex: 1; width: 100%; max-width: 1240px; margin: 0 auto;
+      flex: 1; width: 100%; max-width: 1260px; margin: 0 auto;
       padding: 14px 20px; display: flex; flex-direction: column; overflow: hidden;
     }
+    /* 빔프로젝터 모드: 하단이 학생 모니터에 가려지므로 위쪽으로 바짝 끌어올려 배치 */
     main.projector-mode {
-      padding: 12px 20px 6px 20px;
+      padding: 12px 24px 10px 24px;
+      justify-content: flex-start;
     }
     body.allow-scroll main { overflow: visible; display: block; max-width: 960px; padding: 20px; }
 
     .full-card {
-      flex: 1; background: var(--card); border-radius: 24px; padding: 20px 30px;
+      flex: 1; background: var(--card); border-radius: 24px; padding: 22px 34px;
       box-shadow: 0 8px 24px rgba(74, 108, 247, 0.08);
       display: flex; flex-direction: column; justify-content: space-between; overflow: hidden;
     }
+    /* 빔프로젝터 투사용 카드: 전체 높이의 82%만 사용해 하단 18% 여유 공간 확보 */
+    main.projector-mode .full-card {
+      flex: none;
+      height: 82vh;
+      padding: 20px 34px 26px 34px;
+    }
+
     .card {
       background: var(--card); border-radius: 20px; padding: 26px;
       box-shadow: 0 6px 20px rgba(0,0,0,0.06); margin-bottom: 20px;
@@ -64,7 +73,7 @@
     .teacher-bottom-bar {
       background: #23293a; color: white; padding: 6px 18px; height: 46px;
       display: flex; justify-content: space-between; align-items: center; flex-shrink: 0;
-      border-top: 1px solid rgba(255,255,255,0.1);
+      margin-top: auto; border-top: 1px solid rgba(255,255,255,0.1);
     }
     .bottom-title {
       font-size: 0.9rem; color: #aab4cf; font-weight: bold; white-space: nowrap;
@@ -171,33 +180,65 @@
     .step-emoji { font-size: 2.4rem; }
     .step-text { font-size: 1.15rem; font-weight: bold; color: #333; }
 
-    /* ==================== 문제 상단 & 본문 ==================== */
-    .q-top { display: flex; justify-content: space-between; align-items: center; flex-shrink: 0; margin-bottom: 6px; }
+    /* ==================== 문제 상단 & 본문 (4:6 비율 + 여유 공간 + 가운데 정렬) ==================== */
+    .q-top { display: flex; justify-content: space-between; align-items: center; flex-shrink: 0; margin-bottom: 10px; }
     .badge { background: #eef2ff; color: var(--primary); padding: 6px 16px; border-radius: 12px; font-weight: bold; font-size: 1.2rem; }
     .tts-btn {
       background: #ff9f1c; color: white; border: none; padding: 8px 16px;
       border-radius: 10px; font-size: 1.05rem; font-weight: bold; cursor: pointer;
     }
 
+    /* 이미지가 없을 때: 가운데 정렬 */
     .q-body {
-      flex: 1; display: flex; gap: 24px; align-items: center; justify-content: center;
-      margin: 4px 0 12px 0; min-height: 0; overflow: hidden;
+      flex: 1; display: flex; align-items: center; justify-content: center;
+      padding: 10px 16px 22px 16px; min-height: 0; overflow: hidden;
+    }
+    .q-body.no-img .q-text {
+      text-align: center;
+      max-width: 92%;
+    }
+
+    /* 이미지가 있을 때: 4 : 6 비율 + 충분한 간격과 안쪽 여백 */
+    .q-body.with-img {
+      gap: 36px;
+      justify-content: space-between;
+      padding: 8px 12px 24px 12px;
+    }
+    .q-img-wrap {
+      flex: 0 0 38%;
+      height: 100%;
+      background: #f8faff;
+      border: 2px solid #e4ebfa;
+      border-radius: 20px;
+      padding: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
     }
     .q-img {
-      max-width: 32%; max-height: 95%; border-radius: 16px; border: 2px solid #eee;
-      object-fit: contain; flex-shrink: 0;
+      max-width: 100%;
+      max-height: 100%;
+      border-radius: 12px;
+      object-fit: contain;
     }
+    .q-body.with-img .q-text {
+      flex: 1;
+      text-align: left;
+      padding-right: 8px;
+    }
+
     .q-text {
-      flex: 1; font-size: clamp(1.8rem, 3.1vw, 2.5rem); font-weight: bold;
-      line-height: 1.45; word-break: keep-all; overflow-wrap: break-word;
+      font-size: clamp(1.85rem, 3.1vw, 2.55rem); font-weight: bold;
+      line-height: 1.5; word-break: keep-all; overflow-wrap: break-word;
     }
-    .q-text.q-md { font-size: clamp(1.45rem, 2.3vw, 1.95rem); line-height: 1.4; }
-    .q-text.q-lg { font-size: clamp(1.2rem, 1.85vw, 1.55rem); line-height: 1.38; }
-    .q-text.q-xl { font-size: clamp(1.05rem, 1.55vw, 1.3rem); line-height: 1.35; }
+    .q-text.q-md { font-size: clamp(1.45rem, 2.25vw, 1.9rem); line-height: 1.45; }
+    .q-text.q-lg { font-size: clamp(1.2rem, 1.8vw, 1.55rem); line-height: 1.42; }
+    .q-text.q-xl { font-size: clamp(1.05rem, 1.5vw, 1.3rem); line-height: 1.38; }
 
     /* 보기 버튼 영역 */
-    .options-area { height: 34%; min-height: 165px; flex-shrink: 0; display: flex; flex-direction: column; transition: height 0.2s; }
-    .options-area.tall-options { height: 45%; min-height: 210px; }
+    .options-area { height: 35%; min-height: 155px; flex-shrink: 0; display: flex; flex-direction: column; transition: height 0.2s; }
+    .options-area.tall-options { height: 45%; min-height: 200px; }
 
     .options-grid {
       flex: 1; display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr;
@@ -327,8 +368,10 @@
         <span id="st-feedback" style="font-size:1.3rem; font-weight:bold; color:var(--primary);"></span>
         <button class="tts-btn" onclick="speakCurrentQuestion()">🔊 문제 다시 듣기</button>
       </div>
-      <div class="q-body">
-        <img id="st-q-img" class="q-img hidden" src="" alt="문제 그림" />
+      <div id="st-q-body" class="q-body no-img">
+        <div id="st-q-img-wrap" class="q-img-wrap hidden">
+          <img id="st-q-img" class="q-img" src="" alt="문제 그림" />
+        </div>
         <div class="q-text" id="st-q-text">문제가 여기에 표시됩니다.</div>
       </div>
       <div id="st-options-area" class="options-area">
@@ -349,8 +392,10 @@
     <div class="q-top">
       <span class="badge" id="tc-q-num">문제 1 / 1</span>
     </div>
-    <div class="q-body">
-      <img id="tc-q-img" class="q-img hidden" src="" alt="문제 그림" />
+    <div id="tc-q-body" class="q-body no-img">
+      <div id="tc-q-img-wrap" class="q-img-wrap hidden">
+        <img id="tc-q-img" class="q-img" src="" alt="문제 그림" />
+      </div>
       <div class="q-text" id="tc-q-text">문제를 등록해주세요.</div>
     </div>
     <div id="tc-options-area" class="options-area">
@@ -610,7 +655,7 @@
   function applyQuestionSizing(textEl, text, hasImg) {
     textEl.classList.remove("q-md", "q-lg", "q-xl");
     const len = (text || "").length;
-    const effectiveLen = hasImg ? len * 1.45 : len;
+    const effectiveLen = hasImg ? len * 1.35 : len;
     if (effectiveLen >= 130) textEl.classList.add("q-xl");
     else if (effectiveLen >= 85) textEl.classList.add("q-lg");
     else if (effectiveLen >= 45) textEl.classList.add("q-md");
@@ -748,18 +793,26 @@
     const q = questions[currentIdx];
     document.getElementById("tc-q-num").innerText = `문제 ${currentIdx + 1} / ${questions.length}`;
     
+    const tcBodyEl = document.getElementById("tc-q-body");
+    const tcImgWrap = document.getElementById("tc-q-img-wrap");
+    const imgEl = document.getElementById("tc-q-img");
+    const hasImg = Boolean(q.img);
+
+    if (hasImg) {
+      imgEl.src = q.img;
+      tcImgWrap.classList.remove("hidden");
+      tcBodyEl.classList.remove("no-img");
+      tcBodyEl.classList.add("with-img");
+    } else {
+      tcImgWrap.classList.add("hidden");
+      tcBodyEl.classList.remove("with-img");
+      tcBodyEl.classList.add("no-img");
+    }
+
     const tcTextEl = document.getElementById("tc-q-text");
     tcTextEl.innerText = q.text;
-    applyQuestionSizing(tcTextEl, q.text, Boolean(q.img));
+    applyQuestionSizing(tcTextEl, q.text, hasImg);
     applyOptionsAreaSizing(document.getElementById("tc-options-area"), q);
-
-    const imgEl = document.getElementById("tc-q-img");
-    if (q.img) {
-      imgEl.src = q.img;
-      imgEl.classList.remove("hidden");
-    } else {
-      imgEl.classList.add("hidden");
-    }
 
     const prevBox = document.getElementById("tc-options-preview");
     prevBox.innerHTML = "";
@@ -874,7 +927,7 @@
     }, 1500);
   }
 
-  // ==================== 학생 화면 로직 (한글·영어 및 중간 하이픈·아포스트로피 허용) ====================
+  // ==================== 학생 화면 로직 ====================
   function startStudent() {
     const grade = document.getElementById("st-grade").value.trim();
     const cls = document.getElementById("st-class").value.trim();
@@ -898,8 +951,6 @@
       return;
     }
 
-    // 첫 글자는 완성형 한글(가-힣) 또는 영어(a-zA-Z) 필수,
-    // 중간에는 한글·영어·공백·하이픈(-)·아포스트로피(')만 허용
     const validNamePattern = /^[가-힣a-zA-Z][가-힣a-zA-Z\s\-']*$/;
     if (!validNamePattern.test(name)) {
       alert("이름은 한글이나 영어로만 바르게 적어주세요!\n(숫자, 특수문자, 자음·모음만 입력할 수 없어요)");
@@ -931,19 +982,28 @@
       document.getElementById("student-quiz").classList.remove("hidden");
 
       document.getElementById("st-q-num").innerText = `문제 ${currentIdx + 1}`;
+      
+      const stBodyEl = document.getElementById("st-q-body");
+      const stImgWrap = document.getElementById("st-q-img-wrap");
+      const imgEl = document.getElementById("st-q-img");
+      const hasImg = Boolean(q.img);
+
+      if (hasImg) {
+        imgEl.src = q.img;
+        stImgWrap.classList.remove("hidden");
+        stBodyEl.classList.remove("no-img");
+        stBodyEl.classList.add("with-img");
+      } else {
+        stImgWrap.classList.add("hidden");
+        stBodyEl.classList.remove("with-img");
+        stBodyEl.classList.add("no-img");
+      }
+
       const stTextEl = document.getElementById("st-q-text");
       stTextEl.innerText = q.text;
-      applyQuestionSizing(stTextEl, q.text, Boolean(q.img));
+      applyQuestionSizing(stTextEl, q.text, hasImg);
       applyOptionsAreaSizing(document.getElementById("st-options-area"), q);
       document.getElementById("st-feedback").innerText = "";
-
-      const imgEl = document.getElementById("st-q-img");
-      if (q.img) {
-        imgEl.src = q.img;
-        imgEl.classList.remove("hidden");
-      } else {
-        imgEl.classList.add("hidden");
-      }
 
       const optContainer = document.getElementById("st-options-container");
       optContainer.innerHTML = "";
