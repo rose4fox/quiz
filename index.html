@@ -1,7 +1,228 @@
-/* 수업 화면 복귀 버튼 통일 및 하단 여백 확보 */
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>퀴즈챌린지! 우리는 코딩탐험대!</title>
+  <style>
+    :root {
+      --bg: #eef3fc;
+      --card: #ffffff;
+      --primary: #4a6cf7;
+      --primary-dark: #3652c9;
+      --red: #ff595e;
+      --blue: #1982c4;
+      --yellow: #ffca3a;
+      --green: #8ac926;
+      --text: #222222;
+    }
+    * { box-sizing: border-box; font-family: 'Malgun Gothic', '맑은 고딕', sans-serif; -webkit-tap-highlight-color: transparent; }
+    
+    html, body {
+      margin: 0; padding: 0;
+      height: 100%; height: 100dvh;
+      background: var(--bg); color: var(--text);
+      display: flex; flex-direction: column; overflow: hidden;
+    }
+    body.allow-scroll { overflow-y: auto; height: auto; min-height: 100dvh; }
+
+    /* 학생용 상단 헤더 */
+    header {
+      background: var(--primary); color: white; padding: 6px 16px; height: 46px;
+      display: flex; justify-content: space-between; align-items: center; flex-shrink: 0;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.12);
+    }
+    header h1 { margin: 0; font-size: clamp(1.05rem, 2vw, 1.25rem); white-space: nowrap; }
+
+    .gear-btn {
+      background: rgba(255,255,255,0.18); border: none; color: white;
+      width: 32px; height: 32px; border-radius: 50%; font-size: 1.05rem;
+      cursor: pointer; display: flex; align-items: center; justify-content: center;
+    }
+    .gear-btn:hover { background: rgba(255,255,255,0.32); }
+
+    /* 메인 작업 영역 */
+    main {
+      flex: 1; width: 100%; max-width: 1320px; margin: 0 auto;
+      padding: clamp(8px, 1.5vh, 14px) clamp(10px, 2vw, 20px);
+      display: flex; flex-direction: column; overflow: hidden; min-height: 0;
+    }
+    main.projector-mode {
+      padding: 12px 22px 8px 22px;
+      justify-content: flex-start;
+    }
     body.allow-scroll main {
+      overflow: visible;
+      display: block;
+      max-width: 960px;
       padding: 20px 20px 64px 20px;
     }
+
+    .full-card {
+      flex: 1; background: var(--card); border-radius: clamp(16px, 2.5vw, 24px);
+      padding: clamp(12px, 2vh, 20px) clamp(14px, 2.5vw, 28px);
+      box-shadow: 0 8px 24px rgba(74, 108, 247, 0.08);
+      display: flex; flex-direction: column; justify-content: space-between; overflow: hidden; min-height: 0;
+    }
+    main.projector-mode .full-card {
+      flex: none;
+      height: 84vh;
+      padding: 18px 28px 22px 28px;
+    }
+
+    .card {
+      background: var(--card); border-radius: 20px; padding: 26px;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.06); margin-bottom: 20px;
+    }
+    .hidden { display: none !important; }
+
+    /* ==================== 교사 비밀번호 인증 모달 ==================== */
+    .modal-backdrop {
+      position: fixed; inset: 0;
+      background: rgba(15, 23, 42, 0.55);
+      backdrop-filter: blur(2px);
+      display: flex; align-items: center; justify-content: center;
+      z-index: 9999; padding: 16px;
+    }
+    .modal-box {
+      background: #ffffff; border-radius: 22px;
+      padding: 28px 24px; width: 100%; max-width: 380px;
+      box-shadow: 0 18px 40px rgba(0, 0, 0, 0.22);
+      text-align: center;
+    }
+    .modal-box h3 {
+      margin: 0 0 8px 0; font-size: 1.35rem; color: #1a2340;
+    }
+    .modal-box p {
+      margin: 0 0 18px 0; font-size: 0.95rem; color: #555;
+    }
+    .pw-modal-input {
+      width: 100%; padding: 14px; font-size: 1.5rem; font-weight: bold;
+      text-align: center; letter-spacing: 0.35em;
+      border: 2.5px solid #c5d7fb; border-radius: 14px;
+      margin-bottom: 18px;
+    }
+    .pw-modal-input:focus {
+      outline: none; border-color: var(--primary);
+      box-shadow: 0 0 0 4px rgba(74, 108, 247, 0.16);
+    }
+    .modal-btn-row {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
+    }
+    .modal-btn {
+      padding: 13px; border: none; border-radius: 12px;
+      font-size: 1.05rem; font-weight: bold; cursor: pointer;
+    }
+    .modal-btn.cancel { background: #e2e8f0; color: #334155; }
+    .modal-btn.confirm { background: var(--primary); color: white; }
+
+    /* ==================== 교사 하단 리모컨 바 ==================== */
+    .teacher-bottom-bar {
+      background: #23293a; color: white; padding: 6px 18px; height: 46px;
+      display: flex; justify-content: space-between; align-items: center; flex-shrink: 0;
+      margin-top: auto; border-top: 1px solid rgba(255,255,255,0.1);
+    }
+    .bottom-title {
+      font-size: 0.9rem; color: #aab4cf; font-weight: bold; white-space: nowrap;
+    }
+    .mini-remote { display: flex; align-items: center; gap: 6px; }
+    .status-dot {
+      font-size: 0.82rem; background: rgba(255,255,255,0.12); padding: 4px 10px;
+      border-radius: 10px; white-space: nowrap;
+    }
+    .resp-badge {
+      font-size: 0.85rem; background: #1e3a8a; border: 1px solid #60a5fa; color: #dbeafe;
+      padding: 4px 11px; border-radius: 10px; font-weight: bold; cursor: pointer;
+      white-space: nowrap; transition: all 0.15s;
+    }
+    .resp-badge:hover { background: #2563eb; color: white; }
+    .resp-badge.all-done {
+      background: #14532d; border-color: #4ade80; color: #dcfce7;
+    }
+
+    .nav-btn {
+      background: rgba(255,255,255,0.14); border: 1px solid rgba(255,255,255,0.22);
+      color: #f1f5ff; padding: 4px 10px; border-radius: 7px; font-size: 0.85rem;
+      font-weight: bold; cursor: pointer; white-space: nowrap; transition: background 0.15s;
+    }
+    .nav-btn:hover { background: rgba(255,255,255,0.28); }
+    .nav-btn.push { background: #2b9348; border-color: #2b9348; color: white; }
+    .nav-btn.reveal { background: #7209b7; border-color: #7209b7; color: white; }
+    .nav-btn.finish { background: #d90429; border-color: #d90429; color: white; }
+
+    /* ==================== 학생 로그인 화면 ==================== */
+    .login-wrap {
+      margin: auto; width: 100%; max-width: 780px; text-align: center;
+      display: flex; flex-direction: column; gap: clamp(12px, 2.5vh, 22px);
+    }
+    .welcome-badge {
+      display: inline-block; background: #fff4d6; color: #b26a00;
+      padding: 6px 18px; border-radius: 30px; font-weight: bold; font-size: clamp(0.95rem, 1.8vw, 1.15rem);
+      margin: 0 auto;
+    }
+    .login-title {
+      margin: 6px 0 0 0; font-size: clamp(1.5rem, 3vw, 2.3rem); color: #1a2340;
+    }
+    .login-box {
+      background: #f5f8ff; border: 2px solid #dce6ff; border-radius: 22px;
+      padding: clamp(16px, 3vh, 26px) clamp(14px, 2.5vw, 24px) clamp(14px, 2.2vh, 20px);
+    }
+    .login-grid {
+      display: grid; grid-template-columns: 1fr 1fr 1fr 1.4fr; gap: clamp(10px, 1.8vw, 16px);
+    }
+    .input-field {
+      display: flex; flex-direction: column; gap: 6px; text-align: center;
+    }
+    .input-field label {
+      font-size: clamp(1rem, 1.8vw, 1.15rem); font-weight: bold; color: #4a6cf7;
+    }
+    .input-field input {
+      padding: clamp(12px, 2vh, 18px) 8px;
+      font-size: clamp(1.3rem, 2.4vw, 1.6rem); font-weight: bold; color: #111111;
+      background: #ffffff; border: 2.5px dashed #9fb5f5; border-radius: 16px;
+      text-align: center; width: 100%; transition: all 0.15s;
+    }
+    .input-field input:focus {
+      outline: none; border-style: solid; border-color: var(--primary);
+      background: #ffffff; box-shadow: 0 0 0 4px rgba(74, 108, 247, 0.18);
+    }
+
+    .ime-guide {
+      margin-top: 12px;
+      padding: 8px 14px;
+      border-radius: 12px;
+      font-size: clamp(0.95rem, 1.6vw, 1.1rem);
+      font-weight: bold;
+      background: #e8f0fe;
+      color: #2b50c7;
+      border: 1.5px solid #c5d7fb;
+      transition: all 0.2s;
+    }
+    .ime-guide.warn-eng {
+      background: #fff3cd;
+      color: #9c5700;
+      border-color: #ffca3a;
+    }
+
+    .btn-start {
+      width: 100%; max-width: 400px; margin: 2px auto 0 auto;
+      padding: clamp(14px, 2.2vh, 20px) 28px; font-size: clamp(1.35rem, 2.4vw, 1.65rem); font-weight: bold;
+      background: linear-gradient(135deg, #4a6cf7, #3b5bdb); color: white;
+      border: none; border-radius: 18px; cursor: pointer;
+      box-shadow: 0 5px 0 var(--primary-dark), 0 10px 18px rgba(74, 108, 247, 0.25);
+      transition: transform 0.1s, box-shadow 0.1s;
+    }
+    .btn-start:active {
+      transform: translateY(3px);
+      box-shadow: 0 2px 0 var(--primary-dark), 0 5px 10px rgba(74, 108, 247, 0.2);
+    }
+
+    .btn-big {
+      width: 100%; padding: 18px; font-size: 1.4rem; font-weight: bold;
+      background: var(--primary); color: white; border: none; border-radius: 16px; cursor: pointer;
+    }
+
+    /* 수업 화면 복귀 버튼 통일 스타일 */
     .btn-return-live {
       width: auto;
       padding: 12px 24px;
@@ -27,3 +248,1554 @@
       margin-top: 20px;
       padding-bottom: 24px;
     }
+
+    /* ==================== 학생 대기 화면 ==================== */
+    .wait-wrap {
+      margin: auto; width: 100%; max-width: 820px; text-align: center;
+      display: flex; flex-direction: column; align-items: center; gap: clamp(10px, 2.2vh, 22px);
+    }
+    .student-nametag {
+      background: #eef2ff; border: 2px solid #c7d5ff; color: var(--primary);
+      padding: 8px 20px; border-radius: 30px; font-size: clamp(1.05rem, 2vw, 1.3rem); font-weight: bold;
+    }
+    .bounce-icon {
+      font-size: clamp(3.4rem, 7vh, 5.2rem); line-height: 1;
+      animation: gentleBounce 2s infinite ease-in-out;
+    }
+    @keyframes gentleBounce {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-8px); }
+    }
+    .wait-title {
+      margin: 0; font-size: clamp(1.6rem, 3.2vw, 2.6rem); color: #1a2340;
+    }
+    .wait-sub {
+      margin: 4px 0 0 0; font-size: clamp(1rem, 1.8vw, 1.3rem); color: #555; line-height: 1.4;
+    }
+    .guide-steps {
+      display: grid; grid-template-columns: repeat(3, 1fr); gap: clamp(10px, 1.8vw, 16px);
+      width: 100%; margin-top: 4px;
+    }
+    .step-card {
+      background: #f8faff; border: 2px solid #e1e8ff; border-radius: 18px;
+      padding: clamp(12px, 2vh, 20px) 10px; display: flex; flex-direction: column; align-items: center; gap: 6px;
+    }
+    .step-emoji { font-size: clamp(1.8rem, 3.5vh, 2.4rem); }
+    .step-text { font-size: clamp(0.95rem, 1.7vw, 1.15rem); font-weight: bold; color: #333; }
+
+    /* ==================== 좌·우 분할 퀴즈 레이아웃 ==================== */
+    .q-top {
+      display: flex; justify-content: space-between; align-items: center;
+      flex-shrink: 0; margin-bottom: clamp(8px, 1.4vh, 12px);
+    }
+    .badge {
+      background: #eef2ff; color: var(--primary); padding: 5px 14px;
+      border-radius: 12px; font-weight: bold; font-size: clamp(1rem, 1.8vw, 1.2rem);
+    }
+    .tts-btn {
+      background: #ff9f1c; color: white; border: none; padding: 7px 14px;
+      border-radius: 10px; font-size: clamp(0.92rem, 1.6vw, 1.05rem); font-weight: bold; cursor: pointer;
+    }
+
+    .quiz-split-grid {
+      flex: 1;
+      display: grid;
+      grid-template-columns: 1.45fr 1fr;
+      gap: clamp(12px, 2vw, 24px);
+      min-height: 0;
+      overflow: hidden;
+    }
+
+    .left-pane {
+      display: flex;
+      flex-direction: column;
+      gap: clamp(10px, 1.6vh, 16px);
+      min-height: 0;
+      overflow: hidden;
+    }
+
+    .left-pane.no-img .question-box {
+      flex: 1;
+      background: #f8faff;
+      border: 2px solid #e3eaff;
+      border-radius: 20px;
+      padding: clamp(16px, 3vh, 28px) clamp(18px, 2.5vw, 32px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      overflow: hidden;
+    }
+
+    .left-pane.with-img .question-box {
+      flex: 0 0 auto;
+      max-height: 45%;
+      background: #f8faff;
+      border: 2px solid #e3eaff;
+      border-radius: 18px;
+      padding: clamp(10px, 1.8vh, 18px) clamp(14px, 2vw, 24px);
+      display: flex;
+      align-items: center;
+      justify-content: flex-start;
+      text-align: left;
+      overflow: hidden;
+    }
+    .q-img-wrap {
+      flex: 1;
+      min-height: 0;
+      background: #ffffff;
+      border: 2px solid #e3eaff;
+      border-radius: 18px;
+      padding: clamp(8px, 1.5vh, 16px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+    .q-img {
+      max-width: 100%;
+      max-height: 100%;
+      border-radius: 10px;
+      object-fit: contain;
+    }
+
+    .q-text {
+      width: 100%;
+      font-size: clamp(1.35rem, 2.6vw, 2.35rem);
+      font-weight: bold;
+      line-height: 1.45;
+      word-break: keep-all;
+      overflow-wrap: break-word;
+    }
+    .q-text.q-md { font-size: clamp(1.15rem, 2.0vw, 1.8rem); line-height: 1.4; }
+    .q-text.q-lg { font-size: clamp(1.0rem, 1.65vw, 1.45rem); line-height: 1.38; }
+    .q-text.q-xl { font-size: clamp(0.92rem, 1.35vw, 1.22rem); line-height: 1.34; }
+
+    /* 오른쪽 보기 영역: 버튼 확대 시 모서리가 깎이지 않도록 여유 패딩과 visible 적용 */
+    .right-pane {
+      display: flex;
+      flex-direction: column;
+      min-height: 0;
+      padding: 4px;
+      overflow: visible;
+    }
+    .options-col {
+      flex: 1;
+      display: grid;
+      grid-template-columns: 1fr;
+      grid-template-rows: repeat(4, 1fr);
+      gap: clamp(8px, 1.4vh, 12px);
+      min-height: 0;
+    }
+    .ox-col {
+      flex: 1;
+      display: grid;
+      grid-template-columns: 1fr;
+      grid-template-rows: repeat(2, 1fr);
+      gap: clamp(12px, 2vh, 18px);
+      min-height: 0;
+    }
+
+    .opt-btn {
+      height: 100%; width: 100%;
+      padding: clamp(8px, 1.4vh, 12px) clamp(12px, 1.8vw, 20px);
+      font-size: clamp(1.1rem, 1.95vw, 1.75rem); font-weight: bold; color: white;
+      border: none; border-radius: 16px; cursor: pointer; transition: transform 0.1s, opacity 0.2s, box-shadow 0.15s;
+      text-shadow: 0 1px 3px rgba(0,0,0,0.28);
+      display: flex; align-items: center; justify-content: center; text-align: center;
+      line-height: 1.4; word-break: keep-all; overflow-wrap: break-word; overflow: hidden;
+    }
+    .opt-btn.text-md { font-size: clamp(0.95rem, 1.45vw, 1.3rem); line-height: 1.4; padding: 8px 14px; }
+    .opt-btn.text-lg { font-size: clamp(0.85rem, 1.2vw, 1.1rem); line-height: 1.36; padding: 6px 12px; }
+
+    .opt-btn:active { transform: scale(0.98); }
+    .opt-btn.selected { box-shadow: inset 0 0 0 5px #222; transform: scale(0.98); }
+    .opt-0 { background: var(--red); }
+    .opt-1 { background: var(--blue); }
+    .opt-2 { background: var(--yellow); color: #222; text-shadow: none; }
+    .opt-3 { background: var(--green); }
+
+    .ox-btn {
+      height: 100%; width: 100%; font-size: clamp(2.8rem, 6vh, 5.2rem);
+      border-radius: 20px; border: none; color: white; font-weight: bold; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      transition: transform 0.1s, opacity 0.2s, box-shadow 0.15s;
+    }
+    .ox-btn.selected { box-shadow: inset 0 0 0 6px #222; transform: scale(0.98); }
+    .ox-o { background: var(--blue); }
+    .ox-x { background: var(--red); }
+
+    .dimmed { opacity: 0.28; }
+    .correct-reveal {
+      box-shadow: inset 0 0 0 6px #1b4332, 0 8px 20px rgba(27, 67, 50, 0.32);
+      transform: scale(1.01);
+      z-index: 2;
+    }
+
+    .center-box { margin: auto; text-align: center; }
+    .center-box h2 { font-size: clamp(1.6rem, 3vw, 2.2rem); color: var(--primary); margin: 16px 0; }
+
+    /* ==================== 태블릿 세로 모드(Portrait) 자동 전환 ==================== */
+    @media (max-width: 820px) and (orientation: portrait) {
+      .login-grid {
+        grid-template-columns: 1fr 1fr;
+      }
+      .quiz-split-grid {
+        grid-template-columns: 1fr;
+        grid-template-rows: 1.15fr 1fr;
+        gap: 14px;
+      }
+      .left-pane.with-img {
+        flex-direction: row;
+      }
+      .left-pane.with-img .question-box {
+        flex: 1.3;
+        max-height: 100%;
+      }
+      .left-pane.with-img .q-img-wrap {
+        flex: 1;
+      }
+      .options-col {
+        grid-template-columns: 1fr 1fr;
+        grid-template-rows: 1fr 1fr;
+      }
+      .ox-col {
+        grid-template-columns: 1fr 1fr;
+        grid-template-rows: 1fr;
+      }
+    }
+
+    /* 출제/설정 폼 */
+    .form-group { margin-bottom: 14px; }
+    .form-group label { display: block; font-weight: bold; margin-bottom: 6px; }
+    .form-group input, .form-group select, .form-group textarea {
+      width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 8px; font-size: 1rem;
+    }
+    .entry-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin: 12px 0; }
+    .entry-grid input { padding: 10px; border: 1px solid #ccc; border-radius: 8px; font-size: 0.95rem; text-align: center; width: 100%; }
+    
+    .q-list-item {
+      display: flex; justify-content: space-between; align-items: center; gap: 12px;
+      padding: 12px; border-bottom: 1px solid #eee; border-radius: 10px;
+      transition: background 0.15s;
+    }
+    .q-list-item.editing-highlight {
+      background: #fff8e6; border: 2px solid #ffca3a;
+    }
+    .q-item-info { flex: 1; line-height: 1.45; }
+    .q-item-actions { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
+    .icon-action-btn {
+      border: none; padding: 6px 10px; border-radius: 8px; font-size: 0.9rem;
+      font-weight: bold; cursor: pointer; transition: opacity 0.15s;
+    }
+    .icon-action-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+    .btn-move { background: #e9eef8; color: #334155; }
+    .btn-move:hover:not(:disabled) { background: #d5e0f5; }
+    .btn-edit { background: #ff9f1c; color: white; }
+    .btn-del { background: #ff595e; color: white; }
+
+    .editor-card.editing-mode {
+      border: 2.5px solid #ff9f1c;
+      background: #fffdf7;
+    }
+    .edit-btn-row { display: flex; gap: 10px; }
+    .btn-cancel-edit {
+      padding: 18px 24px; font-size: 1.2rem; font-weight: bold;
+      background: #64748b; color: white; border: none; border-radius: 16px; cursor: pointer;
+      white-space: nowrap;
+    }
+
+    .cloud-badge {
+      display: inline-block; background: #e6f4ea; color: #1e8e3e; padding: 4px 10px;
+      border-radius: 8px; font-size: 0.85rem; font-weight: bold; margin-left: 8px;
+    }
+  </style>
+</head>
+<body>
+
+<header id="main-header">
+  <h1>🧭 퀴즈챌린지! 우리는 코딩탐험대!</h1>
+  <div id="student-header-bar">
+    <button class="gear-btn" title="교사 화면" onclick="openTeacherAuth()">⚙️</button>
+  </div>
+</header>
+
+<main id="main-container">
+  <!-- ==================== 1. 학생 화면 ==================== -->
+  <section id="student-section" class="full-card">
+    <div id="student-login" class="login-wrap">
+      <div>
+        <span class="welcome-badge">🎈 코딩탐험대 출석 체크</span>
+        <h2 class="login-title">반, 번호, 이름을 적어주세요! 😊</h2>
+      </div>
+
+      <div class="login-box">
+        <div class="login-grid">
+          <div class="input-field">
+            <label for="st-grade">학년</label>
+            <input type="number" id="st-grade" value="1" min="1" max="6" />
+          </div>
+          <div class="input-field">
+            <label for="st-class">반</label>
+            <input type="number" id="st-class" min="1" />
+          </div>
+          <div class="input-field">
+            <label for="st-num">번호</label>
+            <input type="number" id="st-num" min="1" />
+          </div>
+          <div class="input-field">
+            <label for="st-name">이름</label>
+            <input type="text" id="st-name" maxlength="15" />
+          </div>
+        </div>
+
+        <div id="ime-guide-box" class="ime-guide hidden">
+          💡 한글이 안 써지면 키보드의 <b>[한/영]</b> 키를 눌러주세요!
+        </div>
+      </div>
+
+      <button class="btn-start" onclick="startStudent()">시작하기 🚀</button>
+    </div>
+
+    <div id="student-wait" class="wait-wrap hidden">
+      <div id="st-nametag" class="student-nametag">🎒 1학년 1반 1번 홍길동</div>
+      <div class="bounce-icon">👀</div>
+      <div>
+        <h2 class="wait-title">선생님 화면을 봐주세요!</h2>
+        <p class="wait-sub">선생님이 문제를 보여주신 뒤 신호를 보내면 여기에 버튼이 나타납니다.</p>
+      </div>
+      <div class="guide-steps">
+        <div class="step-card">
+          <span class="step-emoji">🖥️</span>
+          <span class="step-text">1. 앞 화면 보기</span>
+        </div>
+        <div class="step-card">
+          <span class="step-emoji">🧠</span>
+          <span class="step-text">2. 문제 생각하기</span>
+        </div>
+        <div class="step-card">
+          <span class="step-emoji">👆</span>
+          <span class="step-text">3. 정답 누르기</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 학생 문제 풀이 화면 -->
+    <div id="student-quiz" class="hidden" style="display:flex; flex-direction:column; height:100%;">
+      <div class="q-top">
+        <span class="badge" id="st-q-num">문제 1</span>
+        <span id="st-feedback" style="font-size:clamp(1rem, 1.8vw, 1.3rem); font-weight:bold; color:var(--primary);"></span>
+        <button class="tts-btn" onclick="speakCurrentQuestion(true)">🔊 문제 듣기</button>
+      </div>
+      <div class="quiz-split-grid">
+        <div id="st-left-pane" class="left-pane no-img">
+          <div class="question-box">
+            <div class="q-text" id="st-q-text">문제가 여기에 표시됩니다.</div>
+          </div>
+          <div id="st-q-img-wrap" class="q-img-wrap hidden">
+            <img id="st-q-img" class="q-img" src="" alt="문제 그림" />
+          </div>
+        </div>
+        <div class="right-pane">
+          <div id="st-options-container" class="options-col"></div>
+        </div>
+      </div>
+    </div>
+
+    <div id="student-end" class="center-box hidden">
+      <div style="font-size: 4.5rem;">🎉</div>
+      <h2>참 잘했어요! 모든 퀴즈가 끝났습니다.</h2>
+      <p id="st-final-score" style="font-size: clamp(1.5rem, 2.8vw, 2rem); font-weight: bold; color: var(--primary);"></p>
+      <p id="st-submit-status" style="color: #2b9348; font-weight: bold; font-size: clamp(1.05rem, 1.8vw, 1.25rem);">선생님께 점수와 답안을 보내는 중...</p>
+    </div>
+  </section>
+
+  <!-- ==================== 2. 교사 수업 진행 화면 ==================== -->
+  <section id="teacher-live-section" class="full-card hidden">
+    <div class="q-top">
+      <span class="badge" id="tc-q-num">문제 1 / 1</span>
+    </div>
+    <div class="quiz-split-grid">
+      <div id="tc-left-pane" class="left-pane no-img">
+        <div class="question-box">
+          <div class="q-text" id="tc-q-text">문제를 등록해주세요.</div>
+        </div>
+        <div id="tc-q-img-wrap" class="q-img-wrap hidden">
+          <img id="tc-q-img" class="q-img" src="" alt="문제 그림" />
+        </div>
+      </div>
+      <div class="right-pane">
+        <div id="tc-options-preview" class="options-col"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==================== 3. 교사 출제·설정 화면 ==================== -->
+  <section id="teacher-setup-section" class="hidden">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; flex-wrap:wrap; gap:10px;">
+      <div>
+        <h2 style="margin:0; display:inline-block;">📝 문제 출제 및 클라우드 설정</h2>
+        <span id="cloud-sync-indicator" class="cloud-badge">☁️ 클라우드 대기중</span>
+      </div>
+      <button class="btn-return-live" onclick="backToLiveBoard()">📺 수업 화면으로 돌아가기</button>
+    </div>
+
+    <div id="question-editor-card" class="card editor-card">
+      <h3 id="editor-heading">✏️ 새 문제 추가하기 (최대 20문항 · 추가 즉시 Firebase 클라우드에 자동 백업됩니다)</h3>
+      <div class="form-group">
+        <label>문제 유형</label>
+        <select id="new-q-type" onchange="toggleOptionInputs()">
+          <option value="choice">객관식 (4지선다)</option>
+          <option value="ox">O / X 퀴즈</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>문제 내용</label>
+        <textarea id="new-q-text" rows="2" placeholder="예: 다음 중 봄에 피는 꽃은 무엇일까요?"></textarea>
+      </div>
+      <div class="form-group">
+        <label>그림 넣기 (이미지 파일 선택 또는 인터넷 이미지 주소 입력)</label>
+        <input type="file" id="new-q-file" accept="image/*" onchange="handleImageUpload(event)" />
+        <input type="text" id="new-q-img-url" placeholder="또는 이미지 URL 붙여넣기" style="margin-top:6px;" />
+        <div id="edit-img-status" class="hidden" style="margin-top:8px; padding:8px 12px; background:#f1f5ff; border-radius:8px; font-size:0.9rem;">
+          <span id="edit-img-label">🖼️ 기존에 등록된 그림이 있습니다.</span>
+          <label style="display:inline-flex; align-items:center; gap:6px; margin-left:12px; color:#d90429; cursor:pointer;">
+            <input type="checkbox" id="remove-existing-img" style="width:auto;" /> 기존 그림 지우기
+          </label>
+        </div>
+      </div>
+
+      <div id="choice-inputs">
+        <div class="form-group"><label>보기 1 (빨강)</label><input type="text" id="opt-0" /></div>
+        <div class="form-group"><label>보기 2 (파랑)</label><input type="text" id="opt-1" /></div>
+        <div class="form-group"><label>보기 3 (노랑)</label><input type="text" id="opt-2" /></div>
+        <div class="form-group"><label>보기 4 (초록)</label><input type="text" id="opt-3" /></div>
+        <div class="form-group">
+          <label>정답 번호</label>
+          <select id="choice-answer">
+            <option value="0">1번</option>
+            <option value="1">2번</option>
+            <option value="2">3번</option>
+            <option value="3">4번</option>
+          </select>
+        </div>
+      </div>
+
+      <div id="ox-inputs" class="hidden">
+        <div class="form-group">
+          <label>OX 정답</label>
+          <select id="ox-answer">
+            <option value="O">O (맞다)</option>
+            <option value="X">X (틀리다)</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="edit-btn-row">
+        <button id="save-question-btn" class="btn-big" onclick="saveQuestion()">➕ 문제 저장하기 (클라우드 자동 저장)</button>
+        <button id="cancel-edit-btn" class="btn-cancel-edit hidden" onclick="cancelEditQuestion()">취소</button>
+      </div>
+
+      <h3 id="question-list-heading" style="margin-top:30px;">📋 등록된 문제 목록 (순서 이동 · 수정 · 삭제)</h3>
+      <div id="question-list"></div>
+    </div>
+
+    <div class="card">
+      <h3>⚙️ 교사 비밀번호 · 음성 · 구글 폼 · Firebase 설정</h3>
+      <p style="font-size:0.9rem; color:#555; line-height:1.5;">
+        * 게스트 모드 컴퓨터실에서는 아래 설정을 입력하고 <b>[💾 클라우드에 영구 저장하기]</b>를 누르시면 다음 수업에서도 그대로 불러옵니다.<br>
+        * <code>DEFAULT_CONFIG</code> 코드 안에 주소를 미리 넣어두시면 매번 입력할 필요조차 없습니다.
+      </p>
+      <div class="form-group">
+        <label>🔑 교사 화면 비밀번호 설정 (클라우드에 저장되어 모든 PC에 적용됩니다)</label>
+        <input type="password" id="cfg-teacher-pw" placeholder="비밀번호 입력 (예: 1234)" autocomplete="new-password" />
+      </div>
+
+      <div class="form-group">
+        <label>🔊 문제 읽어주기 모드 (저학년 / 고학년 선택)</label>
+        <select id="cfg-read-options">
+          <option value="auto">자동 읽기 (저학년 추천 - 1번 보기가 10글자 넘으면 보기도 읽기)</option>
+          <option value="none">읽어주기 끔 (고학년 추천 - 교사가 [🔊 읽기] 버튼을 누를 때만 읽기)</option>
+          <option value="question_only">자동 읽기 (항상 문제 내용만 읽기)</option>
+          <option value="with_options">자동 읽기 (항상 문제와 보기까지 모두 읽기)</option>
+        </select>
+      </div>
+
+      <hr style="border:none; border-top:1px solid #eee; margin:20px 0;" />
+
+      <div class="form-group">
+        <label>Firebase Realtime DB URL (실시간 전송 및 문제/설정 클라우드 저장용)</label>
+        <input type="text" id="cfg-firebase" placeholder="예: https://grade1-quiz-default-rtdb.firebaseio.com" />
+      </div>
+      <div class="form-group">
+        <label>구글 폼 전송 주소 (formResponse URL)</label>
+        <input type="text" id="cfg-form-url" placeholder="https://docs.google.com/forms/d/e/.../formResponse" />
+      </div>
+
+      <label style="font-weight:bold; display:block; margin-top:14px;">기본 인적사항 & 점수 entry 번호</label>
+      <div class="entry-grid">
+        <input type="text" id="cfg-entry-grade" placeholder="학년 entry.번호" />
+        <input type="text" id="cfg-entry-class" placeholder="반 entry.번호" />
+        <input type="text" id="cfg-entry-num" placeholder="번호 entry.번호" />
+        <input type="text" id="cfg-entry-name" placeholder="이름 entry.번호" />
+        <input type="text" id="cfg-entry-score" placeholder="점수 entry.번호" />
+      </div>
+
+      <label style="font-weight:bold; display:block; margin-top:14px;">문항별(1번~20번) 구글 폼 entry 번호</label>
+      <div class="entry-grid">
+        <input type="text" id="cfg-entry-q1" placeholder="1번 entry.번호" />
+        <input type="text" id="cfg-entry-q2" placeholder="2번 entry.번호" />
+        <input type="text" id="cfg-entry-q3" placeholder="3번 entry.번호" />
+        <input type="text" id="cfg-entry-q4" placeholder="4번 entry.번호" />
+        <input type="text" id="cfg-entry-q5" placeholder="5번 entry.번호" />
+        <input type="text" id="cfg-entry-q6" placeholder="6번 entry.번호" />
+        <input type="text" id="cfg-entry-q7" placeholder="7번 entry.번호" />
+        <input type="text" id="cfg-entry-q8" placeholder="8번 entry.번호" />
+        <input type="text" id="cfg-entry-q9" placeholder="9번 entry.번호" />
+        <input type="text" id="cfg-entry-q10" placeholder="10번 entry.번호" />
+        <input type="text" id="cfg-entry-q11" placeholder="11번 entry.번호" />
+        <input type="text" id="cfg-entry-q12" placeholder="12번 entry.번호" />
+        <input type="text" id="cfg-entry-q13" placeholder="13번 entry.번호" />
+        <input type="text" id="cfg-entry-q14" placeholder="14번 entry.번호" />
+        <input type="text" id="cfg-entry-q15" placeholder="15번 entry.번호" />
+        <input type="text" id="cfg-entry-q16" placeholder="16번 entry.번호" />
+        <input type="text" id="cfg-entry-q17" placeholder="17번 entry.번호" />
+        <input type="text" id="cfg-entry-q18" placeholder="18번 entry.번호" />
+        <input type="text" id="cfg-entry-q19" placeholder="19번 entry.번호" />
+        <input type="text" id="cfg-entry-q20" placeholder="20번 entry.번호" />
+      </div>
+
+      <button class="btn-big" style="margin-top:14px;" onclick="saveSettings()">💾 클라우드에 영구 저장하기</button>
+    </div>
+
+    <!-- 하단 수업 화면 복귀 버튼 (상단 버튼과 동일 스타일 + 하단 여유 공간) -->
+    <div class="setup-bottom-actions">
+      <button class="btn-return-live" onclick="backToLiveBoard()">📺 수업 화면으로 돌아가기</button>
+    </div>
+  </section>
+</main>
+
+<!-- 교사 비밀번호 입력 모달 (입력 시 * 처리) -->
+<div id="teacher-auth-modal" class="modal-backdrop hidden" onclick="if(event.target === this) closeTeacherAuth()">
+  <div class="modal-box">
+    <h3>🔑 교사 모드 인증</h3>
+    <p>선생님 비밀번호를 입력하세요</p>
+    <input
+      type="password"
+      id="teacher-auth-input"
+      class="pw-modal-input"
+      placeholder="••••"
+      autocomplete="off"
+      onkeydown="if(event.key === 'Enter') submitTeacherAuth(); else if(event.key === 'Escape') closeTeacherAuth();"
+    />
+    <div class="modal-btn-row">
+      <button class="modal-btn cancel" onclick="closeTeacherAuth()">취소</button>
+      <button class="modal-btn confirm" onclick="submitTeacherAuth()">확인</button>
+    </div>
+  </div>
+</div>
+
+<!-- 교사 전용 하단 컨트롤 바 -->
+<footer id="teacher-bottom-bar" class="teacher-bottom-bar hidden">
+  <span class="bottom-title">🧭 코딩탐험대</span>
+  <div class="mini-remote">
+    <span id="tc-push-status" class="status-dot">🔴 대기중</span>
+    <button id="tc-resp-counter" class="resp-badge" onclick="showMissingStudents()" title="클릭하면 아직 안 누른 학생 명단을 봅니다">
+      👥 응답: 0 / 0명
+    </button>
+    <button class="nav-btn" onclick="resetStudentRoster()" title="새 반 수업을 위해 접속 인원 명단 초기화">🔄 초기화</button>
+    <button class="nav-btn" onclick="prevQuestion()" title="단축키: 왼쪽 방향키 (←)">◀</button>
+    <button class="nav-btn" onclick="speakCurrentQuestion(true)" title="단축키: R (수동 읽기)">🔊 읽기</button>
+    <button class="nav-btn push" onclick="pushToStudents()" title="단축키: Space">📢 학생전송</button>
+    <button class="nav-btn reveal" onclick="revealAnswerOnBoard()" title="단축키: Enter">✨ 정답</button>
+    <button class="nav-btn" onclick="nextQuestion()" title="단축키: 오른쪽 방향키 (→)">다음 ▶</button>
+    <button class="nav-btn finish" onclick="finishQuizForAll()" title="퀴즈 종료 및 구글폼 전송">🏁 종료</button>
+    <button class="nav-btn" style="background:#3d465e;" onclick="openSetupTab()">📝 출제·설정</button>
+    <button class="nav-btn" onclick="switchMode('student')">👦 나가기</button>
+  </div>
+</footer>
+
+<script>
+  // ==================== 기본 설정 ====================
+  const MAX_QUESTIONS = 20;
+
+  const DEFAULT_CONFIG = {
+    teacherPw: "1234",
+    readOptions: "auto", // "auto" | "none" | "question_only" | "with_options"
+    firebaseUrl: "",
+    formUrl: "",
+    entryGrade: "", entryClass: "", entryNum: "", entryName: "", entryScore: "",
+    entryQ1: "", entryQ2: "", entryQ3: "", entryQ4: "", entryQ5: "",
+    entryQ6: "", entryQ7: "", entryQ8: "", entryQ9: "", entryQ10: "",
+    entryQ11: "", entryQ12: "", entryQ13: "", entryQ14: "", entryQ15: "",
+    entryQ16: "", entryQ17: "", entryQ18: "", entryQ19: "", entryQ20: ""
+  };
+
+  let questions = JSON.parse(localStorage.getItem("quiz_1st_questions")) || [
+    {
+      type: "ox",
+      text: "강아지는 다리가 4개입니다. 맞으면 O, 틀리면 X를 누르세요.",
+      img: "",
+      options: ["O", "X"],
+      answer: "O"
+    },
+    {
+      type: "choice",
+      text: "다음 중 빨간색 과일은 무엇일까요?",
+      img: "",
+      options: ["사과", "바나나", "포도", "레몬"],
+      answer: "0"
+    }
+  ];
+
+  let config = Object.assign({}, DEFAULT_CONFIG, JSON.parse(localStorage.getItem("quiz_1st_config")) || {});
+  if (!["auto", "none", "question_only", "with_options"].includes(config.readOptions)) {
+    config.readOptions = "auto";
+  }
+
+  let currentIdx = 0;
+  let editingIdx = -1;
+  let isPushedToStudent = false;
+  let isAnswerRevealed = false;
+  let isTeacherLiveMode = false;
+  let studentInfo = null;
+  let studentKey = "";
+  let studentAnswers = {};
+  let uploadedBase64 = "";
+  let bestKoreanVoice = null;
+  let liveRoster = {};
+
+  const bc = new BroadcastChannel("grade1_quiz_channel");
+
+  function loadBestKoreanVoice() {
+    if (!window.speechSynthesis) return;
+    const voices = window.speechSynthesis.getVoices();
+    const koVoices = voices.filter(v => v.lang.includes("ko"));
+    if (koVoices.length === 0) return;
+
+    bestKoreanVoice =
+      koVoices.find(v => v.name.includes("Google")) ||
+      koVoices.find(v => v.name.includes("Natural")) ||
+      koVoices.find(v => v.name.includes("SunHi")) ||
+      koVoices[0];
+  }
+
+  if (window.speechSynthesis) {
+    window.speechSynthesis.onvoiceschanged = loadBestKoreanVoice;
+  }
+
+  window.onload = async () => {
+    loadBestKoreanVoice();
+    loadConfigInputs();
+    renderQuestionList();
+    renderTeacherView();
+    setupNameImeHelper();
+    await loadFromCloud();
+    startSyncListener();
+    startTeacherRosterPolling();
+
+    const classInput = document.getElementById("st-class");
+    if (classInput) classInput.focus();
+  };
+
+  function setupNameImeHelper() {
+    const nameInput = document.getElementById("st-name");
+    const guideBox = document.getElementById("ime-guide-box");
+    if (!nameInput || !guideBox) return;
+
+    nameInput.addEventListener("focus", () => {
+      guideBox.classList.remove("hidden");
+    });
+
+    nameInput.addEventListener("input", () => {
+      const val = nameInput.value;
+      if (/[a-zA-Z]/.test(val)) {
+        guideBox.classList.remove("hidden");
+        guideBox.classList.add("warn-eng");
+        guideBox.innerHTML = "⌨️ 지금 영어로 써지고 있어요! <b>[한/영]</b> 키를 눌러 한글로 바꿔주세요.";
+      } else {
+        guideBox.classList.remove("warn-eng");
+        guideBox.innerHTML = "💡 한글이 안 써지면 키보드의 <b>[한/영]</b> 키를 눌러주세요!";
+      }
+    });
+  }
+
+  async function loadFromCloud() {
+    if (!config.firebaseUrl) return;
+    const url = config.firebaseUrl.replace(/\/$/, "") + "/quiz_bank.json";
+    try {
+      const res = await fetch(url);
+      const data = await res.json();
+      if (data) {
+        if (data.config) {
+          config = Object.assign({}, config, data.config);
+          if (!["auto", "none", "question_only", "with_options"].includes(config.readOptions)) {
+            config.readOptions = "auto";
+          }
+          localStorage.setItem("quiz_1st_config", JSON.stringify(config));
+          loadConfigInputs();
+        }
+        if (data.questions && Array.isArray(data.questions)) {
+          questions = data.questions;
+          localStorage.setItem("quiz_1st_questions", JSON.stringify(questions));
+          renderQuestionList();
+          renderTeacherView();
+        }
+        document.getElementById("cloud-sync-indicator").innerText = "☁️ 클라우드 동기화 완료";
+      }
+    } catch (e) {
+      console.error("클라우드 불러오기 실패:", e);
+    }
+  }
+
+  async function syncBankToCloud() {
+    localStorage.setItem("quiz_1st_questions", JSON.stringify(questions));
+    localStorage.setItem("quiz_1st_config", JSON.stringify(config));
+
+    if (!config.firebaseUrl) return;
+    const url = config.firebaseUrl.replace(/\/$/, "") + "/quiz_bank.json";
+    try {
+      await fetch(url, {
+        method: "PUT",
+        body: JSON.stringify({ config, questions, updatedAt: Date.now() })
+      });
+      document.getElementById("cloud-sync-indicator").innerText = "☁️ 클라우드 저장됨 (" + new Date().toLocaleTimeString() + ")";
+    } catch (e) {
+      alert("클라우드 저장 중 오류가 발생했습니다. Firebase 주소를 확인해주세요.");
+    }
+  }
+
+  function applyQuestionSizing(textEl, text, hasImg) {
+    textEl.classList.remove("q-md", "q-lg", "q-xl");
+    const len = (text || "").length;
+    const effectiveLen = hasImg ? len * 1.45 : len;
+    if (effectiveLen >= 115) textEl.classList.add("q-xl");
+    else if (effectiveLen >= 75) textEl.classList.add("q-lg");
+    else if (effectiveLen >= 38) textEl.classList.add("q-md");
+  }
+
+  function getOptionSizeClass(text) {
+    const len = (text || "").length;
+    if (len >= 30) return "text-lg";
+    if (len >= 15) return "text-md";
+    return "";
+  }
+
+  // ==================== 실시간 학생 응답 현황 집계 ====================
+  function reportStudentProgress() {
+    if (!studentInfo || !studentKey) return;
+    const payload = {
+      type: "STUDENT_PROGRESS",
+      key: studentKey,
+      info: studentInfo,
+      answered: studentAnswers,
+      updatedAt: Date.now()
+    };
+    bc.postMessage(payload);
+
+    if (config.firebaseUrl) {
+      const url = config.firebaseUrl.replace(/\/$/, "") + `/live_responses/${encodeURIComponent(studentKey)}.json`;
+      fetch(url, {
+        method: "PUT",
+        body: JSON.stringify({
+          info: studentInfo,
+          answered: studentAnswers,
+          updatedAt: Date.now()
+        })
+      }).catch(() => {});
+    }
+  }
+
+  function startTeacherRosterPolling() {
+    setInterval(() => {
+      if (!isTeacherLiveMode || !config.firebaseUrl) return;
+      const url = config.firebaseUrl.replace(/\/$/, "") + "/live_responses.json";
+      fetch(url)
+        .then(res => res.json())
+        .then(data => {
+          liveRoster = data || {};
+          updateResponseCounterUI();
+        })
+        .catch(() => {});
+    }, 1500);
+  }
+
+  function getResponseSummary() {
+    const entries = Object.values(liveRoster || {});
+    const total = entries.length;
+    let answeredCount = 0;
+    const missingList = [];
+
+    entries.forEach(item => {
+      const hasAnsweredCurrent = item.answered && item.answered[currentIdx] !== undefined;
+      if (hasAnsweredCurrent) {
+        answeredCount++;
+      } else if (item.info) {
+        missingList.push(`${item.info.num}번 ${item.info.name}`);
+      }
+    });
+    return { total, answeredCount, missingList };
+  }
+
+  function updateResponseCounterUI() {
+    const badge = document.getElementById("tc-resp-counter");
+    if (!badge) return;
+    const { total, answeredCount } = getResponseSummary();
+    badge.innerText = `👥 응답: ${answeredCount} / ${total}명`;
+    if (total > 0 && answeredCount === total) {
+      badge.classList.add("all-done");
+    } else {
+      badge.classList.remove("all-done");
+    }
+  }
+
+  function showMissingStudents() {
+    const { total, answeredCount, missingList } = getResponseSummary();
+    if (total === 0) {
+      alert("아직 접속한 학생이 없습니다.");
+      return;
+    }
+    if (missingList.length === 0) {
+      alert(`🎉 접속한 ${total}명 모두 ${currentIdx + 1}번 문제에 응답했습니다!`);
+    } else {
+      alert(`📋 ${currentIdx + 1}번 문제 응답 현황 (${answeredCount}/${total}명 완료)\n\n⏳ 아직 안 누른 학생 (${missingList.length}명):\n${missingList.join(", ")}`);
+    }
+  }
+
+  async function resetStudentRoster() {
+    if (!confirm("새로운 반 수업을 위해 현재 접속된 학생 응답 명단을 모두 초기화할까요?")) return;
+    liveRoster = {};
+    updateResponseCounterUI();
+    if (config.firebaseUrl) {
+      const url = config.firebaseUrl.replace(/\/$/, "") + "/live_responses.json";
+      await fetch(url, { method: "DELETE" }).catch(() => {});
+    }
+    alert("학생 명단이 초기화되었습니다.");
+  }
+
+  // ==================== 키보드 단축키 ====================
+  document.addEventListener("keydown", (e) => {
+    if (!isTeacherLiveMode) return;
+    if (e.code === "Space") {
+      e.preventDefault();
+      pushToStudents();
+    } else if (e.code === "Enter") {
+      e.preventDefault();
+      revealAnswerOnBoard();
+    } else if (e.code === "ArrowRight") {
+      nextQuestion();
+    } else if (e.code === "ArrowLeft") {
+      prevQuestion();
+    } else if (e.key === "r" || e.key === "R" || e.key === "ㄱ") {
+      speakCurrentQuestion(true);
+    }
+  });
+
+  // ==================== 스마트 음성 안내 (TTS) ====================
+  function stopSpeech() {
+    if (window.speechSynthesis) {
+      window.speechSynthesis.cancel();
+    }
+  }
+
+  function speakText(text) {
+    if (!window.speechSynthesis) return;
+    stopSpeech();
+    if (!bestKoreanVoice) loadBestKoreanVoice();
+
+    const cleanText = text
+      .replace(/\bO\b/g, "오")
+      .replace(/\bX\b/g, "엑스");
+
+    const utter = new SpeechSynthesisUtterance(cleanText);
+    utter.lang = "ko-KR";
+    if (bestKoreanVoice) utter.voice = bestKoreanVoice;
+    utter.rate = 0.95;
+    utter.pitch = 1.0;
+    window.speechSynthesis.speak(utter);
+  }
+
+  function speakCurrentQuestion(manualTrigger = false) {
+    const q = questions[currentIdx];
+    if (!q) return;
+
+    const mode = document.getElementById("cfg-read-options")?.value || config.readOptions || "auto";
+
+    if (mode === "none" && !manualTrigger) {
+      return;
+    }
+
+    let script = q.text;
+
+    if (q.type === "choice") {
+      const firstOptLen = (q.options[0] || "").replace(/\s+/g, "").length;
+      const shouldReadOptions =
+        mode === "with_options" ||
+        ((mode === "auto" || mode === "none") && firstOptLen > 10);
+
+      if (shouldReadOptions) {
+        const ordinals = ["첫 번째", "두 번째", "세 번째", "네 번째"];
+        const optScript = q.options.map((opt, idx) => `${ordinals[idx]}, ${opt}`).join(". ");
+        script += `. ${optScript}.`;
+      }
+    }
+    speakText(script);
+  }
+
+  // ==================== 화면 모드 전환 ====================
+  function switchMode(mode) {
+    stopSpeech();
+    document.body.classList.remove("allow-scroll");
+    const mainEl = document.getElementById("main-container");
+    mainEl.classList.remove("projector-mode");
+
+    if (mode === "student") {
+      isTeacherLiveMode = false;
+      document.getElementById("main-header").classList.remove("hidden");
+      document.getElementById("student-header-bar").classList.remove("hidden");
+      document.getElementById("student-section").classList.remove("hidden");
+      document.getElementById("teacher-live-section").classList.add("hidden");
+      document.getElementById("teacher-setup-section").classList.add("hidden");
+      document.getElementById("teacher-bottom-bar").classList.add("hidden");
+    } else {
+      backToLiveBoard();
+    }
+  }
+
+  function backToLiveBoard() {
+    cancelEditQuestion();
+    isTeacherLiveMode = true;
+    document.body.classList.remove("allow-scroll");
+    document.getElementById("main-container").classList.add("projector-mode");
+    document.getElementById("main-header").classList.add("hidden");
+    document.getElementById("student-section").classList.add("hidden");
+    document.getElementById("teacher-setup-section").classList.add("hidden");
+    document.getElementById("teacher-live-section").classList.remove("hidden");
+    document.getElementById("teacher-bottom-bar").classList.remove("hidden");
+    showQuestionOnTeacher();
+  }
+
+  function openSetupTab() {
+    stopSpeech();
+    isTeacherLiveMode = false;
+    document.body.classList.add("allow-scroll");
+    document.getElementById("main-container").classList.remove("projector-mode");
+    document.getElementById("main-header").classList.remove("hidden");
+    document.getElementById("student-header-bar").classList.add("hidden");
+    document.getElementById("teacher-live-section").classList.add("hidden");
+    document.getElementById("teacher-bottom-bar").classList.add("hidden");
+    document.getElementById("teacher-setup-section").classList.remove("hidden");
+  }
+
+  // ==================== 교사 비밀번호 인증 모달 (* 마스킹 처리) ====================
+  async function openTeacherAuth() {
+    await loadFromCloud();
+    const modal = document.getElementById("teacher-auth-modal");
+    const pwInput = document.getElementById("teacher-auth-input");
+    pwInput.value = "";
+    modal.classList.remove("hidden");
+    setTimeout(() => pwInput.focus(), 50);
+  }
+
+  function closeTeacherAuth() {
+    const modal = document.getElementById("teacher-auth-modal");
+    const pwInput = document.getElementById("teacher-auth-input");
+    pwInput.value = "";
+    modal.classList.add("hidden");
+  }
+
+  function submitTeacherAuth() {
+    const pwInput = document.getElementById("teacher-auth-input");
+    const enteredPw = pwInput.value;
+    const currentPw = config.teacherPw || "1234";
+
+    if (enteredPw === currentPw) {
+      closeTeacherAuth();
+      switchMode("teacher");
+    } else {
+      alert("비밀번호가 틀렸습니다.");
+      pwInput.value = "";
+      pwInput.focus();
+    }
+  }
+
+  // ==================== 교사 수업 화면 로직 ====================
+  function renderTeacherView() {
+    if (questions.length === 0) return;
+    if (currentIdx >= questions.length) currentIdx = Math.max(0, questions.length - 1);
+    const q = questions[currentIdx];
+    document.getElementById("tc-q-num").innerText = `문제 ${currentIdx + 1} / ${questions.length}`;
+    
+    const tcLeftPane = document.getElementById("tc-left-pane");
+    const tcImgWrap = document.getElementById("tc-q-img-wrap");
+    const imgEl = document.getElementById("tc-q-img");
+    const hasImg = Boolean(q.img);
+
+    if (hasImg) {
+      imgEl.src = q.img;
+      tcImgWrap.classList.remove("hidden");
+      tcLeftPane.classList.remove("no-img");
+      tcLeftPane.classList.add("with-img");
+    } else {
+      tcImgWrap.classList.add("hidden");
+      tcLeftPane.classList.remove("with-img");
+      tcLeftPane.classList.add("no-img");
+    }
+
+    const tcTextEl = document.getElementById("tc-q-text");
+    tcTextEl.innerText = q.text;
+    applyQuestionSizing(tcTextEl, q.text, hasImg);
+
+    const prevBox = document.getElementById("tc-options-preview");
+    prevBox.innerHTML = "";
+
+    if (q.type === "ox") {
+      prevBox.className = "ox-col";
+      ["O", "X"].forEach(val => {
+        const isCorrect = (q.answer === val);
+        const revealClass = isAnswerRevealed ? (isCorrect ? "correct-reveal" : "dimmed") : "";
+        const mark = (isAnswerRevealed && isCorrect) ? " 🎉" : "";
+        prevBox.innerHTML += `<div class="ox-btn ${val === 'O' ? 'ox-o' : 'ox-x'} ${revealClass}">${val}${mark}</div>`;
+      });
+    } else {
+      prevBox.className = "options-col";
+      q.options.forEach((opt, i) => {
+        const isCorrect = (String(i) === String(q.answer));
+        const revealClass = isAnswerRevealed ? (isCorrect ? "correct-reveal" : "dimmed") : "";
+        const mark = (isAnswerRevealed && isCorrect) ? " 🎉" : "";
+        const sizeClass = getOptionSizeClass(opt);
+        prevBox.innerHTML += `<div class="opt-btn opt-${i} ${sizeClass} ${revealClass}">${i + 1}. ${opt}${mark}</div>`;
+      });
+    }
+
+    const statusEl = document.getElementById("tc-push-status");
+    statusEl.innerText = isPushedToStudent ? "🟢 학생전송됨" : "🔴 대기중";
+    updateResponseCounterUI();
+  }
+
+  function showQuestionOnTeacher() {
+    isPushedToStudent = false;
+    isAnswerRevealed = false;
+    renderTeacherView();
+    broadcastState("SHOW_TEACHER_ONLY");
+    speakCurrentQuestion(false);
+  }
+
+  function pushToStudents() {
+    isPushedToStudent = true;
+    renderTeacherView();
+    broadcastState("PUSH_TO_STUDENT");
+  }
+
+  function revealAnswerOnBoard() {
+    isAnswerRevealed = !isAnswerRevealed;
+    renderTeacherView();
+    const mode = document.getElementById("cfg-read-options")?.value || config.readOptions || "auto";
+
+    if (isAnswerRevealed) {
+      if (mode === "none") return;
+      const q = questions[currentIdx];
+      const ordinals = ["첫 번째", "두 번째", "세 번째", "네 번째"];
+      const ansText = q.type === "ox" ? q.answer : `${ordinals[q.answer]}, ${q.options[q.answer]}`;
+      speakText(`정답은 ${ansText} 입니다.`);
+    } else {
+      stopSpeech();
+    }
+  }
+
+  function nextQuestion() {
+    if (isPushedToStudent) {
+      const { total, missingList } = getResponseSummary();
+      if (total > 0 && missingList.length > 0) {
+        const ok = confirm(`아직 ${missingList.length}명(${missingList.join(", ")})이 답을 고르지 않았습니다.\n그래도 다음 문제로 넘어갈까요?`);
+        if (!ok) return;
+      }
+    }
+
+    if (currentIdx < questions.length - 1) {
+      currentIdx++;
+      showQuestionOnTeacher();
+    } else {
+      alert("마지막 문제입니다. [🏁 종료] 버튼을 눌러 결과를 전송하세요.");
+    }
+  }
+
+  function prevQuestion() {
+    if (currentIdx > 0) {
+      currentIdx--;
+      showQuestionOnTeacher();
+    }
+  }
+
+  function finishQuizForAll() {
+    const { total, missingList } = getResponseSummary();
+    let msg = "퀴즈를 종료하고 모든 학생의 점수와 답안을 구글 폼으로 전송할까요?";
+    if (isPushedToStudent && total > 0 && missingList.length > 0) {
+      msg = `아직 마지막 문제를 안 푼 학생이 ${missingList.length}명(${missingList.join(", ")}) 있습니다.\n그래도 퀴즈를 종료하고 결과를 전송할까요?`;
+    }
+    if (!confirm(msg)) return;
+    stopSpeech();
+    broadcastState("FINISH_QUIZ");
+    alert("학생 화면에 결과 전송 신호를 보냈습니다!");
+  }
+
+  // ==================== 실시간 상태 동기화 ====================
+  function broadcastState(action) {
+    const payload = {
+      action,
+      currentIdx,
+      isPushedToStudent,
+      question: questions[currentIdx],
+      allQuestions: questions,
+      timestamp: Date.now()
+    };
+    bc.postMessage(payload);
+
+    if (config.firebaseUrl) {
+      const url = config.firebaseUrl.replace(/\/$/, "") + "/live_quiz.json";
+      fetch(url, {
+        method: "PUT",
+        body: JSON.stringify(payload)
+      }).catch(err => console.error("Firebase 전송 오류:", err));
+    }
+  }
+
+  let lastTimestamp = 0;
+  function startSyncListener() {
+    bc.onmessage = (e) => {
+      if (e.data && e.data.type === "STUDENT_PROGRESS") {
+        liveRoster[e.data.key] = e.data;
+        updateResponseCounterUI();
+        return;
+      }
+      handleIncomingState(e.data);
+    };
+
+    setInterval(() => {
+      if (!config.firebaseUrl || !studentInfo) return;
+      const url = config.firebaseUrl.replace(/\/$/, "") + "/live_quiz.json";
+      fetch(url)
+        .then(res => res.json())
+        .then(data => {
+          if (data && data.timestamp !== lastTimestamp) {
+            lastTimestamp = data.timestamp;
+            handleIncomingState(data);
+          }
+        })
+        .catch(() => {});
+    }, 1500);
+  }
+
+  // ==================== 학생 화면 로직 ====================
+  function startStudent() {
+    const grade = document.getElementById("st-grade").value.trim();
+    const cls = document.getElementById("st-class").value.trim();
+    const num = document.getElementById("st-num").value.trim();
+    const nameInput = document.getElementById("st-name");
+    const name = nameInput.value.trim();
+
+    if (!cls || Number(cls) < 1) {
+      alert("몇 반인지 숫자로 적어주세요!");
+      document.getElementById("st-class").focus();
+      return;
+    }
+    if (!num || Number(num) < 1) {
+      alert("번호를 숫자로 적어주세요!");
+      document.getElementById("st-num").focus();
+      return;
+    }
+    if (!name) {
+      alert("이름을 적어주세요!");
+      nameInput.focus();
+      return;
+    }
+
+    const validNamePattern = /^[가-힣a-zA-Z][가-힣a-zA-Z\s\-']*$/;
+    if (!validNamePattern.test(name)) {
+      alert("이름은 한글이나 영어로만 바르게 적어주세요!\n(숫자, 특수문자, 자음·모음만 입력할 수 없어요)");
+      nameInput.value = "";
+      nameInput.focus();
+      return;
+    }
+
+    studentInfo = { grade, cls, num, name };
+    studentKey = `${grade}_${cls}_${num}_${name}`;
+    document.getElementById("st-nametag").innerText = `🎒 ${grade}학년 ${cls}반 ${num}번 ${name}`;
+    document.getElementById("student-login").classList.add("hidden");
+    document.getElementById("student-wait").classList.remove("hidden");
+
+    reportStudentProgress();
+  }
+
+  function handleIncomingState(data) {
+    if (!studentInfo || !data) return;
+    if (data.allQuestions) questions = data.allQuestions;
+
+    if (data.action === "SHOW_TEACHER_ONLY") {
+      stopSpeech();
+      document.getElementById("student-wait").classList.remove("hidden");
+      document.getElementById("student-quiz").classList.add("hidden");
+      document.getElementById("student-end").classList.add("hidden");
+    } 
+    else if (data.action === "PUSH_TO_STUDENT") {
+      currentIdx = data.currentIdx;
+      const q = data.question;
+      document.getElementById("student-wait").classList.add("hidden");
+      document.getElementById("student-end").classList.add("hidden");
+      document.getElementById("student-quiz").classList.remove("hidden");
+
+      document.getElementById("st-q-num").innerText = `문제 ${currentIdx + 1}`;
+      
+      const stLeftPane = document.getElementById("st-left-pane");
+      const stImgWrap = document.getElementById("st-q-img-wrap");
+      const imgEl = document.getElementById("st-q-img");
+      const hasImg = Boolean(q.img);
+
+      if (hasImg) {
+        imgEl.src = q.img;
+        stImgWrap.classList.remove("hidden");
+        stLeftPane.classList.remove("no-img");
+        stLeftPane.classList.add("with-img");
+      } else {
+        stImgWrap.classList.add("hidden");
+        stLeftPane.classList.remove("with-img");
+        stLeftPane.classList.add("no-img");
+      }
+
+      const stTextEl = document.getElementById("st-q-text");
+      stTextEl.innerText = q.text;
+      applyQuestionSizing(stTextEl, q.text, hasImg);
+      document.getElementById("st-feedback").innerText = "";
+
+      const optContainer = document.getElementById("st-options-container");
+      optContainer.innerHTML = "";
+
+      if (q.type === "ox") {
+        optContainer.className = "ox-col";
+        ["O", "X"].forEach(val => {
+          const btn = document.createElement("button");
+          btn.className = `ox-btn ${val === 'O' ? 'ox-o' : 'ox-x'}`;
+          btn.innerText = val;
+          if (studentAnswers[currentIdx] === val) btn.classList.add("selected");
+          btn.onclick = () => selectStudentAnswer(val, btn);
+          optContainer.appendChild(btn);
+        });
+      } else {
+        optContainer.className = "options-col";
+        q.options.forEach((opt, i) => {
+          const btn = document.createElement("button");
+          const sizeClass = getOptionSizeClass(opt);
+          btn.className = `opt-btn opt-${i} ${sizeClass}`;
+          btn.innerText = `${i + 1}. ${opt}`;
+          if (String(studentAnswers[currentIdx]) === String(i)) btn.classList.add("selected");
+          btn.onclick = () => selectStudentAnswer(String(i), btn);
+          optContainer.appendChild(btn);
+        });
+      }
+    } 
+    else if (data.action === "FINISH_QUIZ") {
+      stopSpeech();
+      submitToGoogleForm();
+    }
+  }
+
+  function selectStudentAnswer(val, btnEl) {
+    studentAnswers[currentIdx] = val;
+    document.querySelectorAll("#st-options-container button").forEach(b => b.classList.remove("selected"));
+    btnEl.classList.add("selected");
+    document.getElementById("st-feedback").innerText = "✅ 답을 선택했어요!";
+
+    reportStudentProgress();
+  }
+
+  function submitToGoogleForm() {
+    document.getElementById("student-wait").classList.add("hidden");
+    document.getElementById("student-quiz").classList.add("hidden");
+    document.getElementById("student-end").classList.remove("hidden");
+
+    let correctCount = 0;
+    questions.forEach((q, idx) => {
+      if (String(studentAnswers[idx]) === String(q.answer)) {
+        correctCount++;
+      }
+    });
+    const totalScore = questions.length > 0 ? Math.round((correctCount / questions.length) * 100) : 0;
+    document.getElementById("st-final-score").innerText = `${questions.length}문제 중 ${correctCount}개 정답! (${totalScore}점)`;
+
+    if (!config.formUrl || !config.formUrl.includes("formResponse")) {
+      document.getElementById("st-submit-status").innerText = "점수 계산 완료! (구글 폼 주소 미설정 상태)";
+      return;
+    }
+
+    const formData = new FormData();
+    if (config.entryGrade) formData.append(config.entryGrade, studentInfo.grade);
+    if (config.entryClass) formData.append(config.entryClass, studentInfo.cls);
+    if (config.entryNum) formData.append(config.entryNum, studentInfo.num);
+    if (config.entryName) formData.append(config.entryName, studentInfo.name);
+    if (config.entryScore) formData.append(config.entryScore, totalScore);
+
+    const qEntries = [];
+    for (let i = 1; i <= MAX_QUESTIONS; i++) {
+      qEntries.push(config[`entryQ${i}`]);
+    }
+
+    questions.forEach((q, idx) => {
+      const entryId = qEntries[idx];
+      const ans = studentAnswers[idx];
+      if (entryId && ans !== undefined) {
+        const formattedAns = (q.type === "ox") ? ans : `${Number(ans) + 1}번`;
+        formData.append(entryId, formattedAns);
+      }
+    });
+
+    fetch(config.formUrl, {
+      method: "POST",
+      mode: "no-cors",
+      body: formData
+    })
+    .then(() => {
+      document.getElementById("st-submit-status").innerText = "✅ 선생님 구글 폼 보고서에 저장되었어요!";
+    })
+    .catch(() => {
+      document.getElementById("st-submit-status").innerText = "⚠️ 전송 중 오류가 발생했어요. 선생님께 말씀드려주세요.";
+    });
+  }
+
+  // ==================== 문제 추가 · 수정 · 순서 이동 · 삭제 ====================
+  function toggleOptionInputs() {
+    const type = document.getElementById("new-q-type").value;
+    document.getElementById("choice-inputs").classList.toggle("hidden", type !== "choice");
+    document.getElementById("ox-inputs").classList.toggle("hidden", type !== "ox");
+  }
+
+  function handleImageUpload(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      uploadedBase64 = e.target.result;
+    };
+    reader.readAsDataURL(file);
+  }
+
+  function startEditQuestion(idx) {
+    const q = questions[idx];
+    if (!q) return;
+
+    editingIdx = idx;
+    uploadedBase64 = "";
+    document.getElementById("new-q-file").value = "";
+    document.getElementById("remove-existing-img").checked = false;
+
+    document.getElementById("new-q-type").value = q.type;
+    toggleOptionInputs();
+
+    document.getElementById("new-q-text").value = q.text;
+    document.getElementById("new-q-img-url").value = (q.img && !q.img.startsWith("data:")) ? q.img : "";
+
+    const imgStatusBox = document.getElementById("edit-img-status");
+    if (q.img) {
+      imgStatusBox.classList.remove("hidden");
+    } else {
+      imgStatusBox.classList.add("hidden");
+    }
+
+    if (q.type === "ox") {
+      document.getElementById("ox-answer").value = q.answer;
+    } else {
+      document.getElementById("opt-0").value = q.options[0] || "";
+      document.getElementById("opt-1").value = q.options[1] || "";
+      document.getElementById("opt-2").value = q.options[2] || "";
+      document.getElementById("opt-3").value = q.options[3] || "";
+      document.getElementById("choice-answer").value = String(q.answer);
+    }
+
+    document.getElementById("question-editor-card").classList.add("editing-mode");
+    document.getElementById("editor-heading").innerText = `🛠️ ${idx + 1}번 문제 수정하기`;
+    document.getElementById("save-question-btn").innerText = `💾 ${idx + 1}번 문제 수정 완료`;
+    document.getElementById("save-question-btn").style.background = "#ff9f1c";
+    document.getElementById("cancel-edit-btn").classList.remove("hidden");
+
+    renderQuestionList();
+    document.getElementById("question-editor-card").scrollIntoView({ behavior: "smooth" });
+  }
+
+  function cancelEditQuestion() {
+    editingIdx = -1;
+    uploadedBase64 = "";
+    document.getElementById("new-q-text").value = "";
+    document.getElementById("new-q-img-url").value = "";
+    document.getElementById("new-q-file").value = "";
+    document.getElementById("opt-0").value = "";
+    document.getElementById("opt-1").value = "";
+    document.getElementById("opt-2").value = "";
+    document.getElementById("opt-3").value = "";
+    document.getElementById("remove-existing-img").checked = false;
+    document.getElementById("edit-img-status").classList.add("hidden");
+
+    document.getElementById("question-editor-card").classList.remove("editing-mode");
+    document.getElementById("editor-heading").innerText = `✏️ 새 문제 추가하기 (최대 ${MAX_QUESTIONS}문항 · 추가 즉시 Firebase 클라우드에 자동 백업됩니다)`;
+    document.getElementById("save-question-btn").innerText = "➕ 문제 저장하기 (클라우드 자동 저장)";
+    document.getElementById("save-question-btn").style.background = "";
+    document.getElementById("cancel-edit-btn").classList.add("hidden");
+
+    renderQuestionList();
+  }
+
+  async function saveQuestion() {
+    const type = document.getElementById("new-q-type").value;
+    const text = document.getElementById("new-q-text").value.trim();
+    const imgUrl = document.getElementById("new-q-img-url").value.trim();
+    const removeOldImg = document.getElementById("remove-existing-img").checked;
+
+    if (!text) {
+      alert("문제 내용을 입력하세요.");
+      return;
+    }
+
+    if (editingIdx < 0 && questions.length >= MAX_QUESTIONS) {
+      alert(`최대 ${MAX_QUESTIONS}문항까지만 출제할 수 있습니다.\n기존 문제를 삭제하거나 수정해 주세요.`);
+      return;
+    }
+
+    let finalImg = "";
+    if (uploadedBase64) {
+      finalImg = uploadedBase64;
+    } else if (imgUrl) {
+      finalImg = imgUrl;
+    } else if (editingIdx >= 0 && !removeOldImg) {
+      finalImg = questions[editingIdx].img || "";
+    }
+
+    let builtQ = { type, text, img: finalImg };
+    if (type === "ox") {
+      builtQ.options = ["O", "X"];
+      builtQ.answer = document.getElementById("ox-answer").value;
+    } else {
+      builtQ.options = [
+        document.getElementById("opt-0").value || "보기 1",
+        document.getElementById("opt-1").value || "보기 2",
+        document.getElementById("opt-2").value || "보기 3",
+        document.getElementById("opt-3").value || "보기 4"
+      ];
+      builtQ.answer = document.getElementById("choice-answer").value;
+    }
+
+    if (editingIdx >= 0) {
+      const targetNum = editingIdx + 1;
+      questions[editingIdx] = builtQ;
+      await syncBankToCloud();
+      cancelEditQuestion();
+      renderTeacherView();
+      alert(`${targetNum}번 문제가 수정되었습니다!`);
+    } else {
+      questions.push(builtQ);
+      await syncBankToCloud();
+      cancelEditQuestion();
+      renderTeacherView();
+      alert("새 문제가 클라우드에 저장되었습니다!");
+    }
+  }
+
+  async function moveQuestion(idx, direction) {
+    const targetIdx = idx + direction;
+    if (targetIdx < 0 || targetIdx >= questions.length) return;
+
+    if (editingIdx >= 0) cancelEditQuestion();
+
+    const temp = questions[idx];
+    questions[idx] = questions[targetIdx];
+    questions[targetIdx] = temp;
+
+    await syncBankToCloud();
+    renderQuestionList();
+    renderTeacherView();
+  }
+
+  async function deleteQuestion(idx) {
+    if (!confirm(`${idx + 1}번 문제를 삭제할까요?`)) return;
+    if (editingIdx === idx) cancelEditQuestion();
+    else if (editingIdx > idx) editingIdx--;
+
+    questions.splice(idx, 1);
+    if (currentIdx >= questions.length) currentIdx = Math.max(0, questions.length - 1);
+    await syncBankToCloud();
+    renderQuestionList();
+    renderTeacherView();
+  }
+
+  function renderQuestionList() {
+    const heading = document.getElementById("question-list-heading");
+    if (heading) {
+      heading.innerText = `📋 등록된 문제 목록 (${questions.length} / ${MAX_QUESTIONS}문항 · 순서 이동 · 수정 · 삭제)`;
+    }
+
+    const list = document.getElementById("question-list");
+    list.innerHTML = "";
+    questions.forEach((q, i) => {
+      const isEditingThis = (i === editingIdx);
+      const ansLabel = q.type === 'ox' ? q.answer : `${Number(q.answer) + 1}번`;
+      list.innerHTML += `
+        <div class="q-list-item ${isEditingThis ? 'editing-highlight' : ''}">
+          <div class="q-item-info">
+            <strong>${i + 1}번 [${q.type === 'ox' ? 'OX' : '객관식'} · 정답: ${ansLabel}]</strong>
+            ${q.img ? '🖼️' : ''}<br>
+            <span>${q.text}</span>
+          </div>
+          <div class="q-item-actions">
+            <button class="icon-action-btn btn-move" onclick="moveQuestion(${i}, -1)" ${i === 0 ? 'disabled' : ''} title="위로 이동">▲</button>
+            <button class="icon-action-btn btn-move" onclick="moveQuestion(${i}, 1)" ${i === questions.length - 1 ? 'disabled' : ''} title="아래로 이동">▼</button>
+            <button class="icon-action-btn btn-edit" onclick="startEditQuestion(${i})">✏️ 수정</button>
+            <button class="icon-action-btn btn-del" onclick="deleteQuestion(${i})">삭제</button>
+          </div>
+        </div>
+      `;
+    });
+  }
+
+  function loadConfigInputs() {
+    document.getElementById("cfg-teacher-pw").value = config.teacherPw || "1234";
+    document.getElementById("cfg-read-options").value = config.readOptions || "auto";
+    document.getElementById("cfg-firebase").value = config.firebaseUrl || "";
+    document.getElementById("cfg-form-url").value = config.formUrl || "";
+    document.getElementById("cfg-entry-grade").value = config.entryGrade || "";
+    document.getElementById("cfg-entry-class").value = config.entryClass || "";
+    document.getElementById("cfg-entry-num").value = config.entryNum || "";
+    document.getElementById("cfg-entry-name").value = config.entryName || "";
+    document.getElementById("cfg-entry-score").value = config.entryScore || "";
+
+    for (let i = 1; i <= MAX_QUESTIONS; i++) {
+      const el = document.getElementById(`cfg-entry-q${i}`);
+      if (el) el.value = config[`entryQ${i}`] || "";
+    }
+  }
+
+  async function saveSettings() {
+    const newPw = document.getElementById("cfg-teacher-pw").value.trim();
+    if (!newPw) {
+      alert("교사 비밀번호를 입력해주세요.");
+      return;
+    }
+
+    config.teacherPw = newPw;
+    config.readOptions = document.getElementById("cfg-read-options").value;
+    config.firebaseUrl = document.getElementById("cfg-firebase").value.trim();
+    config.formUrl = document.getElementById("cfg-form-url").value.trim();
+    config.entryGrade = document.getElementById("cfg-entry-grade").value.trim();
+    config.entryClass = document.getElementById("cfg-entry-class").value.trim();
+    config.entryNum = document.getElementById("cfg-entry-num").value.trim();
+    config.entryName = document.getElementById("cfg-entry-name").value.trim();
+    config.entryScore = document.getElementById("cfg-entry-score").value.trim();
+
+    for (let i = 1; i <= MAX_QUESTIONS; i++) {
+      const el = document.getElementById(`cfg-entry-q${i}`);
+      if (el) config[`entryQ${i}`] = el.value.trim();
+    }
+
+    await syncBankToCloud();
+    alert("설정과 비밀번호가 클라우드에 영구 저장되었습니다!");
+  }
+</script>
+
+</body>
+</html>
