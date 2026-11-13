@@ -111,13 +111,13 @@
       font-size: 1.15rem; font-weight: bold; color: #4a6cf7;
     }
     .input-field input {
-      padding: 18px 12px; font-size: 1.5rem; font-weight: bold; color: #222;
-      background: white; border: 2.5px solid #cbd7f8; border-radius: 16px;
-      text-align: center; width: 100%; transition: border-color 0.15s, box-shadow 0.15s;
+      padding: 18px 12px; font-size: 1.6rem; font-weight: bold; color: #111111;
+      background: #ffffff; border: 2.5px dashed #9fb5f5; border-radius: 16px;
+      text-align: center; width: 100%; transition: all 0.15s;
     }
     .input-field input:focus {
-      outline: none; border-color: var(--primary);
-      box-shadow: 0 0 0 4px rgba(74, 108, 247, 0.15);
+      outline: none; border-style: solid; border-color: var(--primary);
+      background: #ffffff; box-shadow: 0 0 0 5px rgba(74, 108, 247, 0.18);
     }
     .btn-start {
       width: 100%; max-width: 420px; margin: 4px auto 0 auto;
@@ -171,7 +171,7 @@
     .step-emoji { font-size: 2.4rem; }
     .step-text { font-size: 1.15rem; font-weight: bold; color: #333; }
 
-    /* ==================== 문제 상단 & 본문 (자동 크기/비율 조절) ==================== */
+    /* ==================== 문제 상단 & 본문 ==================== */
     .q-top { display: flex; justify-content: space-between; align-items: center; flex-shrink: 0; margin-bottom: 6px; }
     .badge { background: #eef2ff; color: var(--primary); padding: 6px 16px; border-radius: 12px; font-weight: bold; font-size: 1.2rem; }
     .tts-btn {
@@ -191,12 +191,11 @@
       flex: 1; font-size: clamp(1.8rem, 3.1vw, 2.5rem); font-weight: bold;
       line-height: 1.45; word-break: keep-all; overflow-wrap: break-word;
     }
-    /* 문제 문장 길이에 따른 자동 폰트 축소 클래스 */
     .q-text.q-md { font-size: clamp(1.45rem, 2.3vw, 1.95rem); line-height: 1.4; }
     .q-text.q-lg { font-size: clamp(1.2rem, 1.85vw, 1.55rem); line-height: 1.38; }
     .q-text.q-xl { font-size: clamp(1.05rem, 1.55vw, 1.3rem); line-height: 1.35; }
 
-    /* 보기 버튼 영역 (짧은 보기는 33%, 긴 문장 보기는 45% 자동 전환) */
+    /* 보기 버튼 영역 */
     .options-area { height: 34%; min-height: 165px; flex-shrink: 0; display: flex; flex-direction: column; transition: height 0.2s; }
     .options-area.tall-options { height: 45%; min-height: 210px; }
 
@@ -283,15 +282,15 @@
           </div>
           <div class="input-field">
             <label for="st-class">반</label>
-            <input type="number" id="st-class" placeholder="예: 1" />
+            <input type="number" id="st-class" min="1" />
           </div>
           <div class="input-field">
             <label for="st-num">번호</label>
-            <input type="number" id="st-num" placeholder="예: 5" />
+            <input type="number" id="st-num" min="1" />
           </div>
           <div class="input-field">
             <label for="st-name">이름</label>
-            <input type="text" id="st-name" placeholder="이름 입력" />
+            <input type="text" id="st-name" maxlength="15" />
           </div>
         </div>
       </div>
@@ -561,6 +560,9 @@
     renderTeacherView();
     await loadFromCloud();
     startSyncListener();
+
+    const classInput = document.getElementById("st-class");
+    if (classInput) classInput.focus();
   };
 
   async function loadFromCloud() {
@@ -605,17 +607,15 @@
     }
   }
 
-  // 문제 본문 글자 수 및 이미지 유무에 따른 자동 폰트 크기 조절
   function applyQuestionSizing(textEl, text, hasImg) {
     textEl.classList.remove("q-md", "q-lg", "q-xl");
     const len = (text || "").length;
-    const effectiveLen = hasImg ? len * 1.45 : len; // 이미지가 있으면 텍스트 폭이 좁아지므로 가중치 부여
+    const effectiveLen = hasImg ? len * 1.45 : len;
     if (effectiveLen >= 130) textEl.classList.add("q-xl");
     else if (effectiveLen >= 85) textEl.classList.add("q-lg");
     else if (effectiveLen >= 45) textEl.classList.add("q-md");
   }
 
-  // 보기 문장 길이에 따른 버튼 크기 및 하단 영역 높이 비율 자동 조절
   function applyOptionsAreaSizing(areaEl, q) {
     if (q.type === "choice") {
       const maxLen = Math.max(...q.options.map(o => (o || "").length));
@@ -874,17 +874,40 @@
     }, 1500);
   }
 
-  // ==================== 학생 화면 로직 ====================
+  // ==================== 학생 화면 로직 (한글·영어 및 중간 하이픈·아포스트로피 허용) ====================
   function startStudent() {
-    const grade = document.getElementById("st-grade").value;
-    const cls = document.getElementById("st-class").value;
-    const num = document.getElementById("st-num").value;
-    const name = document.getElementById("st-name").value.trim();
+    const grade = document.getElementById("st-grade").value.trim();
+    const cls = document.getElementById("st-class").value.trim();
+    const num = document.getElementById("st-num").value.trim();
+    const nameInput = document.getElementById("st-name");
+    const name = nameInput.value.trim();
 
-    if (!cls || !num || !name) {
-      alert("반, 번호, 이름을 모두 적어주세요!");
+    if (!cls || Number(cls) < 1) {
+      alert("몇 반인지 숫자로 적어주세요!");
+      document.getElementById("st-class").focus();
       return;
     }
+    if (!num || Number(num) < 1) {
+      alert("번호를 숫자로 적어주세요!");
+      document.getElementById("st-num").focus();
+      return;
+    }
+    if (!name) {
+      alert("이름을 적어주세요!");
+      nameInput.focus();
+      return;
+    }
+
+    // 첫 글자는 완성형 한글(가-힣) 또는 영어(a-zA-Z) 필수,
+    // 중간에는 한글·영어·공백·하이픈(-)·아포스트로피(')만 허용
+    const validNamePattern = /^[가-힣a-zA-Z][가-힣a-zA-Z\s\-']*$/;
+    if (!validNamePattern.test(name)) {
+      alert("이름은 한글이나 영어로만 바르게 적어주세요!\n(숫자, 특수문자, 자음·모음만 입력할 수 없어요)");
+      nameInput.value = "";
+      nameInput.focus();
+      return;
+    }
+
     studentInfo = { grade, cls, num, name };
     document.getElementById("st-nametag").innerText = `🎒 ${grade}학년 ${cls}반 ${num}번 ${name}`;
     document.getElementById("student-login").classList.add("hidden");
