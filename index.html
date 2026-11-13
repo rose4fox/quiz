@@ -228,6 +228,25 @@
     }
     .btn-lobby-start:active { transform: translateY(2px); }
 
+    /* ==================== 교사 퀴즈 종료 화면 ==================== */
+    .teacher-end-wrap {
+      margin: auto; width: 100%; max-width: 720px; text-align: center;
+      display: flex; flex-direction: column; align-items: center; gap: clamp(14px, 2.5vh, 22px);
+    }
+    .teacher-end-badge {
+      background: #e6f4ea; border: 2px solid #a8dab5; color: #1e8e3e;
+      padding: 8px 22px; border-radius: 30px; font-size: clamp(1.05rem, 1.8vw, 1.3rem); font-weight: bold;
+    }
+    .teacher-end-title {
+      margin: 0; font-size: clamp(1.8rem, 3.4vw, 2.7rem); color: #1a2340;
+    }
+    .teacher-end-desc {
+      margin: 0; font-size: clamp(1.05rem, 1.8vw, 1.3rem); color: #555; line-height: 1.5;
+    }
+    .teacher-end-actions {
+      display: flex; justify-content: center; flex-wrap: wrap; gap: 12px; margin-top: 8px;
+    }
+
     /* ==================== 학생 로그인 화면 ==================== */
     .login-wrap {
       margin: auto; width: 100%; max-width: 780px; text-align: center;
@@ -862,6 +881,24 @@
     </div>
   </section>
 
+  <!-- ==================== 2-C. 교사 퀴즈 종료 화면 (중복 종료 방지) ==================== -->
+  <section id="teacher-end-section" class="full-card hidden">
+    <div class="teacher-end-wrap">
+      <div style="font-size: 5rem; line-height: 1;">🏁</div>
+      <span id="tc-end-summary-badge" class="teacher-end-badge">✅ 결과 전송 완료 · 총 0명 참여</span>
+      <h2 class="teacher-end-title">퀴즈가 모두 종료되었습니다!</h2>
+      <p class="teacher-end-desc">
+        학생들의 점수와 문항별 응답이 구글 폼으로 전송되었습니다.<br>
+        다음 반 수업을 진행하려면 아래 <b>[새 반 수업을 위해 초기화]</b> 버튼을 눌러주세요.
+      </p>
+      <div class="teacher-end-actions">
+        <button class="btn-lobby-sub" onclick="openTeacherLobby()">👥 대기실로 돌아가기</button>
+        <button class="btn-lobby-start" onclick="resetAndGoToLobby()">🔄 새 반 수업을 위해 초기화 & 대기실로 가기</button>
+        <button class="btn-lobby-sub" onclick="switchMode('student')">👦 학생 화면으로 나가기</button>
+      </div>
+    </div>
+  </section>
+
   <!-- ==================== 3. 교사 출제·설정 화면 ==================== -->
   <section id="teacher-setup-section" class="hidden">
     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; flex-wrap:wrap; gap:10px;">
@@ -1129,6 +1166,7 @@
   let studentInfo = null;
   let studentKey = "";
   let studentAnswers = {};
+  let hasSubmittedToForm = false;
   let uploadedBase64 = "";
   let bestKoreanVoice = null;
   let liveRoster = {};
@@ -1597,8 +1635,7 @@
     }
   }
 
-  async function resetStudentRoster() {
-    if (!confirm("새로운 반 수업을 위해 현재 접속된 학생 응답 명단을 모두 초기화할까요?")) return;
+  async function clearRosterData() {
     liveRoster = {};
     updateResponseCounterUI();
     renderTeacherLobby();
@@ -1606,7 +1643,20 @@
       const url = config.firebaseUrl.replace(/\/$/, "") + "/live_responses.json";
       await fetch(url, { method: "DELETE" }).catch(() => {});
     }
+  }
+
+  async function resetStudentRoster() {
+    if (!confirm("새로운 반 수업을 위해 현재 접속된 학생 응답 명단을 모두 초기화할까요?")) return;
+    await clearRosterData();
+    currentIdx = 0;
     alert("학생 명단이 초기화되었습니다.");
+  }
+
+  async function resetAndGoToLobby() {
+    if (!confirm("기존 반 학생 명단을 초기화하고 1번 문제 대기실로 이동할까요?")) return;
+    await clearRosterData();
+    currentIdx = 0;
+    openTeacherLobby();
   }
 
   // ==================== 키보드 단축키 ====================
@@ -1679,6 +1729,14 @@
   }
 
   // ==================== 화면 모드 전환 ====================
+  function hideAllTeacherSections() {
+    document.getElementById("teacher-lobby-section").classList.add("hidden");
+    document.getElementById("teacher-live-section").classList.add("hidden");
+    document.getElementById("teacher-end-section").classList.add("hidden");
+    document.getElementById("teacher-setup-section").classList.add("hidden");
+    document.getElementById("teacher-bottom-bar").classList.add("hidden");
+  }
+
   function switchMode(mode) {
     stopSpeech();
     clearTeacherTimer();
@@ -1689,19 +1747,16 @@
     if (mode === "student") {
       isTeacherLiveMode = false;
       isTeacherLobbyMode = false;
+      hideAllTeacherSections();
       document.getElementById("main-header").classList.remove("hidden");
       document.getElementById("student-header-bar").classList.remove("hidden");
       document.getElementById("student-section").classList.remove("hidden");
-      document.getElementById("teacher-lobby-section").classList.add("hidden");
-      document.getElementById("teacher-live-section").classList.add("hidden");
-      document.getElementById("teacher-setup-section").classList.add("hidden");
-      document.getElementById("teacher-bottom-bar").classList.add("hidden");
     } else {
       openTeacherLobby();
     }
   }
 
-  // 교사 대기실 열기 (비밀번호 인증 직후 첫 진입 화면: 문제를 미리 보여주지 않고 입장 인원 확인)
+  // 교사 대기실 열기
   function openTeacherLobby() {
     stopSpeech();
     clearTeacherTimer();
@@ -1715,9 +1770,7 @@
     document.getElementById("main-container").classList.add("projector-mode");
     document.getElementById("main-header").classList.add("hidden");
     document.getElementById("student-section").classList.add("hidden");
-    document.getElementById("teacher-live-section").classList.add("hidden");
-    document.getElementById("teacher-setup-section").classList.add("hidden");
-    document.getElementById("teacher-bottom-bar").classList.add("hidden");
+    hideAllTeacherSections();
     document.getElementById("teacher-lobby-section").classList.remove("hidden");
 
     broadcastState("SHOW_TEACHER_ONLY");
@@ -1741,11 +1794,30 @@
     document.getElementById("main-container").classList.add("projector-mode");
     document.getElementById("main-header").classList.add("hidden");
     document.getElementById("student-section").classList.add("hidden");
-    document.getElementById("teacher-lobby-section").classList.add("hidden");
-    document.getElementById("teacher-setup-section").classList.add("hidden");
+    hideAllTeacherSections();
     document.getElementById("teacher-live-section").classList.remove("hidden");
     document.getElementById("teacher-bottom-bar").classList.remove("hidden");
     showQuestionOnTeacher();
+  }
+
+  function openTeacherEndScreen(participantCount) {
+    stopSpeech();
+    clearTeacherTimer();
+    isTeacherLiveMode = false;
+    isTeacherLobbyMode = false;
+    isPushedToStudent = false;
+
+    document.body.classList.remove("allow-scroll");
+    document.getElementById("main-container").classList.add("projector-mode");
+    document.getElementById("main-header").classList.add("hidden");
+    document.getElementById("student-section").classList.add("hidden");
+    hideAllTeacherSections();
+
+    const summaryBadge = document.getElementById("tc-end-summary-badge");
+    if (summaryBadge) {
+      summaryBadge.innerText = `✅ 결과 전송 완료 · 총 ${participantCount}명 참여`;
+    }
+    document.getElementById("teacher-end-section").classList.remove("hidden");
   }
 
   function openSetupTab() {
@@ -1757,9 +1829,7 @@
     document.getElementById("main-container").classList.remove("projector-mode");
     document.getElementById("main-header").classList.remove("hidden");
     document.getElementById("student-header-bar").classList.add("hidden");
-    document.getElementById("teacher-lobby-section").classList.add("hidden");
-    document.getElementById("teacher-live-section").classList.add("hidden");
-    document.getElementById("teacher-bottom-bar").classList.add("hidden");
+    hideAllTeacherSections();
     document.getElementById("teacher-setup-section").classList.remove("hidden");
   }
 
@@ -1924,10 +1994,8 @@
       msg = `아직 마지막 문제를 안 푼 학생이 ${missingList.length}명(${missingList.join(", ")}) 있습니다.\n그래도 퀴즈를 종료하고 결과를 전송할까요?`;
     }
     if (!confirm(msg)) return;
-    stopSpeech();
-    clearTeacherTimer();
     broadcastState("FINISH_QUIZ");
-    alert("학생 화면에 결과 전송 신호를 보냈습니다!");
+    openTeacherEndScreen(total);
   }
 
   // ==================== 실시간 상태 동기화 ====================
@@ -2013,6 +2081,9 @@
 
     studentInfo = { grade, cls, num, name };
     studentKey = `${grade}_${cls}_${num}_${name}`;
+    studentAnswers = {};
+    hasSubmittedToForm = false;
+
     document.getElementById("st-nametag").innerText = `🎒 ${grade}학년 ${cls}반 ${num}번 ${name}`;
     document.getElementById("student-login").classList.add("hidden");
     document.getElementById("student-wait").classList.remove("hidden");
@@ -2136,6 +2207,13 @@
     const totalScore = questions.length > 0 ? Math.round((correctCount / questions.length) * 100) : 0;
     document.getElementById("st-final-score").innerText = `${questions.length}문제 중 ${correctCount}개 정답! (${totalScore}점)`;
 
+    // 중복 전송 방지: 이미 제출했으면 다시 보내지 않음
+    if (hasSubmittedToForm) {
+      document.getElementById("st-submit-status").innerText = "✅ 제출 완료";
+      return;
+    }
+    hasSubmittedToForm = true;
+
     if (!config.formUrl || !config.formUrl.includes("formResponse")) {
       document.getElementById("st-submit-status").innerText = "✅ 제출 완료";
       return;
@@ -2174,6 +2252,7 @@
       document.getElementById("st-submit-status").innerText = "✅ 제출 완료";
     })
     .catch(() => {
+      hasSubmittedToForm = false;
       document.getElementById("st-submit-status").innerText = "⚠️ 전송 중 오류가 발생했어요. 선생님께 말씀드려주세요.";
     });
   }
