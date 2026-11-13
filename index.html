@@ -1190,11 +1190,15 @@
   let bestKoreanVoice = null;
   let liveRoster = {};
 
-  // 제한시간 타이머 및 교사 PC 마림바 오디오 컨텍스트
+  // 제한시간 타이머(절대 종료 시각 기반 동기화) 및 교사 PC 마림바 오디오 컨텍스트
   let teacherTimerInterval = null;
   let studentTimerInterval = null;
   let isStudentInputLocked = false;
   let marimbaAudioCtx = null;
+
+  // 실시간 SSE 스트리밍 연결 객체
+  let liveQuizStream = null;
+  let rosterStream = null;
 
   const bc = new BroadcastChannel("grade1_quiz_channel");
 
@@ -1220,7 +1224,6 @@
 
     const now = ctx.currentTime + delaySec;
 
-    // 마림바 기본음(사인파) + 목재 공명 배음(4배음, 트라이앵글)
     const oscMain = ctx.createOscillator();
     const oscOvertone = ctx.createOscillator();
     const gainMain = ctx.createGain();
@@ -1232,7 +1235,6 @@
     oscOvertone.type = "triangle";
     oscOvertone.frequency.setValueAtTime(freq * 4, now);
 
-    // 짧은 어택과 부드러운 감쇠(나무 건반 울림)
     gainMain.gain.setValueAtTime(0.0001, now);
     gainMain.gain.linearRampToValueAtTime(volume, now + 0.008);
     gainMain.gain.exponentialRampToValueAtTime(0.0001, now + duration);
@@ -1259,11 +1261,11 @@
     if ((config.countdownSound || "on") !== "on") return;
 
     const tickNotes = {
-      5: 523.25, // C5 (도)
-      4: 587.33, // D5 (레)
-      3: 659.25, // E5 (미)
-      2: 783.99, // G5 (솔)
-      1: 880.00  // A5 (라)
+      5: 523.25,
+      4: 587.33,
+      3: 659.25,
+      2: 783.99,
+      1: 880.00
     };
 
     if (tickNotes[remainingSec]) {
@@ -1370,6 +1372,7 @@
           renderTeacherView();
         }
         document.getElementById("cloud-sync-indicator").innerText = "☁️ 클라우드 동기화 완료";
+        connectRealtimeStreams();
       }
     } catch (e) {
       console.error("클라우드 불러오기 실패:", e);
@@ -1410,7 +1413,7 @@
     return "";
   }
 
-  // ==================== 제한시간 카운트다운 제어 ====================
+  // ==================== 제한시간 카운트다운 제어 (절대 시각 동기화) ====================
   function clearTeacherTimer() {
     if (teacherTimerInterval) {
       clearInterval(teacherTimerInterval);
@@ -1423,17 +1426,21 @@
     }
   }
 
-  function startTeacherCountdown(seconds) {
+  function startTeacherCountdown(seconds, endTimeMs) {
     clearTeacherTimer();
     const limit = Number(seconds) || 0;
-    if (limit <= 0) return;
+    if (limit <= 0 || !endTimeMs) return;
 
     ensureMarimbaAudio();
 
     const badge = document.getElementById("tc-timer-badge");
-    let remaining = limit;
+    let lastShownSec = -1;
 
-    const updateBadge = () => {
+    const tick = () => {
+      const remaining = Math.max(0, Math.ceil((endTimeMs - Date.now()) / 1000));
+      if (remaining === lastShownSec) return;
+      lastShownSec = remaining;
+
       badge.classList.remove("hidden", "urgent", "expired");
       if (remaining > 0) {
         badge.innerText = `⏱️ 남은 시간: ${remaining}초`;
@@ -1445,20 +1452,14 @@
         badge.innerText = "⏰ 시간 종료!";
         badge.classList.add("expired");
         playMarimbaCountdown(0);
-      }
-    };
-
-    updateBadge();
-
-    teacherTimerInterval = setInterval(() => {
-      remaining--;
-      updateBadge();
-      if (remaining <= 0) {
         clearInterval(teacherTimerInterval);
         teacherTimerInterval = null;
         broadcastState("TIME_UP");
       }
-    }, 1000);
+    };
+
+    tick();
+    teacherTimerInterval = setInterval(tick, 150);
   }
 
   function clearStudentTimer() {
@@ -1500,17 +1501,22 @@
     }
   }
 
-  function startStudentCountdown(seconds) {
+  function startStudentCountdown(seconds, endTimeMs) {
     clearStudentTimer();
     isStudentInputLocked = false;
 
     const limit = Number(seconds) || 0;
     if (limit <= 0) return;
 
+    const targetEnd = endTimeMs ? Number(endTimeMs) : (Date.now() + limit * 1000);
     const badge = document.getElementById("st-timer-badge");
-    let remaining = limit;
+    let lastShownSec = -1;
 
-    const updateBadge = () => {
+    const tick = () => {
+      const remaining = Math.max(0, Math.ceil((targetEnd - Date.now()) / 1000));
+      if (remaining === lastShownSec) return;
+      lastShownSec = remaining;
+
       badge.classList.remove("hidden", "urgent", "expired");
       if (remaining > 0) {
         badge.innerText = `⏱️ ${remaining}초`;
@@ -1520,15 +1526,86 @@
       }
     };
 
-    updateBadge();
-
-    studentTimerInterval = setInterval(() => {
-      remaining--;
-      updateBadge();
-    }, 1000);
+    tick();
+    studentTimerInterval = setInterval(tick, 150);
   }
 
-  // ==================== 실시간 학생 응답 현황 & 대기실 집계 ====================
+  // ==================== 실시간 SSE 스트리밍 & 학생 응답 현황 집계 ====================
+  function applyRealtimeRosterData(data) {
+    liveRoster = data || {};
+    updateResponseCounterUI();
+    renderTeacherLobby();
+  }
+
+  function connectRealtimeStreams() {
+    if (!config.firebaseUrl || typeof EventSource === "undefined") return;
+    const baseUrl = config.firebaseUrl.replace(/\/$/, "");
+
+    if (liveQuizStream) {
+      liveQuizStream.close();
+      liveQuizStream = null;
+    }
+    if (rosterStream) {
+      rosterStream.close();
+      rosterStream = null;
+    }
+
+    // 1) 실시간 문제 전송 스트림 (교사 -> 학생 기기 0.1초 즉시 push)
+    try {
+      liveQuizStream = new EventSource(baseUrl + "/live_quiz.json");
+      const onQuizEvent = (e) => {
+        if (!e.data) return;
+        try {
+          const parsed = JSON.parse(e.data);
+          const payload = (parsed && parsed.data !== undefined) ? parsed.data : parsed;
+          if (payload && payload.timestamp && payload.timestamp !== lastTimestamp) {
+            lastTimestamp = payload.timestamp;
+            handleIncomingState(payload);
+          }
+        } catch (_) {}
+      };
+      liveQuizStream.addEventListener("put", onQuizEvent);
+      liveQuizStream.addEventListener("patch", onQuizEvent);
+    } catch (_) {}
+
+    // 2) 실시간 학생 입장/응답 스트림 (학생 기기 -> 교사 대기실/리모컨 즉시 반영)
+    try {
+      rosterStream = new EventSource(baseUrl + "/live_responses.json");
+      rosterStream.addEventListener("put", (e) => {
+        if (!e.data) return;
+        try {
+          const parsed = JSON.parse(e.data);
+          if (!parsed) return;
+          if (parsed.path === "/" || parsed.path === undefined) {
+            applyRealtimeRosterData(parsed.data !== undefined ? parsed.data : parsed);
+          } else {
+            const key = decodeURIComponent(parsed.path.replace(/^\//, "").split("/")[0]);
+            if (parsed.data === null) {
+              delete liveRoster[key];
+            } else {
+              liveRoster[key] = parsed.data;
+            }
+            applyRealtimeRosterData(liveRoster);
+          }
+        } catch (_) {}
+      });
+      rosterStream.addEventListener("patch", (e) => {
+        if (!e.data) return;
+        try {
+          const parsed = JSON.parse(e.data);
+          if (parsed && parsed.data && typeof parsed.data === "object") {
+            Object.entries(parsed.data).forEach(([k, v]) => {
+              const decodedKey = decodeURIComponent(k);
+              if (v === null) delete liveRoster[decodedKey];
+              else liveRoster[decodedKey] = v;
+            });
+            applyRealtimeRosterData(liveRoster);
+          }
+        } catch (_) {}
+      });
+    } catch (_) {}
+  }
+
   function reportStudentProgress() {
     if (!studentInfo || !studentKey) return;
     const payload = {
@@ -1570,9 +1647,7 @@
     fetch(url)
       .then(res => res.json())
       .then(data => {
-        liveRoster = data || {};
-        updateResponseCounterUI();
-        renderTeacherLobby();
+        applyRealtimeRosterData(data);
       })
       .catch(() => {});
   }
@@ -1677,7 +1752,7 @@
     await clearRosterData();
     currentIdx = 0;
     renderTeacherLobby();
-    broadcastState("RESET_TO_LOGIN");
+    await broadcastState("RESET_TO_LOGIN");
     alert("학생 명단과 학생 기기 화면이 초기화되었습니다.");
   }
 
@@ -1799,7 +1874,6 @@
       isQuizEndedState = false;
       currentIdx = 0;
       clearRosterData();
-      // 이전 반 종료 화면에 머물러 있는 모든 학생 기기를 첫 로그인 화면으로 초기화
       broadcastState("RESET_TO_LOGIN");
     } else {
       broadcastState("SHOW_TEACHER_ONLY");
@@ -1964,8 +2038,9 @@
     isPushedToStudent = true;
     renderTeacherView();
     const limit = Number(config.timeLimit) || 0;
-    broadcastState("PUSH_TO_STUDENT");
-    startTeacherCountdown(limit);
+    const endTime = limit > 0 ? (Date.now() + limit * 1000) : 0;
+    broadcastState("PUSH_TO_STUDENT", { endTime });
+    startTeacherCountdown(limit, endTime);
   }
 
   function revealAnswerOnBoard() {
@@ -2039,28 +2114,24 @@
 
     if (!confirm(msg)) return;
 
-    // 1. 학생 기기에 결과 제출 신호 전송 (await로 전송 완료 보장)
     await broadcastState("FINISH_QUIZ");
-
-    // 2. 다음 반 수업을 위해 기존 입장 명단 자동 초기화
     await clearRosterData();
     currentIdx = 0;
-
-    // 3. 교사 화면을 완료 화면으로 전환하여 중복 종료 방지
     openTeacherEndScreen(total);
   }
 
   // ==================== 실시간 상태 동기화 ====================
-  async function broadcastState(action) {
-    const payload = {
+  async function broadcastState(action, extra = {}) {
+    const payload = Object.assign({
       action,
       currentIdx,
       isPushedToStudent,
       timeLimit: Number(config.timeLimit) || 0,
+      endTime: 0,
       question: questions[currentIdx],
       allQuestions: questions,
       timestamp: Date.now()
-    };
+    }, extra);
     bc.postMessage(payload);
 
     if (config.firebaseUrl) {
@@ -2078,6 +2149,8 @@
 
   let lastTimestamp = 0;
   function startSyncListener() {
+    connectRealtimeStreams();
+
     bc.onmessage = (e) => {
       if (!e.data) return;
       if (e.data.type === "STUDENT_PROGRESS") {
@@ -2101,8 +2174,9 @@
       handleIncomingState(e.data);
     };
 
+    // 백업 폴링 (SSE 스트림이 일시 끊겼을 경우 대비)
     setInterval(() => {
-      if (!config.firebaseUrl || !studentInfo) return;
+      if (!config.firebaseUrl) return;
       const url = config.firebaseUrl.replace(/\/$/, "") + "/live_quiz.json";
       fetch(url)
         .then(res => res.json())
@@ -2216,7 +2290,6 @@
   function handleIncomingState(data) {
     if (!data) return;
 
-    // 새 반 수업을 위해 교사가 대기실을 새로 열었을 때 모든 학생 화면을 초기 입력창으로 전환
     if (data.action === "RESET_TO_LOGIN") {
       resetStudentToLogin();
       return;
@@ -2237,6 +2310,7 @@
       currentIdx = data.currentIdx;
       const q = data.question;
       const limit = Number(data.timeLimit) || 0;
+      const endTime = Number(data.endTime) || 0;
 
       document.getElementById("student-wait").classList.add("hidden");
       document.getElementById("student-end").classList.add("hidden");
@@ -2291,7 +2365,7 @@
         });
       }
 
-      startStudentCountdown(limit);
+      startStudentCountdown(limit, endTime);
     }
     else if (data.action === "TIME_UP") {
       if (data.currentIdx === currentIdx) {
@@ -2326,7 +2400,6 @@
     document.getElementById("student-quiz").classList.add("hidden");
     document.getElementById("student-end").classList.remove("hidden");
 
-    // 한 문제도 안 풀었더라도 출석한 학생은 0점(totalScore = 0)으로 계산 및 전송됨
     let correctCount = 0;
     questions.forEach((q, idx) => {
       const ans = studentAnswers[idx];
@@ -2337,7 +2410,6 @@
     const totalScore = questions.length > 0 ? Math.round((correctCount / questions.length) * 100) : 0;
     document.getElementById("st-final-score").innerText = `${questions.length}문제 중 ${correctCount}개 정답! (${totalScore}점)`;
 
-    // 중복 전송 방지: 이미 제출했으면 다시 보내지 않음
     if (hasSubmittedToForm) {
       document.getElementById("st-submit-status").innerText = "✅ 제출 완료";
       return;
@@ -2625,6 +2697,7 @@
     }
 
     await syncBankToCloud();
+    connectRealtimeStreams();
     alert("설정과 비밀번호가 클라우드에 영구 저장되었습니다!");
   }
 </script>
