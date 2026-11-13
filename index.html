@@ -278,9 +278,20 @@
     }
     .step-card {
       background: #f8faff; border: 2px solid #e1e8ff; border-radius: 18px;
-      padding: clamp(12px, 2vh, 20px) 10px; display: flex; flex-direction: column; align-items: center; gap: 6px;
+      padding: clamp(14px, 2.2vh, 22px) 10px; display: flex; flex-direction: column; align-items: center; gap: 10px;
     }
-    .step-emoji { font-size: clamp(1.8rem, 3.5vh, 2.4rem); }
+    .step-illust {
+      width: clamp(64px, 11vh, 88px);
+      height: clamp(64px, 11vh, 88px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .step-illust svg {
+      width: 100%;
+      height: 100%;
+      overflow: visible;
+    }
     .step-text { font-size: clamp(0.95rem, 1.7vw, 1.15rem); font-weight: bold; color: #333; }
 
     /* ==================== 좌·우 분할 퀴즈 레이아웃 ==================== */
@@ -562,19 +573,62 @@
       <div class="bounce-icon">👀</div>
       <div>
         <h2 class="wait-title">선생님 화면을 봐주세요!</h2>
-        <p class="wait-sub">선생님이 문제를 보여주신 뒤 신호를 보내면 여기에 버튼이 나타납니다.</p>
+        <p class="wait-sub">선생님이 화면에 문제를 보여준 다음, 신호를 보내면 학생 화면에 버튼이 나타납니다.</p>
       </div>
       <div class="guide-steps">
+        <!-- 1. 앞 화면 보기 (커스텀 벡터 일러스트) -->
         <div class="step-card">
-          <span class="step-emoji">🖥️</span>
+          <div class="step-illust">
+            <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <circle cx="50" cy="50" r="44" fill="#E8F0FE"/>
+              <rect x="18" y="24" width="64" height="42" rx="8" fill="#4A6CF7" stroke="#2B44A8" stroke-width="3"/>
+              <rect x="24" y="30" width="52" height="30" rx="4" fill="#FFFFFF"/>
+              <path d="M42 66L38 76H62L58 66H42Z" fill="#7B96FF"/>
+              <rect x="33" y="75" width="34" height="5" rx="2.5" fill="#4A6CF7"/>
+              <circle cx="41" cy="45" r="6.5" fill="#1A2340"/>
+              <circle cx="59" cy="45" r="6.5" fill="#1A2340"/>
+              <circle cx="43" cy="43" r="2.2" fill="#FFFFFF"/>
+              <circle cx="61" cy="43" r="2.2" fill="#FFFFFF"/>
+              <path d="M46 53Q50 56 54 53" stroke="#FF9F1C" stroke-width="2.5" stroke-linecap="round"/>
+            </svg>
+          </div>
           <span class="step-text">1. 앞 화면 보기</span>
         </div>
+
+        <!-- 2. 문제 생각하기 (반짝이는 전구 벡터 일러스트) -->
         <div class="step-card">
-          <span class="step-emoji">🧠</span>
+          <div class="step-illust">
+            <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <circle cx="50" cy="50" r="44" fill="#FFF8E1"/>
+              <line x1="50" y1="8" x2="50" y2="15" stroke="#FF9F1C" stroke-width="3.5" stroke-linecap="round"/>
+              <line x1="23" y1="19" x2="28" y2="24" stroke="#FF9F1C" stroke-width="3.5" stroke-linecap="round"/>
+              <line x1="77" y1="19" x2="72" y2="24" stroke="#FF9F1C" stroke-width="3.5" stroke-linecap="round"/>
+              <line x1="15" y1="43" x2="22" y2="43" stroke="#FF9F1C" stroke-width="3.5" stroke-linecap="round"/>
+              <line x1="85" y1="43" x2="78" y2="43" stroke="#FF9F1C" stroke-width="3.5" stroke-linecap="round"/>
+              <path d="M32 43C32 31.9543 40.0589 23 50 23C59.9411 23 68 31.9543 68 43C68 50.2 64.2 55.6 60 60.2C58.6 61.7 58 63.5 58 65.5H42C42 63.5 41.4 61.7 40 60.2C35.8 55.6 32 50.2 32 43Z" fill="#FFCA3A" stroke="#E08E00" stroke-width="3"/>
+              <path d="M39 36C40.5 31.5 44 29 48 28.5" stroke="#FFFDF5" stroke-width="3" stroke-linecap="round"/>
+              <path d="M45 53V45L50 49L55 45V53" stroke="#B26A00" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+              <rect x="41" y="66" width="18" height="6" rx="3" fill="#64748B"/>
+              <rect x="43" y="73" width="14" height="5" rx="2.5" fill="#475569"/>
+              <path d="M46 78H54L52 82H48L46 78Z" fill="#334155"/>
+            </svg>
+          </div>
           <span class="step-text">2. 문제 생각하기</span>
         </div>
+
+        <!-- 3. 정답 누르기 (알록달록 버튼 터치 벡터 일러스트) -->
         <div class="step-card">
-          <span class="step-emoji">👆</span>
+          <div class="step-illust">
+            <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <circle cx="50" cy="50" r="44" fill="#E6F4EA"/>
+              <rect x="22" y="22" width="25" height="20" rx="5" fill="#FF595E"/>
+              <rect x="53" y="22" width="25" height="20" rx="5" fill="#1982C4"/>
+              <rect x="22" y="47" width="25" height="20" rx="5" fill="#FFCA3A"/>
+              <rect x="53" y="47" width="25" height="20" rx="5" fill="#8AC926"/>
+              <circle cx="65" cy="54" r="11" stroke="#FFFFFF" stroke-width="2.5" stroke-dasharray="3 3"/>
+              <path d="M62 54V74C62 79 66 83 71 83H76C81 83 84 79 84 74V65C84 62.5 82 61 80 61C78.5 61 77.5 61.8 77 62.5C76.5 60.5 74.8 59.5 73 59.5C71.5 59.5 70.3 60.3 69.8 61.2C69.3 59.5 67.8 58.5 66.2 58.5V54C66.2 51.8 64.5 50 62.3 50C60.1 50 58.5 51.8 58.5 54V68L54.5 65.5C52.8 64.5 50.6 65 49.6 66.6C48.6 68.2 49.1 70.3 50.7 71.4L62 79" fill="#FFD6A5" stroke="#B5651D" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </div>
           <span class="step-text">3. 정답 누르기</span>
         </div>
       </div>
