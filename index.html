@@ -2405,6 +2405,16 @@
     document.getElementById("student-quiz").classList.add("hidden");
     document.getElementById("student-end").classList.remove("hidden");
 
+//    let correctCount = 0;
+//    questions.forEach((q, idx) => {
+//      const ans = studentAnswers[idx];
+//      if (ans !== undefined && String(ans) === String(q.answer)) {
+//        correctCount++;
+//      }
+//    });
+//    const totalScore = questions.length > 0 ? Math.round((correctCount / questions.length) * 100) : 0;
+//    document.getElementById("st-final-score").innerText = `${questions.length}문제 중 ${correctCount}개 정답! (${totalScore}점)`;
+
     let correctCount = 0;
     questions.forEach((q, idx) => {
       const ans = studentAnswers[idx];
@@ -2412,9 +2422,10 @@
         correctCount++;
       }
     });
-    const totalScore = questions.length > 0 ? Math.round((correctCount / questions.length) * 100) : 0;
-    document.getElementById("st-final-score").innerText = `${questions.length}문제 중 ${correctCount}개 정답! (${totalScore}점)`;
-
+    const totalScore = correctCount * 10; // 문항당 10점 계산
+    const maxScore = questions.length * 10; // 총 만점 (예: 12문제면 120점)
+    document.getElementById("st-final-score").innerText = `${questions.length}문항 중 ${correctCount}개 정답! (${totalScore}점 / 총 ${maxScore}점)`;
+    
     if (hasSubmittedToForm) {
       document.getElementById("st-submit-status").innerText = "✅ 제출 완료";
       return;
