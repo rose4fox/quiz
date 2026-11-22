@@ -663,6 +663,10 @@
     }
     .entry-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin: 12px 0; }
     .entry-grid input { padding: 10px; border: 1px solid #ccc; border-radius: 8px; font-size: 0.95rem; text-align: center; width: 100%; }
+    .entry-grid input.entry-invalid {
+      border: 2px solid #d90429;
+      background: #fff5f5;
+    }
     
     .q-list-item {
       display: flex; justify-content: space-between; align-items: center; gap: 12px;
@@ -995,8 +999,8 @@
     <div class="card">
       <h3>⚙️ 교사 비밀번호 · 제한시간 · 음성 · 구글 폼 · Firebase 설정</h3>
       <p style="font-size:0.9rem; color:#555; line-height:1.5;">
-        * 게스트 모드 컴퓨터실에서는 아래 설정을 입력하고 <b>[💾 클라우드에 영구 저장하기]</b>를 누르시면 다음 수업에서도 그대로 불러옵니다.<br>
-        * <code>DEFAULT_CONFIG</code> 코드 안에 주소를 미리 넣어두시면 매번 입력할 필요조차 없습니다.
+        - 게스트 모드 컴퓨터실에서는 아래 설정을 입력하고 <b>[💾 클라우드에 영구 저장하기]</b>를 누르시면 다음 수업에서도 그대로 불러옵니다.<br>
+        - <code>DEFAULT_CONFIG</code> 코드 안에 주소를 미리 넣어두시면 매번 입력할 필요조차 없습니다.
       </p>
       <div class="form-group">
         <label>🔑 교사 화면 비밀번호 설정 (클라우드에 저장되어 모든 PC에 적용됩니다)</label>
@@ -1732,7 +1736,10 @@
     if (missingList.length === 0) {
       alert(`🎉 접속한 ${total}명 모두 ${currentIdx + 1}번 문제에 응답했습니다!`);
     } else {
-      alert(`📋 ${currentIdx + 1}번 문제 응답 현황 (${answeredCount}/${total}명 완료)\n\n⏳ 아직 안 누른 학생 (${missingList.length}명):\n${missingList.join(", ")}`);
+      alert(`📋 ${currentIdx + 1}번 문제 응답 현황 (${answeredCount}/${total}명 완료)
+
+⏳ 아직 안 누른 학생 (${missingList.length}명):
+${missingList.join(", ")}`);
     }
   }
 
@@ -1787,8 +1794,8 @@
     if (!bestKoreanVoice) loadBestKoreanVoice();
 
     const cleanText = text
-      .replace(/\bO\b/g, "오")
-      .replace(/\bX\b/g, "엑스");
+      .replace(/O/g, "오")
+      .replace(/X/g, "엑스");
 
     const utter = new SpeechSynthesisUtterance(cleanText);
     utter.lang = "ko-KR";
@@ -2074,7 +2081,8 @@
     if (isPushedToStudent && teacherTimerInterval) {
       const { total, missingList } = getResponseSummary();
       if (total > 0 && missingList.length > 0) {
-        const ok = confirm(`아직 제한시간이 남았고 ${missingList.length}명(${missingList.join(", ")})이 답을 고르지 않았습니다.\n그래도 다음 문제로 넘어갈까요?`);
+        const ok = confirm(`아직 제한시간이 남았고 ${missingList.length}명(${missingList.join(", ")})이 답을 고르지 않았습니다.
+그래도 다음 문제로 넘어갈까요?`);
         if (!ok) return;
       }
     }
@@ -2100,16 +2108,25 @@
     let msg = "";
 
     if (!isLastQuestion) {
-      msg = `⚠️ [주의! 아직 퀴즈가 끝나지 않았습니다]\n\n` +
-            `전체 ${questions.length}문제 중 현재 ${currentIdx + 1}번 문제까지만 진행되었습니다.\n` +
-            `지금 종료하면 ${currentIdx + 2}번~${questions.length}번 문제는 모두 미응답(0점) 처리되며, 다시 이어서 풀 수 없습니다.\n\n` +
+      msg = `⚠️ [주의! 아직 퀴즈가 끝나지 않았습니다]
+
+` +
+            `전체 ${questions.length}문제 중 현재 ${currentIdx + 1}번 문제까지만 진행되었습니다.
+` +
+            `지금 종료하면 ${currentIdx + 2}번~${questions.length}번 문제는 모두 미응답(0점) 처리되며, 다시 이어서 풀 수 없습니다.
+
+` +
             `그래도 지금 퀴즈를 중단하고 종료할까요?`;
     } else if (isPushedToStudent && total > 0 && missingList.length > 0) {
-      msg = `⚠️ 아직 마지막 문제를 풀지 않은 학생이 ${missingList.length}명(${missingList.join(", ")}) 있습니다.\n\n` +
-            `지금 종료하면 해당 학생들의 마지막 문제는 미응답 처리됩니다.\n` +
+      msg = `⚠️ 아직 마지막 문제를 풀지 않은 학생이 ${missingList.length}명(${missingList.join(", ")}) 있습니다.
+
+` +
+            `지금 종료하면 해당 학생들의 마지막 문제는 미응답 처리됩니다.
+` +
             `그래도 퀴즈를 종료하고 결과를 처리할까요?`;
     } else {
-      msg = `전체 ${questions.length}문제를 모두 마쳤습니다.\n퀴즈를 종료하고 학생들의 결과를 처리할까요?`;
+      msg = `전체 ${questions.length}문제를 모두 마쳤습니다.
+퀴즈를 종료하고 학생들의 결과를 처리할까요?`;
     }
 
     if (!confirm(msg)) return;
@@ -2218,7 +2235,8 @@
 
     const validNamePattern = /^[가-힣a-zA-Z][가-힣a-zA-Z\s\-']*$/;
     if (!validNamePattern.test(name)) {
-      alert("이름은 한글이나 영어로만 바르게 적어주세요!\n(숫자, 특수문자, 자음·모음만 입력할 수 없어요)");
+      alert("이름은 한글이나 영어로만 바르게 적어주세요!
+(숫자, 특수문자, 자음·모음만 입력할 수 없어요)");
       nameInput.value = "";
       nameInput.focus();
       return;
@@ -2405,16 +2423,6 @@
     document.getElementById("student-quiz").classList.add("hidden");
     document.getElementById("student-end").classList.remove("hidden");
 
-//    let correctCount = 0;
-//    questions.forEach((q, idx) => {
-//      const ans = studentAnswers[idx];
-//      if (ans !== undefined && String(ans) === String(q.answer)) {
-//        correctCount++;
-//      }
-//    });
-//    const totalScore = questions.length > 0 ? Math.round((correctCount / questions.length) * 100) : 0;
-//    document.getElementById("st-final-score").innerText = `${questions.length}문제 중 ${correctCount}개 정답! (${totalScore}점)`;
-
     let correctCount = 0;
     questions.forEach((q, idx) => {
       const ans = studentAnswers[idx];
@@ -2568,7 +2576,8 @@
     }
 
     if (editingIdx < 0 && questions.length >= MAX_QUESTIONS) {
-      alert(`최대 ${MAX_QUESTIONS}문항까지만 출제할 수 있습니다.\n기존 문제를 삭제하거나 수정해 주세요.`);
+      alert(`최대 ${MAX_QUESTIONS}문항까지만 출제할 수 있습니다.
+기존 문제를 삭제하거나 수정해 주세요.`);
       return;
     }
 
@@ -2694,12 +2703,112 @@
       return;
     }
 
+    const formUrlVal = document.getElementById("cfg-form-url").value.trim();
+    const entryPattern = /^entry\.\d+$/;
+    const invalidBasicEntries = [];
+    const invalidQuestionEntries = [];
+    const seenEntries = new Map();
+    const duplicateEntries = [];
+
+    document.querySelectorAll(".entry-grid input").forEach(inp => inp.classList.remove("entry-invalid"));
+
+    const basicFields = [
+      { id: "cfg-entry-grade", label: "학년" },
+      { id: "cfg-entry-class", label: "반" },
+      { id: "cfg-entry-num", label: "번호" },
+      { id: "cfg-entry-name", label: "이름" },
+      { id: "cfg-entry-score", label: "점수" }
+    ];
+
+    basicFields.forEach(f => {
+      const el = document.getElementById(f.id);
+      const val = (el ? el.value : "").trim();
+      if (formUrlVal && !entryPattern.test(val)) {
+        invalidBasicEntries.push(`${f.label} (${val || "비어있음"})`);
+        if (el) el.classList.add("entry-invalid");
+      } else if (val && !entryPattern.test(val)) {
+        invalidBasicEntries.push(`${f.label} (${val})`);
+        if (el) el.classList.add("entry-invalid");
+      }
+      if (entryPattern.test(val)) {
+        if (seenEntries.has(val)) {
+          duplicateEntries.push(`${val} (${seenEntries.get(val)} ↔ ${f.label})`);
+          if (el) el.classList.add("entry-invalid");
+        } else {
+          seenEntries.set(val, f.label);
+        }
+      }
+    });
+
+    for (let i = 1; i <= MAX_QUESTIONS; i++) {
+      const numStr = String(i).padStart(2, "0");
+      const el = document.getElementById(`cfg-entry-q${numStr}`);
+      const val = (el ? el.value : "").trim();
+
+      if (i <= questions.length) {
+        if ((formUrlVal && !entryPattern.test(val)) || (val && !entryPattern.test(val))) {
+          invalidQuestionEntries.push(`${i}번 문항 (${val || "비어있음"})`);
+          if (el) el.classList.add("entry-invalid");
+        }
+      } else if (val && !entryPattern.test(val)) {
+        invalidQuestionEntries.push(`${i}번 문항 (${val})`);
+        if (el) el.classList.add("entry-invalid");
+      }
+
+      if (entryPattern.test(val)) {
+        if (seenEntries.has(val)) {
+          duplicateEntries.push(`${val} (${seenEntries.get(val)} ↔ ${i}번 문항)`);
+          if (el) el.classList.add("entry-invalid");
+        } else {
+          seenEntries.set(val, `${i}번 문항`);
+        }
+      }
+    }
+
+    const warnings = [];
+    if (invalidBasicEntries.length > 0) {
+      warnings.push(`• 기본 항목 형식/누락 오류:
+  - ${invalidBasicEntries.join("
+  - ")}`);
+    }
+    if (invalidQuestionEntries.length > 0) {
+      warnings.push(`• 문항별 entry 형식/누락 오류 (현재 등록된 ${questions.length}문항 기준):
+  - ${invalidQuestionEntries.join("
+  - ")}`);
+    }
+    if (duplicateEntries.length > 0) {
+      warnings.push(`• 중복 입력된 entry 번호:
+  - ${duplicateEntries.join("
+  - ")}`);
+    }
+
+    if (warnings.length > 0) {
+      const proceed = confirm(
+        `⚠️ 구글 폼 entry 번호에 오류가 감지되었습니다!
+` +
+        `(올바른 형식 예: entry.123456789)
+
+` +
+        `${warnings.join("
+
+")}
+
+` +
+        `수정하려면 [취소]를 누르고, 무시하고 저장하려면 [확인]을 눌러주세요.`
+      );
+      if (!proceed) {
+        const firstInvalid = document.querySelector(".entry-grid input.entry-invalid");
+        if (firstInvalid) firstInvalid.focus();
+        return;
+      }
+    }
+
     config.teacherPw = newPw;
     config.timeLimit = Number(document.getElementById("cfg-time-limit").value) || 0;
     config.countdownSound = document.getElementById("cfg-countdown-sound").value;
     config.readOptions = document.getElementById("cfg-read-options").value;
     config.firebaseUrl = document.getElementById("cfg-firebase").value.trim() || DEFAULT_CONFIG.firebaseUrl;
-    config.formUrl = document.getElementById("cfg-form-url").value.trim();
+    config.formUrl = formUrlVal;
     config.entryGrade = document.getElementById("cfg-entry-grade").value.trim();
     config.entryClass = document.getElementById("cfg-entry-class").value.trim();
     config.entryNum = document.getElementById("cfg-entry-num").value.trim();
