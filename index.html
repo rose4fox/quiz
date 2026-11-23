@@ -367,7 +367,7 @@
     /* 학년 세트 & 수업 방 관리 UI */
     .session-box {
       background: #f5f8ff; border: 2px solid #dce6ff; border-radius: 16px;
-      padding: 18px; margin-bottom: 18px;
+      padding: 18px;
     }
     .session-grid {
       display: grid; grid-template-columns: 1fr 1.4fr; gap: 14px;
@@ -375,21 +375,20 @@
     @media (max-width: 720px) {
       .session-grid { grid-template-columns: 1fr; }
     }
-    .grade-set-bar {
-      display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px;
+    .room-input-row {
+      display: flex; gap: 8px;
+    }
+    .room-input-row input {
+      flex: 1;
     }
     .btn-mini-action {
       background: #ffffff; border: 1.5px solid #b9ccf8; color: #264099;
-      padding: 9px 14px; border-radius: 11px; font-size: 0.92rem; font-weight: bold;
-      cursor: pointer; transition: background 0.15s;
+      padding: 9px 14px; border-radius: 10px; font-size: 0.9rem; font-weight: bold;
+      cursor: pointer; white-space: nowrap; transition: background 0.15s;
     }
     .btn-mini-action:hover { background: #e8efff; }
-    .btn-mini-action.primary-soft {
-      background: #4a6cf7; border-color: #4a6cf7; color: #ffffff;
-    }
-    .btn-mini-action.primary-soft:hover { background: #3652c9; }
     .session-hint {
-      margin: 10px 0 0 0; font-size: 0.88rem; color: #475569; line-height: 1.45;
+      margin: 12px 0 0 0; font-size: 0.88rem; color: #475569; line-height: 1.5;
     }
 
     /* ==================== 학생 대기 화면 ==================== */
@@ -981,8 +980,8 @@
       <div class="session-box">
         <div class="session-grid">
           <div class="form-group" style="margin-bottom:0;">
-            <label for="cfg-grade-set">학년 문제 세트</label>
-            <select id="cfg-grade-set" onchange="onGradeSetSelectChange(this.value)">
+            <label for="cfg-grade-set">학년 선택 (선택 즉시 자동 저장·전환)</label>
+            <select id="cfg-grade-set" onchange="switchGradeSet(this.value)">
               <option value="1">1학년 문제 세트</option>
               <option value="2">2학년 문제 세트</option>
               <option value="3">3학년 문제 세트</option>
@@ -993,21 +992,18 @@
           </div>
           <div class="form-group" style="margin-bottom:0;">
             <label for="cfg-room-code">수업 방 코드 (학교·반·학년별 구분)</label>
-            <input type="text" id="cfg-room-code" placeholder="예: default, 학교A_3학년, 학교B_5반" onchange="applyRoomCodeChange()" />
+            <div class="room-input-row">
+              <input type="text" id="cfg-room-code" placeholder="예: default, 학교A_3학년" onchange="applyRoomCodeChange()" />
+              <button type="button" class="btn-mini-action" onclick="syncRoomFromGradeSet()" title="선택한 학년에 맞춰 방 코드를 자동으로 지정합니다">🏷️ 학년 맞춤</button>
+            </div>
           </div>
-        </div>
-
-        <div class="grade-set-bar">
-          <button type="button" class="btn-mini-action primary-soft" onclick="loadSelectedGradeSet()">📂 세트 불러오기</button>
-          <button type="button" class="btn-mini-action" onclick="saveCurrentToGradeSet()">💾 현재 문제 세트 저장</button>
-          <button type="button" class="btn-mini-action" onclick="syncRoomFromGradeSet()">🏷️ 학년에 맞춰 방 코드 설정</button>
         </div>
 
         <p id="grade-set-summary" class="session-hint">
           선택 세트: <b>1학년</b> · 수업 방: <b>default</b>
         </p>
         <p class="session-hint">
-          • 학년(1~6학년)별로 문제 세트를 보관하고, 수업에 맞춰 기존 문제를 지우지 않고 불러올 수 있습니다.<br>
+          • 위에서 학년을 바꾸면 기존 학년 문제는 자동 보관되고 선택한 학년 문제 목록으로 바로 바뀝니다.<br>
           • 여러 학교나 반·학년을 함께 운영할 때는 수업 방 코드를 다르게 입력해 진행 화면과 출석 명단이 섞이지 않도록 구분할 수 있습니다.
         </p>
       </div>
@@ -1336,6 +1332,24 @@
     bindBroadcastChannel();
   }
 
+  function buildConfigSnapshot() {
+    return {
+      timeLimit: Number(config.timeLimit) || 0,
+      countdownSound: config.countdownSound || "on",
+      readOptions: config.readOptions || "auto",
+      formUrl: config.formUrl || "",
+      entryGrade: config.entryGrade || "",
+      entryClass: config.entryClass || "",
+      entryNum: config.entryNum || "",
+      entryName: config.entryName || "",
+      entryScore: config.entryScore || "",
+      entryQ01: config.entryQ01 || "", entryQ02: config.entryQ02 || "", entryQ03: config.entryQ03 || "", entryQ04: config.entryQ04 || "", entryQ05: config.entryQ05 || "",
+      entryQ06: config.entryQ06 || "", entryQ07: config.entryQ07 || "", entryQ08: config.entryQ08 || "", entryQ09: config.entryQ09 || "", entryQ10: config.entryQ10 || "",
+      entryQ11: config.entryQ11 || "", entryQ12: config.entryQ12 || "", entryQ13: config.entryQ13 || "", entryQ14: config.entryQ14 || "", entryQ15: config.entryQ15 || "",
+      entryQ16: config.entryQ16 || "", entryQ17: config.entryQ17 || "", entryQ18: config.entryQ18 || "", entryQ19: config.entryQ19 || "", entryQ20: config.entryQ20 || ""
+    };
+  }
+
   function updateSessionSummaryUI() {
     const gradeVal = String(config.activeGradeSet || "1");
     const roomVal = getRoomKey();
@@ -1366,74 +1380,48 @@
     if (lobbyGradePill) lobbyGradePill.innerText = `📚 문제 세트: ${gradeVal}학년`;
   }
 
-  function onGradeSetSelectChange(gradeKey) {
-    const targetGrade = GRADE_LIST.includes(String(gradeKey)) ? String(gradeKey) : "1";
-    config.activeGradeSet = targetGrade;
-    localStorage.setItem("quiz_1st_config", JSON.stringify(config));
-    updateSessionSummaryUI();
-  }
+  // 드롭다운에서 학년을 선택하는 즉시 기존 학년 세트 자동 백업 후 새 학년 문제로 전환
+  async function switchGradeSet(newGradeKey) {
+    const prevGrade = String(config.activeGradeSet || "1");
+    const nextGrade = GRADE_LIST.includes(String(newGradeKey)) ? String(newGradeKey) : "1";
+    if (prevGrade === nextGrade) return;
 
-  function saveCurrentToGradeSet() {
-    const gradeKey = String(config.activeGradeSet || "1");
-    const snapshot = {
+    cancelEditQuestion();
+
+    // 1) 현재 화면에 있던 문제를 기존 학년 칸에 자동 저장
+    gradeSets[prevGrade] = {
       questions: cloneData(questions),
-      configSnapshot: {
-        timeLimit: Number(config.timeLimit) || 0,
-        countdownSound: config.countdownSound || "on",
-        readOptions: config.readOptions || "auto",
-        formUrl: config.formUrl || "",
-        entryGrade: config.entryGrade || "",
-        entryClass: config.entryClass || "",
-        entryNum: config.entryNum || "",
-        entryName: config.entryName || "",
-        entryScore: config.entryScore || "",
-        entryQ01: config.entryQ01 || "", entryQ02: config.entryQ02 || "", entryQ03: config.entryQ03 || "", entryQ04: config.entryQ04 || "", entryQ05: config.entryQ05 || "",
-        entryQ06: config.entryQ06 || "", entryQ07: config.entryQ07 || "", entryQ08: config.entryQ08 || "", entryQ09: config.entryQ09 || "", entryQ10: config.entryQ10 || "",
-        entryQ11: config.entryQ11 || "", entryQ12: config.entryQ12 || "", entryQ13: config.entryQ13 || "", entryQ14: config.entryQ14 || "", entryQ15: config.entryQ15 || "",
-        entryQ16: config.entryQ16 || "", entryQ17: config.entryQ17 || "", entryQ18: config.entryQ18 || "", entryQ19: config.entryQ19 || "", entryQ20: config.entryQ20 || ""
-      },
+      configSnapshot: buildConfigSnapshot(),
       updatedAt: Date.now()
     };
-    gradeSets[gradeKey] = snapshot;
-    localStorage.setItem("quiz_grade_sets", JSON.stringify(gradeSets));
-    updateSessionSummaryUI();
-    syncBankToCloud();
-    alert(`${gradeKey}학년 문제 세트(${questions.length}문항)로 저장되었습니다!`);
-  }
 
-  function loadSelectedGradeSet(silent = false) {
-    const gradeKey = String(document.getElementById("cfg-grade-set")?.value || config.activeGradeSet || "1");
-    config.activeGradeSet = gradeKey;
-
-    const storedSet = gradeSets[gradeKey];
-    if (storedSet && Array.isArray(storedSet.questions) && storedSet.questions.length > 0) {
-      questions = cloneData(storedSet.questions);
-      if (storedSet.configSnapshot) {
-        Object.assign(config, cloneData(storedSet.configSnapshot));
-        config.activeGradeSet = gradeKey;
+    // 2) 새로 선택한 학년 세트로 전환 (기존에 저장된 문제가 없으면 빈 목록으로 시작)
+    config.activeGradeSet = nextGrade;
+    const targetSet = gradeSets[nextGrade];
+    if (targetSet && Array.isArray(targetSet.questions)) {
+      questions = cloneData(targetSet.questions);
+      if (targetSet.configSnapshot) {
+        Object.assign(config, cloneData(targetSet.configSnapshot));
+        config.activeGradeSet = nextGrade;
         loadConfigInputs();
       }
     } else {
       questions = [];
-      gradeSets[gradeKey] = { questions: [], updatedAt: Date.now() };
-      localStorage.setItem("quiz_grade_sets", JSON.stringify(gradeSets));
+      gradeSets[nextGrade] = {
+        questions: [],
+        configSnapshot: buildConfigSnapshot(),
+        updatedAt: Date.now()
+      };
     }
 
     currentIdx = 0;
-    editingIdx = -1;
     isPushedToStudent = false;
     isAnswerRevealed = false;
-    localStorage.setItem("quiz_1st_questions", JSON.stringify(questions));
-    localStorage.setItem("quiz_1st_config", JSON.stringify(config));
 
     renderQuestionList();
     renderTeacherView();
     updateSessionSummaryUI();
-    syncBankToCloud();
-
-    if (!silent) {
-      alert(`${gradeKey}학년 문제 세트(${questions.length}문항)를 불러왔습니다.`);
-    }
+    await syncBankToCloud();
   }
 
   function syncRoomFromGradeSet() {
@@ -1464,6 +1452,7 @@
       updateResponseCounterUI();
       renderTeacherLobby();
       renderTeacherView();
+      syncBankToCloud();
     }
     updateSessionSummaryUI();
   }
@@ -1662,6 +1651,7 @@
     const activeGrade = String(config.activeGradeSet || "1");
     gradeSets[activeGrade] = Object.assign({}, gradeSets[activeGrade] || {}, {
       questions: cloneData(questions),
+      configSnapshot: buildConfigSnapshot(),
       updatedAt: Date.now()
     });
 
@@ -2178,7 +2168,7 @@
 
   function startQuizFromLobby() {
     if (questions.length === 0) {
-      alert("등록된 문제가 없습니다. 먼저 [📝 출제·설정]에서 문제를 등록하거나 학년 세트를 불러와 주세요.");
+      alert("등록된 문제가 없습니다. 먼저 [📝 출제·설정]에서 문제를 등록하거나 다른 학년을 선택해 주세요.");
       return;
     }
     backToLiveBoard();
