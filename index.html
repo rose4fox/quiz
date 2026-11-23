@@ -364,29 +364,39 @@
       padding-bottom: 24px;
     }
 
-    /* 학년 세트 & 수업 방 관리 UI */
+    /* 학년 세트 & 수업코드 관리 UI */
     .session-box {
       background: #f5f8ff; border: 2px solid #dce6ff; border-radius: 16px;
       padding: 18px;
     }
     .session-grid {
-      display: grid; grid-template-columns: 1fr 1.4fr; gap: 14px;
+      display: grid; grid-template-columns: 1fr 1.6fr; gap: 16px;
     }
-    @media (max-width: 720px) {
+    @media (max-width: 780px) {
       .session-grid { grid-template-columns: 1fr; }
     }
-    .room-input-row {
-      display: flex; gap: 8px;
+    .code-select-row {
+      display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 8px;
     }
-    .room-input-row input {
-      flex: 1;
+    .code-select-row select {
+      flex: 1; min-width: 150px;
+    }
+    .code-input-row {
+      display: flex; gap: 6px; flex-wrap: wrap;
+    }
+    .code-input-row input {
+      flex: 1; min-width: 160px;
     }
     .btn-mini-action {
       background: #ffffff; border: 1.5px solid #b9ccf8; color: #264099;
-      padding: 9px 14px; border-radius: 10px; font-size: 0.9rem; font-weight: bold;
+      padding: 9px 12px; border-radius: 10px; font-size: 0.88rem; font-weight: bold;
       cursor: pointer; white-space: nowrap; transition: background 0.15s;
     }
     .btn-mini-action:hover { background: #e8efff; }
+    .btn-mini-action.primary-soft {
+      background: #4a6cf7; border-color: #4a6cf7; color: #ffffff;
+    }
+    .btn-mini-action.primary-soft:hover { background: #3652c9; }
     .btn-mini-action.danger-soft {
       background: #fff5f5; border-color: #feb2b2; color: #c53030;
     }
@@ -902,7 +912,7 @@
         <h2>🧭 코딩탐험대 입장 대기실</h2>
         <p>학생들이 반·번호·이름을 입력하고 입장할 때까지 기다려주세요. 인원을 확인한 뒤 퀴즈를 시작합니다.</p>
         <div class="lobby-meta-row">
-          <span id="lobby-room-pill" class="lobby-tag-pill">🏫 수업 방: default</span>
+          <span id="lobby-room-pill" class="lobby-tag-pill">🏫 수업코드: 미지정</span>
           <span id="lobby-grade-pill" class="lobby-tag-pill">📚 문제 세트: 1학년</span>
         </div>
       </div>
@@ -982,9 +992,9 @@
       </div>
     </div>
 
-    <!-- 학년별 문제 세트 및 수업 방 관리 -->
+    <!-- 학년별 문제 세트 및 수업코드 관리 -->
     <div class="card">
-      <h3>📚 학년별 문제 세트 및 수업 방 관리</h3>
+      <h3>📚 학년별 문제 세트 및 수업코드 관리</h3>
       <div class="session-box">
         <div class="session-grid">
           <div class="form-group" style="margin-bottom:0;">
@@ -998,25 +1008,31 @@
               <option value="6">6학년 문제 세트</option>
             </select>
           </div>
+
           <div class="form-group" style="margin-bottom:0;">
-            <label for="cfg-room-code">수업 방 코드 (학교·반·학년별 구분)</label>
-            <div class="room-input-row">
-              <input type="text" id="cfg-room-code" placeholder="예: default, 학교A_3학년" onchange="applyRoomCodeChange()" />
-              <button type="button" class="btn-mini-action" onclick="syncRoomFromGradeSet()" title="선택한 학년에 맞춰 방 코드를 자동으로 지정합니다">🏷️ 학년 맞춤</button>
+            <label for="cfg-room-select">수업코드 조회 · 추가 · 수정 · 삭제</label>
+            <div class="code-select-row">
+              <select id="cfg-room-select" onchange="selectLessonCode(this.value)"></select>
+              <button type="button" class="btn-mini-action" onclick="renameSelectedLessonCode()">✏️ 수정</button>
+              <button type="button" class="btn-mini-action danger-soft" onclick="deleteSelectedLessonCode()">🗑️ 삭제</button>
+            </div>
+            <div class="code-input-row">
+              <input type="text" id="cfg-room-code" placeholder="새 수업코드 입력 (예: 학교A_3반)" />
+              <button type="button" class="btn-mini-action primary-soft" onclick="addLessonCode()">➕ 추가</button>
             </div>
           </div>
         </div>
 
         <div class="session-actions-row">
           <p id="grade-set-summary" class="session-hint" style="margin:0;">
-            선택 세트: <b>1학년</b> · 수업 방: <b>default</b>
+            선택 세트: <b>1학년</b> · 수업코드: <b>미지정</b> · 참가자: <b>0명</b>
           </p>
           <button type="button" class="btn-mini-action danger-soft" onclick="clearCurrentGradeSetQuestions()">🗑️ 현재 학년 문제 비우기</button>
         </div>
 
         <p class="session-hint">
           • 학년을 바꾸면 기존 학년 문제는 자동 보관되고, 선택한 학년의 문제 목록(없으면 0문항)으로 바로 바뀝니다.<br>
-          • 여러 학교나 반·학년을 함께 운영할 때는 수업 방 코드를 다르게 입력해 진행 화면과 출석 명단이 섞이지 않도록 구분할 수 있습니다.
+          • 수업코드를 선택하면 해당 코드의 현재 참가자 명단과 진행 상태가 바로 조회되며, 여러 학교나 반을 함께 진행할 때 코드별로 섞이지 않게 구분됩니다.
         </p>
       </div>
     </div>
@@ -1225,7 +1241,8 @@
   const DEFAULT_CONFIG = {
     teacherPw: "1234",
     activeGradeSet: "1",
-    roomCode: "default",
+    roomCode: "",
+    lessonCodes: [],
     timeLimit: 0, // 0이면 제한 없음, 양수면 제한 초(sec)
     countdownSound: "on", // "on" | "off" (교사 화면 전용 마림바 효과음)
     readOptions: "auto", // "auto" | "none" | "question_only" | "with_options"
@@ -1259,29 +1276,42 @@
     return JSON.parse(JSON.stringify(obj));
   }
 
-  function sanitizeRoomCode(raw) {
-    const cleaned = String(raw || "default")
+  function sanitizeLessonCode(raw) {
+    return String(raw || "")
       .trim()
-      .replace(/[^a-zA-Z0-9_-]/g, "_")
+      .replace(/[^a-zA-Z0-9가-힣_-]/g, "_")
       .replace(/_+/g, "_")
       .replace(/^_+|_+$/g, "");
-    return cleaned || "default";
+  }
+
+  function normalizeLessonCodeList(list, currentCode) {
+    const set = new Set();
+    if (Array.isArray(list)) {
+      list.forEach(item => {
+        const clean = sanitizeLessonCode(item);
+        if (clean) set.add(clean);
+      });
+    }
+    const activeClean = sanitizeLessonCode(currentCode);
+    if (activeClean) set.add(activeClean);
+    return Array.from(set);
   }
 
   function getRoomKey() {
-    return sanitizeRoomCode(config.roomCode);
+    return sanitizeLessonCode(config.roomCode);
   }
 
-  function getRoomPath(nodeName) {
-    const room = getRoomKey();
-    if (room === "default") {
-      return `/${nodeName}.json`;
+  function getRoomPath(nodeName, codeOverride = "") {
+    const code = sanitizeLessonCode(codeOverride || config.roomCode);
+    if (!code) {
+      return `/${nodeName}_unassigned.json`;
     }
-    return `/rooms/${encodeURIComponent(room)}/${nodeName}.json`;
+    return `/rooms/${encodeURIComponent(code)}/${nodeName}.json`;
   }
 
   function getChannelName() {
-    return `grade1_quiz_channel_${getRoomKey()}`;
+    const code = getRoomKey() || "unassigned";
+    return `grade1_quiz_channel_${encodeURIComponent(code)}`;
   }
 
   let questions = JSON.parse(localStorage.getItem("quiz_1st_questions")) || cloneData(DEFAULT_QUESTIONS);
@@ -1296,7 +1326,11 @@
   if (!GRADE_LIST.includes(String(config.activeGradeSet))) {
     config.activeGradeSet = "1";
   }
-  config.roomCode = sanitizeRoomCode(config.roomCode);
+  config.roomCode = sanitizeLessonCode(config.roomCode);
+  config.lessonCodes = normalizeLessonCodeList(config.lessonCodes, config.roomCode);
+  if (!config.roomCode && config.lessonCodes.length > 0) {
+    config.roomCode = config.lessonCodes[0];
+  }
   if (!["auto", "none", "question_only", "with_options"].includes(config.readOptions)) {
     config.readOptions = "auto";
   }
@@ -1362,17 +1396,45 @@
     };
   }
 
+  function renderLessonCodeSelect() {
+    const selectEl = document.getElementById("cfg-room-select");
+    if (!selectEl) return;
+    const codes = normalizeLessonCodeList(config.lessonCodes, config.roomCode);
+    config.lessonCodes = codes;
+    const activeCode = getRoomKey();
+
+    if (codes.length === 0) {
+      selectEl.innerHTML = `<option value="">등록된 수업코드 없음 (아래에서 추가)</option>`;
+      selectEl.value = "";
+    } else {
+      selectEl.innerHTML = codes
+        .map(code => `<option value="${escapeHtmlAttr(code)}">${escapeHtml(code)}</option>`)
+        .join("");
+      selectEl.value = codes.includes(activeCode) ? activeCode : "";
+    }
+  }
+
+  function escapeHtml(str) {
+    return String(str || "")
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;");
+  }
+
+  function escapeHtmlAttr(str) {
+    return String(str || "").replace(/"/g, "&quot;");
+  }
+
   function updateSessionSummaryUI() {
     const gradeVal = String(config.activeGradeSet || "1");
-    const roomVal = getRoomKey();
+    const codeVal = getRoomKey();
+    const rosterCount = Object.values(liveRoster || {}).filter(item => item && item.info).length;
 
     const gradeSelect = document.getElementById("cfg-grade-set");
     if (gradeSelect) gradeSelect.value = gradeVal;
 
-    const roomInput = document.getElementById("cfg-room-code");
-    if (roomInput && document.activeElement !== roomInput) {
-      roomInput.value = roomVal;
-    }
+    renderLessonCodeSelect();
 
     const summaryEl = document.getElementById("grade-set-summary");
     if (summaryEl) {
@@ -1380,13 +1442,16 @@
         const cnt = (gradeSets[g] && Array.isArray(gradeSets[g].questions)) ? gradeSets[g].questions.length : 0;
         return `${g}학년(${cnt}문항)`;
       }).join(" · ");
+      const codeText = codeVal ? `<b>${escapeHtml(codeVal)}</b>` : `<span style="color:#c53030; font-weight:bold;">미지정</span>`;
       summaryEl.innerHTML =
-        `선택 세트: <b>${gradeVal}학년</b> · 수업 방: <b>${roomVal}</b><br>` +
-        `<span style="color:#64748b;">저장 현황: ${savedCounts}</span>`;
+        `선택 세트: <b>${gradeVal}학년</b> · 수업코드: ${codeText} · 참가자: <b>${rosterCount}명</b><br>` +
+        `<span style="color:#64748b;">학년별 보관: ${savedCounts}</span>`;
     }
 
     const lobbyRoomPill = document.getElementById("lobby-room-pill");
-    if (lobbyRoomPill) lobbyRoomPill.innerText = `🏫 수업 방: ${roomVal}`;
+    if (lobbyRoomPill) {
+      lobbyRoomPill.innerText = codeVal ? `🏫 수업코드: ${codeVal}` : "🏫 수업코드: 미지정";
+    }
 
     const lobbyGradePill = document.getElementById("lobby-grade-pill");
     if (lobbyGradePill) lobbyGradePill.innerText = `📚 문제 세트: ${gradeVal}학년`;
@@ -1400,14 +1465,12 @@
 
     cancelEditQuestion();
 
-    // 1) 현재 화면에 있던 문제를 기존 학년 칸에 자동 저장
     gradeSets[prevGrade] = {
       questions: cloneData(questions),
       configSnapshot: buildConfigSnapshot(),
       updatedAt: Date.now()
     };
 
-    // 2) 새로 선택한 학년 세트로 전환 (기존에 저장된 문제가 없으면 빈 목록으로 시작)
     config.activeGradeSet = nextGrade;
     const targetSet = gradeSets[nextGrade];
     if (targetSet && Array.isArray(targetSet.questions)) {
@@ -1454,37 +1517,140 @@
     alert(`${gradeKey}학년 문제 세트가 비워졌습니다.`);
   }
 
-  function syncRoomFromGradeSet() {
-    const gradeKey = String(document.getElementById("cfg-grade-set")?.value || config.activeGradeSet || "1");
-    const roomInput = document.getElementById("cfg-room-code");
-    const currentRoom = sanitizeRoomCode(roomInput ? roomInput.value : config.roomCode);
-    const schoolPrefix = currentRoom.replace(/_?[1-6]학년$/, "");
-    const nextRoom = (schoolPrefix && schoolPrefix !== "default") ? `${schoolPrefix}_${gradeKey}학년` : `${gradeKey}학년`;
-    if (roomInput) roomInput.value = nextRoom;
-    applyRoomCodeChange();
+  async function activateLessonCode(targetCode) {
+    const cleanCode = sanitizeLessonCode(targetCode);
+    config.roomCode = cleanCode;
+    config.lessonCodes = normalizeLessonCodeList(config.lessonCodes, cleanCode);
+    liveRoster = {};
+    currentIdx = 0;
+    isPushedToStudent = false;
+    isAnswerRevealed = false;
+
+    recreateBroadcastChannel();
+    connectRealtimeStreams();
+    fetchRosterOnce();
+    updateResponseCounterUI();
+    renderTeacherLobby();
+    renderTeacherView();
+    updateSessionSummaryUI();
+    await syncBankToCloud();
   }
 
-  function applyRoomCodeChange() {
-    const roomInput = document.getElementById("cfg-room-code");
-    const nextRoom = sanitizeRoomCode(roomInput ? roomInput.value : config.roomCode);
-    if (roomInput) roomInput.value = nextRoom;
+  async function selectLessonCode(selectedVal) {
+    const cleanCode = sanitizeLessonCode(selectedVal);
+    if (!cleanCode) return;
+    const inputEl = document.getElementById("cfg-room-code");
+    if (inputEl) inputEl.value = cleanCode;
+    await activateLessonCode(cleanCode);
+  }
 
-    if (config.roomCode !== nextRoom) {
-      config.roomCode = nextRoom;
-      localStorage.setItem("quiz_1st_config", JSON.stringify(config));
-      liveRoster = {};
-      currentIdx = 0;
-      isPushedToStudent = false;
-      isAnswerRevealed = false;
-      recreateBroadcastChannel();
-      connectRealtimeStreams();
-      fetchRosterOnce();
-      updateResponseCounterUI();
-      renderTeacherLobby();
-      renderTeacherView();
-      syncBankToCloud();
+  async function addLessonCode() {
+    const inputEl = document.getElementById("cfg-room-code");
+    const rawVal = inputEl ? inputEl.value : "";
+    const cleanCode = sanitizeLessonCode(rawVal);
+    if (!cleanCode) {
+      alert("추가할 수업코드를 입력해 주세요.");
+      if (inputEl) inputEl.focus();
+      return;
     }
+
+    config.lessonCodes = normalizeLessonCodeList([...(config.lessonCodes || []), cleanCode], cleanCode);
+    if (inputEl) inputEl.value = "";
+    await activateLessonCode(cleanCode);
+    alert(`수업코드 [${cleanCode}]가 추가되고 선택되었습니다.`);
+  }
+
+  async function renameSelectedLessonCode() {
+    const currentCode = getRoomKey();
+    if (!currentCode) {
+      alert("이름을 수정할 수업코드를 먼저 선택해 주세요.");
+      return;
+    }
+
+    const inputEl = document.getElementById("cfg-room-code");
+    const suggested = (inputEl && sanitizeLessonCode(inputEl.value)) || currentCode;
+    const nextRaw = prompt(`수업코드 [${currentCode}]의 새 이름을 입력하세요.`, suggested);
+    if (nextRaw === null) return;
+
+    const nextCode = sanitizeLessonCode(nextRaw);
+    if (!nextCode) {
+      alert("올바른 수업코드를 입력해 주세요.");
+      return;
+    }
+    if (nextCode === currentCode) return;
+
+    const oldRosterSnapshot = cloneData(liveRoster || {});
+    let oldQuizSnapshot = null;
+
+    if (config.firebaseUrl) {
+      const baseUrl = config.firebaseUrl.replace(/\/$/, "");
+      try {
+        const res = await fetch(baseUrl + getRoomPath("live_quiz", currentCode));
+        oldQuizSnapshot = await res.json();
+      } catch (_) {}
+    }
+
+    config.lessonCodes = (config.lessonCodes || []).map(c => (c === currentCode ? nextCode : c));
+    config.lessonCodes = normalizeLessonCodeList(config.lessonCodes, nextCode);
+    config.roomCode = nextCode;
+
+    if (config.firebaseUrl) {
+      const baseUrl = config.firebaseUrl.replace(/\/$/, "");
+      if (oldQuizSnapshot) {
+        await fetch(baseUrl + getRoomPath("live_quiz", nextCode), {
+          method: "PUT",
+          body: JSON.stringify(Object.assign({}, oldQuizSnapshot, { roomCode: nextCode, timestamp: Date.now() }))
+        }).catch(() => {});
+      }
+      if (Object.keys(oldRosterSnapshot).length > 0) {
+        await fetch(baseUrl + getRoomPath("live_responses", nextCode), {
+          method: "PUT",
+          body: JSON.stringify(oldRosterSnapshot)
+        }).catch(() => {});
+      }
+      await fetch(baseUrl + getRoomPath("live_quiz", currentCode), { method: "DELETE" }).catch(() => {});
+      await fetch(baseUrl + getRoomPath("live_responses", currentCode), { method: "DELETE" }).catch(() => {});
+    }
+
+    if (inputEl) inputEl.value = "";
+    recreateBroadcastChannel();
+    connectRealtimeStreams();
+    fetchRosterOnce();
     updateSessionSummaryUI();
+    await syncBankToCloud();
+    alert(`수업코드가 [${currentCode}]에서 [${nextCode}](으)로 수정되었습니다.`);
+  }
+
+  async function deleteSelectedLessonCode() {
+    const currentCode = getRoomKey();
+    if (!currentCode) {
+      alert("삭제할 수업코드가 없습니다.");
+      return;
+    }
+    if (!confirm(`수업코드 [${currentCode}]를 목록에서 삭제하고 해당 코드의 진행·참가자 데이터를 지울까요?`)) return;
+
+    if (config.firebaseUrl) {
+      const baseUrl = config.firebaseUrl.replace(/\/$/, "");
+      await fetch(baseUrl + getRoomPath("live_quiz", currentCode), { method: "DELETE" }).catch(() => {});
+      await fetch(baseUrl + getRoomPath("live_responses", currentCode), { method: "DELETE" }).catch(() => {});
+    }
+
+    config.lessonCodes = (config.lessonCodes || []).filter(c => c !== currentCode);
+    config.roomCode = config.lessonCodes[0] || "";
+    liveRoster = {};
+    currentIdx = 0;
+    isPushedToStudent = false;
+    isAnswerRevealed = false;
+
+    recreateBroadcastChannel();
+    connectRealtimeStreams();
+    fetchRosterOnce();
+    updateResponseCounterUI();
+    renderTeacherLobby();
+    renderTeacherView();
+    updateSessionSummaryUI();
+    await syncBankToCloud();
+    alert(`수업코드 [${currentCode}]가 삭제되었습니다.`);
   }
 
   // ==================== 교사 화면 전용 마림바 효과음 합성 ====================
@@ -1648,7 +1814,11 @@
           if (!GRADE_LIST.includes(String(config.activeGradeSet))) {
             config.activeGradeSet = "1";
           }
-          config.roomCode = sanitizeRoomCode(config.roomCode);
+          config.roomCode = sanitizeLessonCode(config.roomCode);
+          config.lessonCodes = normalizeLessonCodeList(config.lessonCodes, config.roomCode);
+          if (!config.roomCode && config.lessonCodes.length > 0) {
+            config.roomCode = config.lessonCodes[0];
+          }
           if (!["auto", "none", "question_only", "with_options"].includes(config.readOptions)) {
             config.readOptions = "auto";
           }
@@ -1677,7 +1847,8 @@
 
   async function syncBankToCloud() {
     config = normalizeEntryKeys(config);
-    config.roomCode = sanitizeRoomCode(config.roomCode);
+    config.roomCode = sanitizeLessonCode(config.roomCode);
+    config.lessonCodes = normalizeLessonCodeList(config.lessonCodes, config.roomCode);
     const activeGrade = String(config.activeGradeSet || "1");
     gradeSets[activeGrade] = Object.assign({}, gradeSets[activeGrade] || {}, {
       questions: cloneData(questions),
@@ -1841,6 +2012,7 @@
     liveRoster = data || {};
     updateResponseCounterUI();
     renderTeacherLobby();
+    updateSessionSummaryUI();
   }
 
   function connectRealtimeStreams() {
@@ -1856,7 +2028,7 @@
       rosterStream = null;
     }
 
-    // 1) 현재 수업 방 기준 실시간 문제 전송 스트림
+    // 1) 현재 수업코드 기준 실시간 문제 전송 스트림
     try {
       liveQuizStream = new EventSource(baseUrl + getRoomPath("live_quiz"));
       const onQuizEvent = (e) => {
@@ -1874,7 +2046,7 @@
       liveQuizStream.addEventListener("patch", onQuizEvent);
     } catch (_) {}
 
-    // 2) 현재 수업 방 기준 실시간 학생 입장/응답 스트림
+    // 2) 현재 수업코드 기준 실시간 학생 입장/응답 스트림
     try {
       rosterStream = new EventSource(baseUrl + getRoomPath("live_responses"));
       rosterStream.addEventListener("put", (e) => {
@@ -1914,9 +2086,10 @@
 
   function reportStudentProgress() {
     if (!studentInfo || !studentKey) return;
+    const activeCode = getRoomKey();
     const payload = {
       type: "STUDENT_PROGRESS",
-      roomCode: getRoomKey(),
+      roomCode: activeCode,
       key: studentKey,
       info: studentInfo,
       answered: studentAnswers,
@@ -1926,8 +2099,8 @@
 
     if (config.firebaseUrl) {
       const baseUrl = config.firebaseUrl.replace(/\/$/, "");
-      const roomPrefix = getRoomKey() === "default" ? "" : `/rooms/${encodeURIComponent(getRoomKey())}`;
-      const url = `${baseUrl}${roomPrefix}/live_responses/${encodeURIComponent(studentKey)}.json`;
+      const prefix = activeCode ? `/rooms/${encodeURIComponent(activeCode)}` : "";
+      const url = `${baseUrl}${prefix}/live_responses/${encodeURIComponent(studentKey)}.json`;
       fetch(url, {
         method: "PUT",
         body: JSON.stringify({
@@ -1946,8 +2119,9 @@
 
     if (config.firebaseUrl) {
       const baseUrl = config.firebaseUrl.replace(/\/$/, "");
-      const roomPrefix = getRoomKey() === "default" ? "" : `/rooms/${encodeURIComponent(getRoomKey())}`;
-      const url = `${baseUrl}${roomPrefix}/live_responses/${encodeURIComponent(targetKey)}.json`;
+      const activeCode = getRoomKey();
+      const prefix = activeCode ? `/rooms/${encodeURIComponent(activeCode)}` : "";
+      const url = `${baseUrl}${prefix}/live_responses/${encodeURIComponent(targetKey)}.json`;
       await fetch(url, { method: "DELETE" }).catch(() => {});
     }
   }
@@ -1966,7 +2140,7 @@
   function startTeacherRosterPolling() {
     if (rosterPollInterval) clearInterval(rosterPollInterval);
     rosterPollInterval = setInterval(() => {
-      if ((!isTeacherLiveMode && !isTeacherLobbyMode) || !config.firebaseUrl) return;
+      if ((!isTeacherLiveMode && !isTeacherLobbyMode && document.getElementById("teacher-setup-section").classList.contains("hidden")) || !config.firebaseUrl) return;
       fetchRosterOnce();
     }, 1000);
   }
@@ -2008,7 +2182,7 @@
   }
 
   function getResponseSummary() {
-    const entries = Object.values(liveRoster || {});
+    const entries = Object.values(liveRoster || {}).filter(item => item && item.info);
     const total = entries.length;
     let answeredCount = 0;
     const missingList = [];
@@ -2053,6 +2227,7 @@
     liveRoster = {};
     updateResponseCounterUI();
     renderTeacherLobby();
+    updateSessionSummaryUI();
     bc.postMessage({ type: "ROSTER_CLEARED" });
     if (config.firebaseUrl) {
       const url = config.firebaseUrl.replace(/\/$/, "") + getRoomPath("live_responses");
@@ -2061,7 +2236,8 @@
   }
 
   async function resetStudentRoster() {
-    if (!confirm(`[${getRoomKey()} 방] 새로운 반 수업을 위해 현재 접속된 학생 응답 명단을 모두 초기화할까요?`)) return;
+    const codeLabel = getRoomKey() || "미지정";
+    if (!confirm(`[수업코드: ${codeLabel}] 새로운 반 수업을 위해 현재 접속된 학생 응답 명단을 모두 초기화할까요?`)) return;
     await clearRosterData();
     currentIdx = 0;
     renderTeacherLobby();
@@ -2244,6 +2420,7 @@
     clearTeacherTimer();
     isTeacherLiveMode = false;
     isTeacherLobbyMode = false;
+    fetchRosterOnce();
     updateSessionSummaryUI();
     document.body.classList.add("allow-scroll");
     document.getElementById("main-container").classList.remove("projector-mode");
@@ -2434,7 +2611,7 @@
     openTeacherEndScreen(total);
   }
 
-  // ==================== 실시간 상태 동기화 (방별 경량 페이로드 전송) ====================
+  // ==================== 실시간 상태 동기화 (수업코드별 경량 페이로드 전송) ====================
   async function broadcastState(action, extra = {}) {
     const isPush = (action === "PUSH_TO_STUDENT");
     const payload = Object.assign({
@@ -2470,23 +2647,26 @@
   function bindBroadcastChannel() {
     bc.onmessage = (e) => {
       if (!e.data) return;
-      if (e.data.roomCode && e.data.roomCode !== getRoomKey()) return;
+      if ((e.data.roomCode || "") !== getRoomKey()) return;
       if (e.data.type === "STUDENT_PROGRESS") {
         liveRoster[e.data.key] = e.data;
         updateResponseCounterUI();
         renderTeacherLobby();
+        updateSessionSummaryUI();
         return;
       }
       if (e.data.type === "STUDENT_LEAVE") {
         delete liveRoster[e.data.key];
         updateResponseCounterUI();
         renderTeacherLobby();
+        updateSessionSummaryUI();
         return;
       }
       if (e.data.type === "ROSTER_CLEARED") {
         liveRoster = {};
         updateResponseCounterUI();
         renderTeacherLobby();
+        updateSessionSummaryUI();
         return;
       }
       handleIncomingState(e.data);
@@ -2981,7 +3161,9 @@
   function loadConfigInputs() {
     document.getElementById("cfg-teacher-pw").value = config.teacherPw || "1234";
     document.getElementById("cfg-grade-set").value = String(config.activeGradeSet || "1");
-    document.getElementById("cfg-room-code").value = sanitizeRoomCode(config.roomCode);
+    renderLessonCodeSelect();
+    const roomInput = document.getElementById("cfg-room-code");
+    if (roomInput && !roomInput.value) roomInput.value = "";
     document.getElementById("cfg-time-limit").value = String(Number(config.timeLimit) || 0);
     document.getElementById("cfg-countdown-sound").value = config.countdownSound || "on";
     document.getElementById("cfg-read-options").value = config.readOptions || "auto";
@@ -3094,12 +3276,17 @@
       }
     }
 
-    const prevRoom = getRoomKey();
-    const nextRoom = sanitizeRoomCode(document.getElementById("cfg-room-code").value);
+    const prevCode = getRoomKey();
+    const typedCode = sanitizeLessonCode(document.getElementById("cfg-room-code").value);
+    const nextCode = typedCode || prevCode;
 
     config.teacherPw = newPw;
     config.activeGradeSet = String(document.getElementById("cfg-grade-set").value || "1");
-    config.roomCode = nextRoom;
+    config.roomCode = nextCode;
+    config.lessonCodes = normalizeLessonCodeList(config.lessonCodes, nextCode);
+    if (typedCode && document.getElementById("cfg-room-code")) {
+      document.getElementById("cfg-room-code").value = "";
+    }
     config.timeLimit = Number(document.getElementById("cfg-time-limit").value) || 0;
     config.countdownSound = document.getElementById("cfg-countdown-sound").value;
     config.readOptions = document.getElementById("cfg-read-options").value;
@@ -3118,7 +3305,7 @@
     }
 
     await syncBankToCloud();
-    if (prevRoom !== nextRoom) {
+    if (prevCode !== nextCode) {
       liveRoster = {};
       recreateBroadcastChannel();
       fetchRosterOnce();
