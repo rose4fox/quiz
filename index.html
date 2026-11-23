@@ -17,7 +17,7 @@
       --text: #222222;
     }
     * { box-sizing: border-box; font-family: 'Malgun Gothic', '맑은 고딕', sans-serif; -webkit-tap-highlight-color: transparent; }
-    
+
     html, body {
       margin: 0; padding: 0;
       height: 100%; height: 100dvh;
@@ -177,6 +177,13 @@
     }
     .lobby-title-group p {
       margin: 4px 0 0 0; font-size: clamp(0.92rem, 1.4vw, 1.08rem); color: #5a6782;
+    }
+    .lobby-meta-row {
+      display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-top: 8px;
+    }
+    .lobby-tag-pill {
+      background: #f1f5ff; border: 1.5px solid #c5d7fb; color: #2b44a8;
+      padding: 4px 12px; border-radius: 12px; font-size: 0.92rem; font-weight: bold;
     }
     .lobby-count-pill {
       background: #eef2ff; border: 2px solid #bac8ff; color: var(--primary);
@@ -355,6 +362,34 @@
       justify-content: flex-end;
       margin-top: 20px;
       padding-bottom: 24px;
+    }
+
+    /* 학년 세트 & 수업 방 관리 UI */
+    .session-box {
+      background: #f5f8ff; border: 2px solid #dce6ff; border-radius: 16px;
+      padding: 18px; margin-bottom: 18px;
+    }
+    .session-grid {
+      display: grid; grid-template-columns: 1fr 1.4fr; gap: 14px;
+    }
+    @media (max-width: 720px) {
+      .session-grid { grid-template-columns: 1fr; }
+    }
+    .grade-set-bar {
+      display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px;
+    }
+    .btn-mini-action {
+      background: #ffffff; border: 1.5px solid #b9ccf8; color: #264099;
+      padding: 9px 14px; border-radius: 11px; font-size: 0.92rem; font-weight: bold;
+      cursor: pointer; transition: background 0.15s;
+    }
+    .btn-mini-action:hover { background: #e8efff; }
+    .btn-mini-action.primary-soft {
+      background: #4a6cf7; border-color: #4a6cf7; color: #ffffff;
+    }
+    .btn-mini-action.primary-soft:hover { background: #3652c9; }
+    .session-hint {
+      margin: 10px 0 0 0; font-size: 0.88rem; color: #475569; line-height: 1.45;
     }
 
     /* ==================== 학생 대기 화면 ==================== */
@@ -667,7 +702,7 @@
       border: 2px solid #d90429;
       background: #fff5f5;
     }
-    
+
     .q-list-item {
       display: flex; justify-content: space-between; align-items: center; gap: 12px;
       padding: 12px; border-bottom: 1px solid #eee; border-radius: 10px;
@@ -859,6 +894,10 @@
       <div class="lobby-title-group">
         <h2>🧭 코딩탐험대 입장 대기실</h2>
         <p>학생들이 반·번호·이름을 입력하고 입장할 때까지 기다려주세요. 인원을 확인한 뒤 퀴즈를 시작합니다.</p>
+        <div class="lobby-meta-row">
+          <span id="lobby-room-pill" class="lobby-tag-pill">🏫 방: default</span>
+          <span id="lobby-grade-pill" class="lobby-tag-pill">📚 세트: 1학년</span>
+        </div>
       </div>
       <div id="lobby-count-pill" class="lobby-count-pill">👥 현재 입장: 0명</div>
     </div>
@@ -933,6 +972,44 @@
       <div style="display:flex; gap:8px; flex-wrap:wrap;">
         <button class="btn-return-live" style="background:#3d465e;" onclick="openTeacherLobby()">👥 대기실로 가기</button>
         <button class="btn-return-live" onclick="backToLiveBoard()">📺 수업 화면으로 돌아가기</button>
+      </div>
+    </div>
+
+    <!-- 학년별 문제 세트 보관함 & 수업 방(세션) 분리 -->
+    <div class="card">
+      <h3>📚 학년별 문제 세트 보관함 &amp; 수업 방(다중 학교·학년) 분리</h3>
+      <div class="session-box">
+        <div class="session-grid">
+          <div class="form-group" style="margin-bottom:0;">
+            <label for="cfg-grade-set">대상 학년 세트 (1~6학년)</label>
+            <select id="cfg-grade-set" onchange="onGradeSetSelectChange(this.value)">
+              <option value="1">1학년 문제 세트</option>
+              <option value="2">2학년 문제 세트</option>
+              <option value="3">3학년 문제 세트</option>
+              <option value="4">4학년 문제 세트</option>
+              <option value="5">5학년 문제 세트</option>
+              <option value="6">6학년 문제 세트</option>
+            </select>
+          </div>
+          <div class="form-group" style="margin-bottom:0;">
+            <label for="cfg-room-code">현재 수업 방 코드 (여러 학교·반 동시 운영 시 구분)</label>
+            <input type="text" id="cfg-room-code" placeholder="예: default, 학교A_3학년, 학교B_5반" onchange="applyRoomCodeChange()" />
+          </div>
+        </div>
+
+        <div class="grade-set-bar">
+          <button type="button" class="btn-mini-action primary-soft" onclick="loadSelectedGradeSet()">📂 선택한 학년 세트 불러오기</button>
+          <button type="button" class="btn-mini-action" onclick="saveCurrentToGradeSet()">💾 현재 문제를 이 학년 세트로 저장</button>
+          <button type="button" class="btn-mini-action" onclick="syncRoomFromGradeSet()">🏷️ 방 코드 자동 맞추기</button>
+        </div>
+
+        <p id="grade-set-summary" class="session-hint">
+          현재 활성 세트: <b>1학년</b> · 현재 수업 방: <b>default</b>
+        </p>
+        <p class="session-hint">
+          • 학년(1~6학년)마다 문제 세트를 따로 저장해 두고, 다른 학년 수업 시 기존 문제를 지우지 않고 불러올 수 있습니다.<br>
+          • 여러 학교나 학년을 동시에 진행할 때는 <b>수업 방 코드</b>를 다르게 지정하면 실시간 퀴즈(<code>live_quiz</code>)와 입장 명단(<code>live_responses</code>)이 방별로 분리됩니다.
+        </p>
       </div>
     </div>
 
@@ -1049,7 +1126,7 @@
         <input type="text" id="cfg-form-url" placeholder="https://docs.google.com/forms/d/e/.../formResponse" />
       </div>
 
-      <label style="font-weight:bold; display:block; margin-top:14px;">기본 인적사항 & 점수 entry 번호</label>
+      <label style="font-weight:bold; display:block; margin-top:14px;">기본 인적사항 &amp; 점수 entry 번호</label>
       <div class="entry-grid">
         <input type="text" id="cfg-entry-grade" placeholder="학년 entry.번호" />
         <input type="text" id="cfg-entry-class" placeholder="반 entry.번호" />
@@ -1135,9 +1212,12 @@
 <script>
   // ==================== 기본 설정 ====================
   const MAX_QUESTIONS = 20;
+  const GRADE_LIST = ["1", "2", "3", "4", "5", "6"];
 
   const DEFAULT_CONFIG = {
     teacherPw: "1234",
+    activeGradeSet: "1",
+    roomCode: "default",
     timeLimit: 0, // 0이면 제한 없음, 양수면 제한 초(sec)
     countdownSound: "on", // "on" | "off" (교사 PC 전용 마림바 효과음)
     readOptions: "auto", // "auto" | "none" | "question_only" | "with_options"
@@ -1150,7 +1230,7 @@
     entryQ16: "", entryQ17: "", entryQ18: "", entryQ19: "", entryQ20: ""
   };
 
-  let questions = JSON.parse(localStorage.getItem("quiz_1st_questions")) || [
+  const DEFAULT_QUESTIONS = [
     {
       type: "ox",
       text: "강아지는 다리가 4개입니다. 맞으면 O, 틀리면 X를 누르세요.",
@@ -1167,16 +1247,58 @@
     }
   ];
 
+  function cloneData(obj) {
+    return JSON.parse(JSON.stringify(obj));
+  }
+
+  function sanitizeRoomCode(raw) {
+    const cleaned = String(raw || "default")
+      .trim()
+      .replace(/[^a-zA-Z0-9_-]/g, "_")
+      .replace(/_+/g, "_")
+      .replace(/^_+|_+$/g, "");
+    return cleaned || "default";
+  }
+
+  function getRoomKey() {
+    return sanitizeRoomCode(config.roomCode);
+  }
+
+  function getRoomPath(nodeName) {
+    const room = getRoomKey();
+    if (room === "default") {
+      return `/${nodeName}.json`;
+    }
+    return `/rooms/${encodeURIComponent(room)}/${nodeName}.json`;
+  }
+
+  function getChannelName() {
+    return `grade1_quiz_channel_${getRoomKey()}`;
+  }
+
+  let questions = JSON.parse(localStorage.getItem("quiz_1st_questions")) || cloneData(DEFAULT_QUESTIONS);
+  let gradeSets = JSON.parse(localStorage.getItem("quiz_grade_sets")) || {
+    "1": { questions: cloneData(questions), updatedAt: 0 }
+  };
+
   let config = Object.assign({}, DEFAULT_CONFIG, JSON.parse(localStorage.getItem("quiz_1st_config")) || {});
   if (!config.firebaseUrl) {
     config.firebaseUrl = DEFAULT_CONFIG.firebaseUrl;
   }
+  if (!GRADE_LIST.includes(String(config.activeGradeSet))) {
+    config.activeGradeSet = "1";
+  }
+  config.roomCode = sanitizeRoomCode(config.roomCode);
   if (!["auto", "none", "question_only", "with_options"].includes(config.readOptions)) {
     config.readOptions = "auto";
   }
   config.timeLimit = Number(config.timeLimit) || 0;
   if (!["on", "off"].includes(config.countdownSound)) {
     config.countdownSound = "on";
+  }
+
+  if (!gradeSets[String(config.activeGradeSet)]) {
+    gradeSets[String(config.activeGradeSet)] = { questions: cloneData(questions), updatedAt: Date.now() };
   }
 
   let currentIdx = 0;
@@ -1203,8 +1325,148 @@
   // 실시간 SSE 스트리밍 연결 객체
   let liveQuizStream = null;
   let rosterStream = null;
+  let rosterPollInterval = null;
+  let quizPollInterval = null;
 
-  const bc = new BroadcastChannel("grade1_quiz_channel");
+  let bc = new BroadcastChannel(getChannelName());
+
+  function recreateBroadcastChannel() {
+    try { bc.close(); } catch (_) {}
+    bc = new BroadcastChannel(getChannelName());
+    bindBroadcastChannel();
+  }
+
+  function updateSessionSummaryUI() {
+    const gradeVal = String(config.activeGradeSet || "1");
+    const roomVal = getRoomKey();
+
+    const gradeSelect = document.getElementById("cfg-grade-set");
+    if (gradeSelect) gradeSelect.value = gradeVal;
+
+    const roomInput = document.getElementById("cfg-room-code");
+    if (roomInput && document.activeElement !== roomInput) {
+      roomInput.value = roomVal;
+    }
+
+    const summaryEl = document.getElementById("grade-set-summary");
+    if (summaryEl) {
+      const savedCounts = GRADE_LIST.map(g => {
+        const cnt = (gradeSets[g] && Array.isArray(gradeSets[g].questions)) ? gradeSets[g].questions.length : 0;
+        return `${g}학년(${cnt}문항)`;
+      }).join(" · ");
+      summaryEl.innerHTML =
+        `현재 활성 세트: <b>${gradeVal}학년</b> · 현재 수업 방: <b>${roomVal}</b><br>` +
+        `<span style="color:#64748b;">저장 현황: ${savedCounts}</span>`;
+    }
+
+    const lobbyRoomPill = document.getElementById("lobby-room-pill");
+    if (lobbyRoomPill) lobbyRoomPill.innerText = `🏫 방: ${roomVal}`;
+
+    const lobbyGradePill = document.getElementById("lobby-grade-pill");
+    if (lobbyGradePill) lobbyGradePill.innerText = `📚 세트: ${gradeVal}학년`;
+  }
+
+  function onGradeSetSelectChange(gradeKey) {
+    const targetGrade = GRADE_LIST.includes(String(gradeKey)) ? String(gradeKey) : "1";
+    config.activeGradeSet = targetGrade;
+    localStorage.setItem("quiz_1st_config", JSON.stringify(config));
+    updateSessionSummaryUI();
+  }
+
+  function saveCurrentToGradeSet() {
+    const gradeKey = String(config.activeGradeSet || "1");
+    const snapshot = {
+      questions: cloneData(questions),
+      configSnapshot: {
+        timeLimit: Number(config.timeLimit) || 0,
+        countdownSound: config.countdownSound || "on",
+        readOptions: config.readOptions || "auto",
+        formUrl: config.formUrl || "",
+        entryGrade: config.entryGrade || "",
+        entryClass: config.entryClass || "",
+        entryNum: config.entryNum || "",
+        entryName: config.entryName || "",
+        entryScore: config.entryScore || "",
+        entryQ01: config.entryQ01 || "", entryQ02: config.entryQ02 || "", entryQ03: config.entryQ03 || "", entryQ04: config.entryQ04 || "", entryQ05: config.entryQ05 || "",
+        entryQ06: config.entryQ06 || "", entryQ07: config.entryQ07 || "", entryQ08: config.entryQ08 || "", entryQ09: config.entryQ09 || "", entryQ10: config.entryQ10 || "",
+        entryQ11: config.entryQ11 || "", entryQ12: config.entryQ12 || "", entryQ13: config.entryQ13 || "", entryQ14: config.entryQ14 || "", entryQ15: config.entryQ15 || "",
+        entryQ16: config.entryQ16 || "", entryQ17: config.entryQ17 || "", entryQ18: config.entryQ18 || "", entryQ19: config.entryQ19 || "", entryQ20: config.entryQ20 || ""
+      },
+      updatedAt: Date.now()
+    };
+    gradeSets[gradeKey] = snapshot;
+    localStorage.setItem("quiz_grade_sets", JSON.stringify(gradeSets));
+    updateSessionSummaryUI();
+    syncBankToCloud();
+    alert(`${gradeKey}학년 문제 세트(${questions.length}문항)로 저장되었습니다!`);
+  }
+
+  function loadSelectedGradeSet(silent = false) {
+    const gradeKey = String(document.getElementById("cfg-grade-set")?.value || config.activeGradeSet || "1");
+    config.activeGradeSet = gradeKey;
+
+    const storedSet = gradeSets[gradeKey];
+    if (storedSet && Array.isArray(storedSet.questions) && storedSet.questions.length > 0) {
+      questions = cloneData(storedSet.questions);
+      if (storedSet.configSnapshot) {
+        Object.assign(config, cloneData(storedSet.configSnapshot));
+        config.activeGradeSet = gradeKey;
+        loadConfigInputs();
+      }
+    } else {
+      questions = [];
+      gradeSets[gradeKey] = { questions: [], updatedAt: Date.now() };
+      localStorage.setItem("quiz_grade_sets", JSON.stringify(gradeSets));
+    }
+
+    currentIdx = 0;
+    editingIdx = -1;
+    isPushedToStudent = false;
+    isAnswerRevealed = false;
+    localStorage.setItem("quiz_1st_questions", JSON.stringify(questions));
+    localStorage.setItem("quiz_1st_config", JSON.stringify(config));
+
+    renderQuestionList();
+    renderTeacherView();
+    updateSessionSummaryUI();
+    syncBankToCloud();
+
+    if (!silent) {
+      alert(`${gradeKey}학년 문제 세트(${questions.length}문항)를 불러왔습니다.`);
+    }
+  }
+
+  function syncRoomFromGradeSet() {
+    const gradeKey = String(document.getElementById("cfg-grade-set")?.value || config.activeGradeSet || "1");
+    const roomInput = document.getElementById("cfg-room-code");
+    const currentRoom = sanitizeRoomCode(roomInput ? roomInput.value : config.roomCode);
+    const schoolPrefix = currentRoom.replace(/_?[1-6]학년$/, "");
+    const nextRoom = (schoolPrefix && schoolPrefix !== "default") ? `${schoolPrefix}_${gradeKey}학년` : `${gradeKey}학년`;
+    if (roomInput) roomInput.value = nextRoom;
+    applyRoomCodeChange();
+  }
+
+  function applyRoomCodeChange() {
+    const roomInput = document.getElementById("cfg-room-code");
+    const nextRoom = sanitizeRoomCode(roomInput ? roomInput.value : config.roomCode);
+    if (roomInput) roomInput.value = nextRoom;
+
+    if (config.roomCode !== nextRoom) {
+      config.roomCode = nextRoom;
+      localStorage.setItem("quiz_1st_config", JSON.stringify(config));
+      liveRoster = {};
+      currentIdx = 0;
+      isPushedToStudent = false;
+      isAnswerRevealed = false;
+      recreateBroadcastChannel();
+      connectRealtimeStreams();
+      fetchRosterOnce();
+      updateResponseCounterUI();
+      renderTeacherLobby();
+      renderTeacherView();
+    }
+    updateSessionSummaryUI();
+  }
 
   // ==================== 교사 PC 전용 마림바 효과음 합성 ====================
   function ensureMarimbaAudio() {
@@ -1300,6 +1562,7 @@
   window.onload = async () => {
     loadBestKoreanVoice();
     loadConfigInputs();
+    updateSessionSummaryUI();
     renderQuestionList();
     renderTeacherView();
     setupNameImeHelper();
@@ -1354,11 +1617,19 @@
       const res = await fetch(url);
       const data = await res.json();
       if (data) {
+        if (data.gradeSets && typeof data.gradeSets === "object") {
+          gradeSets = Object.assign({}, gradeSets, data.gradeSets);
+          localStorage.setItem("quiz_grade_sets", JSON.stringify(gradeSets));
+        }
         if (data.config) {
           config = normalizeEntryKeys(Object.assign({}, config, data.config));
           if (!config.firebaseUrl) {
             config.firebaseUrl = DEFAULT_CONFIG.firebaseUrl;
           }
+          if (!GRADE_LIST.includes(String(config.activeGradeSet))) {
+            config.activeGradeSet = "1";
+          }
+          config.roomCode = sanitizeRoomCode(config.roomCode);
           if (!["auto", "none", "question_only", "with_options"].includes(config.readOptions)) {
             config.readOptions = "auto";
           }
@@ -1372,9 +1643,11 @@
         if (data.questions && Array.isArray(data.questions)) {
           questions = data.questions;
           localStorage.setItem("quiz_1st_questions", JSON.stringify(questions));
-          renderQuestionList();
-          renderTeacherView();
         }
+        recreateBroadcastChannel();
+        updateSessionSummaryUI();
+        renderQuestionList();
+        renderTeacherView();
         document.getElementById("cloud-sync-indicator").innerText = "☁️ 클라우드 동기화 완료";
         connectRealtimeStreams();
       }
@@ -1385,15 +1658,24 @@
 
   async function syncBankToCloud() {
     config = normalizeEntryKeys(config);
+    config.roomCode = sanitizeRoomCode(config.roomCode);
+    const activeGrade = String(config.activeGradeSet || "1");
+    gradeSets[activeGrade] = Object.assign({}, gradeSets[activeGrade] || {}, {
+      questions: cloneData(questions),
+      updatedAt: Date.now()
+    });
+
     localStorage.setItem("quiz_1st_questions", JSON.stringify(questions));
+    localStorage.setItem("quiz_grade_sets", JSON.stringify(gradeSets));
     localStorage.setItem("quiz_1st_config", JSON.stringify(config));
+    updateSessionSummaryUI();
 
     if (!config.firebaseUrl) return;
     const url = config.firebaseUrl.replace(/\/$/, "") + "/quiz_bank.json";
     try {
       await fetch(url, {
         method: "PUT",
-        body: JSON.stringify({ config, questions, updatedAt: Date.now() })
+        body: JSON.stringify({ config, questions, gradeSets, updatedAt: Date.now() })
       });
       document.getElementById("cloud-sync-indicator").innerText = "☁️ 클라우드 저장됨 (" + new Date().toLocaleTimeString() + ")";
     } catch (e) {
@@ -1554,9 +1836,9 @@
       rosterStream = null;
     }
 
-    // 1) 실시간 문제 전송 스트림 (교사 -> 학생 기기 즉시 push)
+    // 1) 현재 수업 방(roomCode) 기준 실시간 문제 전송 스트림
     try {
-      liveQuizStream = new EventSource(baseUrl + "/live_quiz.json");
+      liveQuizStream = new EventSource(baseUrl + getRoomPath("live_quiz"));
       const onQuizEvent = (e) => {
         if (!e.data) return;
         try {
@@ -1572,9 +1854,9 @@
       liveQuizStream.addEventListener("patch", onQuizEvent);
     } catch (_) {}
 
-    // 2) 실시간 학생 입장/응답 스트림 (학생 기기 -> 교사 대기실/리모컨 즉시 반영)
+    // 2) 현재 수업 방(roomCode) 기준 실시간 학생 입장/응답 스트림
     try {
-      rosterStream = new EventSource(baseUrl + "/live_responses.json");
+      rosterStream = new EventSource(baseUrl + getRoomPath("live_responses"));
       rosterStream.addEventListener("put", (e) => {
         if (!e.data) return;
         try {
@@ -1614,6 +1896,7 @@
     if (!studentInfo || !studentKey) return;
     const payload = {
       type: "STUDENT_PROGRESS",
+      roomCode: getRoomKey(),
       key: studentKey,
       info: studentInfo,
       answered: studentAnswers,
@@ -1622,7 +1905,9 @@
     bc.postMessage(payload);
 
     if (config.firebaseUrl) {
-      const url = config.firebaseUrl.replace(/\/$/, "") + `/live_responses/${encodeURIComponent(studentKey)}.json`;
+      const baseUrl = config.firebaseUrl.replace(/\/$/, "");
+      const roomPrefix = getRoomKey() === "default" ? "" : `/rooms/${encodeURIComponent(getRoomKey())}`;
+      const url = `${baseUrl}${roomPrefix}/live_responses/${encodeURIComponent(studentKey)}.json`;
       fetch(url, {
         method: "PUT",
         body: JSON.stringify({
@@ -1640,14 +1925,16 @@
     bc.postMessage({ type: "STUDENT_LEAVE", key: targetKey });
 
     if (config.firebaseUrl) {
-      const url = config.firebaseUrl.replace(/\/$/, "") + `/live_responses/${encodeURIComponent(targetKey)}.json`;
+      const baseUrl = config.firebaseUrl.replace(/\/$/, "");
+      const roomPrefix = getRoomKey() === "default" ? "" : `/rooms/${encodeURIComponent(getRoomKey())}`;
+      const url = `${baseUrl}${roomPrefix}/live_responses/${encodeURIComponent(targetKey)}.json`;
       await fetch(url, { method: "DELETE" }).catch(() => {});
     }
   }
 
   function fetchRosterOnce() {
     if (!config.firebaseUrl) return;
-    const url = config.firebaseUrl.replace(/\/$/, "") + "/live_responses.json";
+    const url = config.firebaseUrl.replace(/\/$/, "") + getRoomPath("live_responses");
     fetch(url)
       .then(res => res.json())
       .then(data => {
@@ -1657,13 +1944,15 @@
   }
 
   function startTeacherRosterPolling() {
-    setInterval(() => {
+    if (rosterPollInterval) clearInterval(rosterPollInterval);
+    rosterPollInterval = setInterval(() => {
       if ((!isTeacherLiveMode && !isTeacherLobbyMode) || !config.firebaseUrl) return;
       fetchRosterOnce();
     }, 1000);
   }
 
   function renderTeacherLobby() {
+    updateSessionSummaryUI();
     const countPill = document.getElementById("lobby-count-pill");
     const emptyEl = document.getElementById("lobby-empty-state");
     const gridEl = document.getElementById("lobby-chips-grid");
@@ -1736,10 +2025,7 @@
     if (missingList.length === 0) {
       alert(`🎉 접속한 ${total}명 모두 ${currentIdx + 1}번 문제에 응답했습니다!`);
     } else {
-      alert(`📋 ${currentIdx + 1}번 문제 응답 현황 (${answeredCount}/${total}명 완료)
-
-⏳ 아직 안 누른 학생 (${missingList.length}명):
-${missingList.join(", ")}`);
+      alert(`📋 ${currentIdx + 1}번 문제 응답 현황 (${answeredCount}/${total}명 완료)\n\n⏳ 아직 안 누른 학생 (${missingList.length}명):\n${missingList.join(", ")}`);
     }
   }
 
@@ -1749,13 +2035,13 @@ ${missingList.join(", ")}`);
     renderTeacherLobby();
     bc.postMessage({ type: "ROSTER_CLEARED" });
     if (config.firebaseUrl) {
-      const url = config.firebaseUrl.replace(/\/$/, "") + "/live_responses.json";
+      const url = config.firebaseUrl.replace(/\/$/, "") + getRoomPath("live_responses");
       await fetch(url, { method: "DELETE" }).catch(() => {});
     }
   }
 
   async function resetStudentRoster() {
-    if (!confirm("새로운 반 수업을 위해 현재 접속된 학생 응답 명단을 모두 초기화할까요?")) return;
+    if (!confirm(`[${getRoomKey()} 방] 새로운 반 수업을 위해 현재 접속된 학생 응답 명단을 모두 초기화할까요?`)) return;
     await clearRosterData();
     currentIdx = 0;
     renderTeacherLobby();
@@ -1794,8 +2080,8 @@ ${missingList.join(", ")}`);
     if (!bestKoreanVoice) loadBestKoreanVoice();
 
     const cleanText = text
-      .replace(/O/g, "오")
-      .replace(/X/g, "엑스");
+      .replace(/\bO\b/g, "오")
+      .replace(/\bX\b/g, "엑스");
 
     const utter = new SpeechSynthesisUtterance(cleanText);
     utter.lang = "ko-KR";
@@ -1892,7 +2178,7 @@ ${missingList.join(", ")}`);
 
   function startQuizFromLobby() {
     if (questions.length === 0) {
-      alert("등록된 문제가 없습니다. 먼저 [📝 출제·설정]에서 문제를 등록해주세요.");
+      alert("등록된 문제가 없습니다. 먼저 [📝 출제·설정]에서 문제를 등록하거나 학년 세트를 불러와 주세요.");
       return;
     }
     backToLiveBoard();
@@ -1938,6 +2224,7 @@ ${missingList.join(", ")}`);
     clearTeacherTimer();
     isTeacherLiveMode = false;
     isTeacherLobbyMode = false;
+    updateSessionSummaryUI();
     document.body.classList.add("allow-scroll");
     document.getElementById("main-container").classList.remove("projector-mode");
     document.getElementById("main-header").classList.remove("hidden");
@@ -1984,7 +2271,7 @@ ${missingList.join(", ")}`);
     if (currentIdx >= questions.length) currentIdx = Math.max(0, questions.length - 1);
     const q = questions[currentIdx];
     document.getElementById("tc-q-num").innerText = `문제 ${currentIdx + 1} / ${questions.length}`;
-    
+
     const tcLeftPane = document.getElementById("tc-left-pane");
     const tcImgWrap = document.getElementById("tc-q-img-wrap");
     const imgEl = document.getElementById("tc-q-img");
@@ -2081,8 +2368,7 @@ ${missingList.join(", ")}`);
     if (isPushedToStudent && teacherTimerInterval) {
       const { total, missingList } = getResponseSummary();
       if (total > 0 && missingList.length > 0) {
-        const ok = confirm(`아직 제한시간이 남았고 ${missingList.length}명(${missingList.join(", ")})이 답을 고르지 않았습니다.
-그래도 다음 문제로 넘어갈까요?`);
+        const ok = confirm(`아직 제한시간이 남았고 ${missingList.length}명(${missingList.join(", ")})이 답을 고르지 않았습니다.\n그래도 다음 문제로 넘어갈까요?`);
         if (!ok) return;
       }
     }
@@ -2108,25 +2394,16 @@ ${missingList.join(", ")}`);
     let msg = "";
 
     if (!isLastQuestion) {
-      msg = `⚠️ [주의! 아직 퀴즈가 끝나지 않았습니다]
-
-` +
-            `전체 ${questions.length}문제 중 현재 ${currentIdx + 1}번 문제까지만 진행되었습니다.
-` +
-            `지금 종료하면 ${currentIdx + 2}번~${questions.length}번 문제는 모두 미응답(0점) 처리되며, 다시 이어서 풀 수 없습니다.
-
-` +
+      msg = `⚠️ [주의! 아직 퀴즈가 끝나지 않았습니다]\n\n` +
+            `전체 ${questions.length}문제 중 현재 ${currentIdx + 1}번 문제까지만 진행되었습니다.\n` +
+            `지금 종료하면 ${currentIdx + 2}번~${questions.length}번 문제는 모두 미응답(0점) 처리되며, 다시 이어서 풀 수 없습니다.\n\n` +
             `그래도 지금 퀴즈를 중단하고 종료할까요?`;
     } else if (isPushedToStudent && total > 0 && missingList.length > 0) {
-      msg = `⚠️ 아직 마지막 문제를 풀지 않은 학생이 ${missingList.length}명(${missingList.join(", ")}) 있습니다.
-
-` +
-            `지금 종료하면 해당 학생들의 마지막 문제는 미응답 처리됩니다.
-` +
+      msg = `⚠️ 아직 마지막 문제를 풀지 않은 학생이 ${missingList.length}명(${missingList.join(", ")}) 있습니다.\n\n` +
+            `지금 종료하면 해당 학생들의 마지막 문제는 미응답 처리됩니다.\n` +
             `그래도 퀴즈를 종료하고 결과를 처리할까요?`;
     } else {
-      msg = `전체 ${questions.length}문제를 모두 마쳤습니다.
-퀴즈를 종료하고 학생들의 결과를 처리할까요?`;
+      msg = `전체 ${questions.length}문제를 모두 마쳤습니다.\n퀴즈를 종료하고 학생들의 결과를 처리할까요?`;
     }
 
     if (!confirm(msg)) return;
@@ -2137,11 +2414,13 @@ ${missingList.join(", ")}`);
     openTeacherEndScreen(total);
   }
 
-  // ==================== 실시간 상태 동기화 (경량 페이로드 전송) ====================
+  // ==================== 실시간 상태 동기화 (방별 경량 페이로드 전송) ====================
   async function broadcastState(action, extra = {}) {
     const isPush = (action === "PUSH_TO_STUDENT");
     const payload = Object.assign({
       action,
+      roomCode: getRoomKey(),
+      gradeSet: String(config.activeGradeSet || "1"),
       currentIdx,
       isPushedToStudent,
       totalCount: questions.length,
@@ -2154,7 +2433,7 @@ ${missingList.join(", ")}`);
     bc.postMessage(payload);
 
     if (config.firebaseUrl) {
-      const url = config.firebaseUrl.replace(/\/$/, "") + "/live_quiz.json";
+      const url = config.firebaseUrl.replace(/\/$/, "") + getRoomPath("live_quiz");
       try {
         await fetch(url, {
           method: "PUT",
@@ -2167,11 +2446,11 @@ ${missingList.join(", ")}`);
   }
 
   let lastTimestamp = 0;
-  function startSyncListener() {
-    connectRealtimeStreams();
 
+  function bindBroadcastChannel() {
     bc.onmessage = (e) => {
       if (!e.data) return;
+      if (e.data.roomCode && e.data.roomCode !== getRoomKey()) return;
       if (e.data.type === "STUDENT_PROGRESS") {
         liveRoster[e.data.key] = e.data;
         updateResponseCounterUI();
@@ -2192,11 +2471,16 @@ ${missingList.join(", ")}`);
       }
       handleIncomingState(e.data);
     };
+  }
 
-    // 백업 폴링 (0.6초 간격으로 초경량 상태 확인)
-    setInterval(() => {
+  function startSyncListener() {
+    connectRealtimeStreams();
+    bindBroadcastChannel();
+
+    if (quizPollInterval) clearInterval(quizPollInterval);
+    quizPollInterval = setInterval(() => {
       if (!config.firebaseUrl) return;
-      const url = config.firebaseUrl.replace(/\/$/, "") + "/live_quiz.json";
+      const url = config.firebaseUrl.replace(/\/$/, "") + getRoomPath("live_quiz");
       fetch(url)
         .then(res => res.json())
         .then(data => {
@@ -2235,8 +2519,7 @@ ${missingList.join(", ")}`);
 
     const validNamePattern = /^[가-힣a-zA-Z][가-힣a-zA-Z\s\-']*$/;
     if (!validNamePattern.test(name)) {
-      alert("이름은 한글이나 영어로만 바르게 적어주세요!
-(숫자, 특수문자, 자음·모음만 입력할 수 없어요)");
+      alert("이름은 한글이나 영어로만 바르게 적어주세요!\n(숫자, 특수문자, 자음·모음만 입력할 수 없어요)");
       nameInput.value = "";
       nameInput.focus();
       return;
@@ -2325,7 +2608,7 @@ ${missingList.join(", ")}`);
       document.getElementById("student-wait").classList.remove("hidden");
       document.getElementById("student-quiz").classList.add("hidden");
       document.getElementById("student-end").classList.add("hidden");
-    } 
+    }
     else if (data.action === "PUSH_TO_STUDENT") {
       currentIdx = data.currentIdx;
       const q = data.question || questions[currentIdx];
@@ -2340,7 +2623,7 @@ ${missingList.join(", ")}`);
       document.getElementById("student-quiz").classList.remove("hidden");
 
       document.getElementById("st-q-num").innerText = `문제 ${currentIdx + 1}`;
-      
+
       const stLeftPane = document.getElementById("st-left-pane");
       const stImgWrap = document.getElementById("st-q-img-wrap");
       const imgEl = document.getElementById("st-q-img");
@@ -2433,7 +2716,7 @@ ${missingList.join(", ")}`);
     const totalScore = correctCount * 10; // 문항당 10점 계산
     const maxScore = questions.length * 10; // 총 만점 (예: 12문제면 120점)
     document.getElementById("st-final-score").innerText = `${questions.length}문항 중 ${correctCount}개 정답! (${totalScore}점 / 총 ${maxScore}점)`;
-    
+
     if (hasSubmittedToForm) {
       document.getElementById("st-submit-status").innerText = "✅ 제출 완료";
       return;
@@ -2576,8 +2859,7 @@ ${missingList.join(", ")}`);
     }
 
     if (editingIdx < 0 && questions.length >= MAX_QUESTIONS) {
-      alert(`최대 ${MAX_QUESTIONS}문항까지만 출제할 수 있습니다.
-기존 문제를 삭제하거나 수정해 주세요.`);
+      alert(`최대 ${MAX_QUESTIONS}문항까지만 출제할 수 있습니다.\n기존 문제를 삭제하거나 수정해 주세요.`);
       return;
     }
 
@@ -2678,6 +2960,8 @@ ${missingList.join(", ")}`);
 
   function loadConfigInputs() {
     document.getElementById("cfg-teacher-pw").value = config.teacherPw || "1234";
+    document.getElementById("cfg-grade-set").value = String(config.activeGradeSet || "1");
+    document.getElementById("cfg-room-code").value = sanitizeRoomCode(config.roomCode);
     document.getElementById("cfg-time-limit").value = String(Number(config.timeLimit) || 0);
     document.getElementById("cfg-countdown-sound").value = config.countdownSound || "on";
     document.getElementById("cfg-read-options").value = config.readOptions || "auto";
@@ -2767,33 +3051,20 @@ ${missingList.join(", ")}`);
 
     const warnings = [];
     if (invalidBasicEntries.length > 0) {
-      warnings.push(`• 기본 항목 형식/누락 오류:
-  - ${invalidBasicEntries.join("
-  - ")}`);
+      warnings.push(`• 기본 항목 형식/누락 오류:\n- ${invalidBasicEntries.join("\n- ")}`);
     }
     if (invalidQuestionEntries.length > 0) {
-      warnings.push(`• 문항별 entry 형식/누락 오류 (현재 등록된 ${questions.length}문항 기준):
-  - ${invalidQuestionEntries.join("
-  - ")}`);
+      warnings.push(`• 문항별 entry 형식/누락 오류 (현재 등록된 ${questions.length}문항 기준):\n- ${invalidQuestionEntries.join("\n- ")}`);
     }
     if (duplicateEntries.length > 0) {
-      warnings.push(`• 중복 입력된 entry 번호:
-  - ${duplicateEntries.join("
-  - ")}`);
+      warnings.push(`• 중복 입력된 entry 번호:\n- ${duplicateEntries.join("\n- ")}`);
     }
 
     if (warnings.length > 0) {
       const proceed = confirm(
-        `⚠️ 구글 폼 entry 번호에 오류가 감지되었습니다!
-` +
-        `(올바른 형식 예: entry.123456789)
-
-` +
-        `${warnings.join("
-
-")}
-
-` +
+        `⚠️ 구글 폼 entry 번호에 오류가 감지되었습니다!\n` +
+        `(올바른 형식 예: entry.123456789)\n\n` +
+        `${warnings.join("\n\n")}\n\n` +
         `수정하려면 [취소]를 누르고, 무시하고 저장하려면 [확인]을 눌러주세요.`
       );
       if (!proceed) {
@@ -2803,7 +3074,12 @@ ${missingList.join(", ")}`);
       }
     }
 
+    const prevRoom = getRoomKey();
+    const nextRoom = sanitizeRoomCode(document.getElementById("cfg-room-code").value);
+
     config.teacherPw = newPw;
+    config.activeGradeSet = String(document.getElementById("cfg-grade-set").value || "1");
+    config.roomCode = nextRoom;
     config.timeLimit = Number(document.getElementById("cfg-time-limit").value) || 0;
     config.countdownSound = document.getElementById("cfg-countdown-sound").value;
     config.readOptions = document.getElementById("cfg-read-options").value;
@@ -2822,7 +3098,15 @@ ${missingList.join(", ")}`);
     }
 
     await syncBankToCloud();
+    if (prevRoom !== nextRoom) {
+      liveRoster = {};
+      recreateBroadcastChannel();
+      fetchRosterOnce();
+      updateResponseCounterUI();
+      renderTeacherLobby();
+    }
     connectRealtimeStreams();
+    updateSessionSummaryUI();
     alert("설정과 비밀번호가 클라우드에 영구 저장되었습니다!");
   }
 </script>
