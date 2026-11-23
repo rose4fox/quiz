@@ -185,6 +185,9 @@
       background: #f1f5ff; border: 1.5px solid #c5d7fb; color: #2b44a8;
       padding: 4px 12px; border-radius: 12px; font-size: 0.92rem; font-weight: bold;
     }
+    .lobby-tag-pill.school-pill {
+      background: #fff8e6; border-color: #ffd166; color: #9c5700;
+    }
     .lobby-count-pill {
       background: #eef2ff; border: 2px solid #bac8ff; color: var(--primary);
       padding: 8px 20px; border-radius: 30px; font-weight: bold;
@@ -364,32 +367,32 @@
       padding-bottom: 24px;
     }
 
-    /* 학년 세트 & 수업코드 관리 UI */
+    /* 학년 세트 & 학교 & 수업코드 관리 UI */
     .session-box {
       background: #f5f8ff; border: 2px solid #dce6ff; border-radius: 16px;
       padding: 18px;
     }
-    .session-grid {
-      display: grid; grid-template-columns: 1fr 1.6fr; gap: 16px;
+    .session-grid-3 {
+      display: grid; grid-template-columns: 1fr 1.35fr 1.45fr; gap: 14px;
     }
-    @media (max-width: 780px) {
-      .session-grid { grid-template-columns: 1fr; }
+    @media (max-width: 860px) {
+      .session-grid-3 { grid-template-columns: 1fr; }
     }
     .code-select-row {
       display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 8px;
     }
     .code-select-row select {
-      flex: 1; min-width: 150px;
+      flex: 1; min-width: 120px;
     }
     .code-input-row {
       display: flex; gap: 6px; flex-wrap: wrap;
     }
     .code-input-row input {
-      flex: 1; min-width: 160px;
+      flex: 1; min-width: 130px;
     }
     .btn-mini-action {
       background: #ffffff; border: 1.5px solid #b9ccf8; color: #264099;
-      padding: 9px 12px; border-radius: 10px; font-size: 0.88rem; font-weight: bold;
+      padding: 9px 11px; border-radius: 10px; font-size: 0.86rem; font-weight: bold;
       cursor: pointer; white-space: nowrap; transition: background 0.15s;
     }
     .btn-mini-action:hover { background: #e8efff; }
@@ -713,9 +716,14 @@
     .form-group input, .form-group select, .form-group textarea {
       width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 8px; font-size: 1rem;
     }
+    .entry-grid-6 { display: grid; grid-template-columns: repeat(6, 1fr); gap: 8px; margin: 12px 0; }
     .entry-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin: 12px 0; }
-    .entry-grid input { padding: 10px; border: 1px solid #ccc; border-radius: 8px; font-size: 0.95rem; text-align: center; width: 100%; }
-    .entry-grid input.entry-invalid {
+    @media (max-width: 720px) {
+      .entry-grid-6 { grid-template-columns: repeat(2, 1fr); }
+      .entry-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+    .entry-grid-6 input, .entry-grid input { padding: 10px; border: 1px solid #ccc; border-radius: 8px; font-size: 0.92rem; text-align: center; width: 100%; }
+    .entry-grid-6 input.entry-invalid, .entry-grid input.entry-invalid {
       border: 2px solid #d90429;
       background: #fff5f5;
     }
@@ -912,6 +920,7 @@
         <h2>🧭 코딩탐험대 입장 대기실</h2>
         <p>학생들이 반·번호·이름을 입력하고 입장할 때까지 기다려주세요. 인원을 확인한 뒤 퀴즈를 시작합니다.</p>
         <div class="lobby-meta-row">
+          <span id="lobby-school-pill" class="lobby-tag-pill school-pill">🏢 학교: 미지정</span>
           <span id="lobby-room-pill" class="lobby-tag-pill">🏫 수업코드: 미지정</span>
           <span id="lobby-grade-pill" class="lobby-tag-pill">📚 문제 세트: 1학년</span>
         </div>
@@ -992,13 +1001,14 @@
       </div>
     </div>
 
-    <!-- 학년별 문제 세트 및 수업코드 관리 -->
+    <!-- 학년별 문제 세트 · 학교 · 수업코드 관리 -->
     <div class="card">
-      <h3>📚 학년별 문제 세트 및 수업코드 관리</h3>
+      <h3>📚 학년별 문제 세트 · 학교 · 수업코드 관리</h3>
       <div class="session-box">
-        <div class="session-grid">
+        <div class="session-grid-3">
+          <!-- 1) 학년 선택 -->
           <div class="form-group" style="margin-bottom:0;">
-            <label for="cfg-grade-set">학년 선택 (선택 즉시 자동 저장·전환)</label>
+            <label for="cfg-grade-set">학년 선택 (자동 저장·전환)</label>
             <select id="cfg-grade-set" onchange="switchGradeSet(this.value)">
               <option value="1">1학년 문제 세트</option>
               <option value="2">2학년 문제 세트</option>
@@ -1009,6 +1019,21 @@
             </select>
           </div>
 
+          <!-- 2) 학교 지정 (구글 폼 자동 전송) -->
+          <div class="form-group" style="margin-bottom:0;">
+            <label for="cfg-school-select">수업 학교 지정 (구글 폼 자동 전송)</label>
+            <div class="code-select-row">
+              <select id="cfg-school-select" onchange="selectSchoolName(this.value)"></select>
+              <button type="button" class="btn-mini-action" onclick="renameSelectedSchool()">✏️ 수정</button>
+              <button type="button" class="btn-mini-action danger-soft" onclick="deleteSelectedSchool()">🗑️ 삭제</button>
+            </div>
+            <div class="code-input-row">
+              <input type="text" id="cfg-school-input" placeholder="새 학교명 입력 (예: 성남초)" />
+              <button type="button" class="btn-mini-action primary-soft" onclick="addSchoolName()">➕ 추가</button>
+            </div>
+          </div>
+
+          <!-- 3) 수업코드 관리 -->
           <div class="form-group" style="margin-bottom:0;">
             <label for="cfg-room-select">수업코드 조회 · 추가 · 수정 · 삭제</label>
             <div class="code-select-row">
@@ -1017,7 +1042,7 @@
               <button type="button" class="btn-mini-action danger-soft" onclick="deleteSelectedLessonCode()">🗑️ 삭제</button>
             </div>
             <div class="code-input-row">
-              <input type="text" id="cfg-room-code" placeholder="새 수업코드 입력 (예: 학교A_3반)" />
+              <input type="text" id="cfg-room-code" placeholder="새 수업코드 입력 (예: 3학년_1반)" />
               <button type="button" class="btn-mini-action primary-soft" onclick="addLessonCode()">➕ 추가</button>
             </div>
           </div>
@@ -1025,14 +1050,14 @@
 
         <div class="session-actions-row">
           <p id="grade-set-summary" class="session-hint" style="margin:0;">
-            선택 세트: <b>1학년</b> · 수업코드: <b>미지정</b> · 참가자: <b>0명</b>
+            선택 세트: <b>1학년</b> · 학교: <b>미지정</b> · 수업코드: <b>미지정</b> · 참가자: <b>0명</b>
           </p>
           <button type="button" class="btn-mini-action danger-soft" onclick="clearCurrentGradeSetQuestions()">🗑️ 현재 학년 문제 비우기</button>
         </div>
 
         <p class="session-hint">
           • 학년을 바꾸면 기존 학년 문제는 자동 보관되고, 선택한 학년의 문제 목록(없으면 0문항)으로 바로 바뀝니다.<br>
-          • 수업코드를 선택하면 해당 코드의 현재 참가자 명단과 진행 상태가 바로 조회되며, 여러 학교나 반을 함께 진행할 때 코드별로 섞이지 않게 구분됩니다.
+          • <b>수업 학교</b>를 지정해 두면 학생은 학교명을 따로 입력하지 않아도 퀴즈 종료 시 구글 폼에 선택한 학교명이 자동으로 함께 제출됩니다.
         </p>
       </div>
     </div>
@@ -1150,8 +1175,9 @@
         <input type="text" id="cfg-form-url" placeholder="https://docs.google.com/forms/d/e/.../formResponse" />
       </div>
 
-      <label style="font-weight:bold; display:block; margin-top:14px;">기본 인적사항 &amp; 점수 entry 번호</label>
-      <div class="entry-grid">
+      <label style="font-weight:bold; display:block; margin-top:14px;">학교 · 기본 인적사항 &amp; 점수 entry 번호</label>
+      <div class="entry-grid-6">
+        <input type="text" id="cfg-entry-school" placeholder="학교 entry.번호" />
         <input type="text" id="cfg-entry-grade" placeholder="학년 entry.번호" />
         <input type="text" id="cfg-entry-class" placeholder="반 entry.번호" />
         <input type="text" id="cfg-entry-num" placeholder="번호 entry.번호" />
@@ -1241,6 +1267,8 @@
   const DEFAULT_CONFIG = {
     teacherPw: "1234",
     activeGradeSet: "1",
+    schoolName: "",
+    schoolList: [],
     roomCode: "",
     lessonCodes: [],
     timeLimit: 0, // 0이면 제한 없음, 양수면 제한 초(sec)
@@ -1248,7 +1276,7 @@
     readOptions: "auto", // "auto" | "none" | "question_only" | "with_options"
     firebaseUrl: "https://coding-quiz-2026-default-rtdb.asia-southeast1.firebasedatabase.app",
     formUrl: "",
-    entryGrade: "", entryClass: "", entryNum: "", entryName: "", entryScore: "",
+    entrySchool: "", entryGrade: "", entryClass: "", entryNum: "", entryName: "", entryScore: "",
     entryQ01: "", entryQ02: "", entryQ03: "", entryQ04: "", entryQ05: "",
     entryQ06: "", entryQ07: "", entryQ08: "", entryQ09: "", entryQ10: "",
     entryQ11: "", entryQ12: "", entryQ13: "", entryQ14: "", entryQ15: "",
@@ -1274,6 +1302,23 @@
 
   function cloneData(obj) {
     return JSON.parse(JSON.stringify(obj));
+  }
+
+  function sanitizeSchoolName(raw) {
+    return String(raw || "").trim().replace(/\s+/g, " ");
+  }
+
+  function normalizeSchoolList(list, currentSchool) {
+    const set = new Set();
+    if (Array.isArray(list)) {
+      list.forEach(item => {
+        const clean = sanitizeSchoolName(item);
+        if (clean) set.add(clean);
+      });
+    }
+    const activeClean = sanitizeSchoolName(currentSchool);
+    if (activeClean) set.add(activeClean);
+    return Array.from(set);
   }
 
   function sanitizeLessonCode(raw) {
@@ -1326,6 +1371,12 @@
   if (!GRADE_LIST.includes(String(config.activeGradeSet))) {
     config.activeGradeSet = "1";
   }
+  config.schoolName = sanitizeSchoolName(config.schoolName);
+  config.schoolList = normalizeSchoolList(config.schoolList, config.schoolName);
+  if (!config.schoolName && config.schoolList.length > 0) {
+    config.schoolName = config.schoolList[0];
+  }
+
   config.roomCode = sanitizeLessonCode(config.roomCode);
   config.lessonCodes = normalizeLessonCodeList(config.lessonCodes, config.roomCode);
   if (!config.roomCode && config.lessonCodes.length > 0) {
@@ -1384,6 +1435,7 @@
       countdownSound: config.countdownSound || "on",
       readOptions: config.readOptions || "auto",
       formUrl: config.formUrl || "",
+      entrySchool: config.entrySchool || "",
       entryGrade: config.entryGrade || "",
       entryClass: config.entryClass || "",
       entryNum: config.entryNum || "",
@@ -1394,6 +1446,36 @@
       entryQ11: config.entryQ11 || "", entryQ12: config.entryQ12 || "", entryQ13: config.entryQ13 || "", entryQ14: config.entryQ14 || "", entryQ15: config.entryQ15 || "",
       entryQ16: config.entryQ16 || "", entryQ17: config.entryQ17 || "", entryQ18: config.entryQ18 || "", entryQ19: config.entryQ19 || "", entryQ20: config.entryQ20 || ""
     };
+  }
+
+  function escapeHtml(str) {
+    return String(str || "")
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;");
+  }
+
+  function escapeHtmlAttr(str) {
+    return String(str || "").replace(/"/g, "&quot;");
+  }
+
+  function renderSchoolSelect() {
+    const selectEl = document.getElementById("cfg-school-select");
+    if (!selectEl) return;
+    const schools = normalizeSchoolList(config.schoolList, config.schoolName);
+    config.schoolList = schools;
+    const activeSchool = sanitizeSchoolName(config.schoolName);
+
+    if (schools.length === 0) {
+      selectEl.innerHTML = `<option value="">등록된 학교 없음 (아래에서 추가)</option>`;
+      selectEl.value = "";
+    } else {
+      selectEl.innerHTML = schools
+        .map(s => `<option value="${escapeHtmlAttr(s)}">${escapeHtml(s)}</option>`)
+        .join("");
+      selectEl.value = schools.includes(activeSchool) ? activeSchool : "";
+    }
   }
 
   function renderLessonCodeSelect() {
@@ -1414,26 +1496,16 @@
     }
   }
 
-  function escapeHtml(str) {
-    return String(str || "")
-      .replace(/&/g, "&amp;")
-      .replace(/</g, "&lt;")
-      .replace(/>/g, "&gt;")
-      .replace(/"/g, "&quot;");
-  }
-
-  function escapeHtmlAttr(str) {
-    return String(str || "").replace(/"/g, "&quot;");
-  }
-
   function updateSessionSummaryUI() {
     const gradeVal = String(config.activeGradeSet || "1");
+    const schoolVal = sanitizeSchoolName(config.schoolName);
     const codeVal = getRoomKey();
     const rosterCount = Object.values(liveRoster || {}).filter(item => item && item.info).length;
 
     const gradeSelect = document.getElementById("cfg-grade-set");
     if (gradeSelect) gradeSelect.value = gradeVal;
 
+    renderSchoolSelect();
     renderLessonCodeSelect();
 
     const summaryEl = document.getElementById("grade-set-summary");
@@ -1442,10 +1514,16 @@
         const cnt = (gradeSets[g] && Array.isArray(gradeSets[g].questions)) ? gradeSets[g].questions.length : 0;
         return `${g}학년(${cnt}문항)`;
       }).join(" · ");
+      const schoolText = schoolVal ? `<b>${escapeHtml(schoolVal)}</b>` : `<span style="color:#c53030; font-weight:bold;">미지정</span>`;
       const codeText = codeVal ? `<b>${escapeHtml(codeVal)}</b>` : `<span style="color:#c53030; font-weight:bold;">미지정</span>`;
       summaryEl.innerHTML =
-        `선택 세트: <b>${gradeVal}학년</b> · 수업코드: ${codeText} · 참가자: <b>${rosterCount}명</b><br>` +
+        `선택 세트: <b>${gradeVal}학년</b> · 학교: ${schoolText} · 수업코드: ${codeText} · 참가자: <b>${rosterCount}명</b><br>` +
         `<span style="color:#64748b;">학년별 보관: ${savedCounts}</span>`;
+    }
+
+    const lobbySchoolPill = document.getElementById("lobby-school-pill");
+    if (lobbySchoolPill) {
+      lobbySchoolPill.innerText = schoolVal ? `🏢 학교: ${schoolVal}` : "🏢 학교: 미지정";
     }
 
     const lobbyRoomPill = document.getElementById("lobby-room-pill");
@@ -1457,7 +1535,77 @@
     if (lobbyGradePill) lobbyGradePill.innerText = `📚 문제 세트: ${gradeVal}학년`;
   }
 
-  // 드롭다운에서 학년을 선택하는 즉시 기존 학년 세트 자동 백업 후 새 학년 문제로 전환
+  // ==================== 학교명 추가 · 선택 · 수정 · 삭제 ====================
+  async function selectSchoolName(selectedVal) {
+    const cleanSchool = sanitizeSchoolName(selectedVal);
+    if (!cleanSchool) return;
+    config.schoolName = cleanSchool;
+    config.schoolList = normalizeSchoolList(config.schoolList, cleanSchool);
+    updateSessionSummaryUI();
+    await syncBankToCloud();
+  }
+
+  async function addSchoolName() {
+    const inputEl = document.getElementById("cfg-school-input");
+    const cleanSchool = sanitizeSchoolName(inputEl ? inputEl.value : "");
+    if (!cleanSchool) {
+      alert("추가할 학교명을 입력해 주세요.");
+      if (inputEl) inputEl.focus();
+      return;
+    }
+
+    config.schoolList = normalizeSchoolList([...(config.schoolList || []), cleanSchool], cleanSchool);
+    config.schoolName = cleanSchool;
+    if (inputEl) inputEl.value = "";
+    updateSessionSummaryUI();
+    await syncBankToCloud();
+    alert(`학교 [${cleanSchool}]가 추가되고 선택되었습니다.`);
+  }
+
+  async function renameSelectedSchool() {
+    const currentSchool = sanitizeSchoolName(config.schoolName);
+    if (!currentSchool) {
+      alert("이름을 수정할 학교를 먼저 선택해 주세요.");
+      return;
+    }
+
+    const inputEl = document.getElementById("cfg-school-input");
+    const suggested = (inputEl && sanitizeSchoolName(inputEl.value)) || currentSchool;
+    const nextRaw = prompt(`학교 [${currentSchool}]의 새 이름을 입력하세요.`, suggested);
+    if (nextRaw === null) return;
+
+    const nextSchool = sanitizeSchoolName(nextRaw);
+    if (!nextSchool) {
+      alert("올바른 학교명을 입력해 주세요.");
+      return;
+    }
+    if (nextSchool === currentSchool) return;
+
+    config.schoolList = (config.schoolList || []).map(s => (s === currentSchool ? nextSchool : s));
+    config.schoolList = normalizeSchoolList(config.schoolList, nextSchool);
+    config.schoolName = nextSchool;
+    if (inputEl) inputEl.value = "";
+    updateSessionSummaryUI();
+    await syncBankToCloud();
+    alert(`학교명이 [${currentSchool}]에서 [${nextSchool}](으)로 수정되었습니다.`);
+  }
+
+  async function deleteSelectedSchool() {
+    const currentSchool = sanitizeSchoolName(config.schoolName);
+    if (!currentSchool) {
+      alert("삭제할 학교가 없습니다.");
+      return;
+    }
+    if (!confirm(`학교 [${currentSchool}]를 목록에서 삭제할까요?`)) return;
+
+    config.schoolList = (config.schoolList || []).filter(s => s !== currentSchool);
+    config.schoolName = config.schoolList[0] || "";
+    updateSessionSummaryUI();
+    await syncBankToCloud();
+    alert(`학교 [${currentSchool}]가 삭제되었습니다.`);
+  }
+
+  // ==================== 학년별 문제 세트 전환 ====================
   async function switchGradeSet(newGradeKey) {
     const prevGrade = String(config.activeGradeSet || "1");
     const nextGrade = GRADE_LIST.includes(String(newGradeKey)) ? String(newGradeKey) : "1";
@@ -1517,6 +1665,7 @@
     alert(`${gradeKey}학년 문제 세트가 비워졌습니다.`);
   }
 
+  // ==================== 수업코드 추가 · 조회 · 수정 · 삭제 ====================
   async function activateLessonCode(targetCode) {
     const cleanCode = sanitizeLessonCode(targetCode);
     config.roomCode = cleanCode;
@@ -1539,8 +1688,6 @@
   async function selectLessonCode(selectedVal) {
     const cleanCode = sanitizeLessonCode(selectedVal);
     if (!cleanCode) return;
-    const inputEl = document.getElementById("cfg-room-code");
-    if (inputEl) inputEl.value = cleanCode;
     await activateLessonCode(cleanCode);
   }
 
@@ -1814,6 +1961,11 @@
           if (!GRADE_LIST.includes(String(config.activeGradeSet))) {
             config.activeGradeSet = "1";
           }
+          config.schoolName = sanitizeSchoolName(config.schoolName);
+          config.schoolList = normalizeSchoolList(config.schoolList, config.schoolName);
+          if (!config.schoolName && config.schoolList.length > 0) {
+            config.schoolName = config.schoolList[0];
+          }
           config.roomCode = sanitizeLessonCode(config.roomCode);
           config.lessonCodes = normalizeLessonCodeList(config.lessonCodes, config.roomCode);
           if (!config.roomCode && config.lessonCodes.length > 0) {
@@ -1847,6 +1999,8 @@
 
   async function syncBankToCloud() {
     config = normalizeEntryKeys(config);
+    config.schoolName = sanitizeSchoolName(config.schoolName);
+    config.schoolList = normalizeSchoolList(config.schoolList, config.schoolName);
     config.roomCode = sanitizeLessonCode(config.roomCode);
     config.lessonCodes = normalizeLessonCodeList(config.lessonCodes, config.roomCode);
     const activeGrade = String(config.activeGradeSet || "1");
@@ -2611,12 +2765,13 @@
     openTeacherEndScreen(total);
   }
 
-  // ==================== 실시간 상태 동기화 (수업코드별 경량 페이로드 전송) ====================
+  // ==================== 실시간 상태 동기화 (수업코드·학교명 포함 경량 페이로드 전송) ====================
   async function broadcastState(action, extra = {}) {
     const isPush = (action === "PUSH_TO_STUDENT");
     const payload = Object.assign({
       action,
       roomCode: getRoomKey(),
+      schoolName: sanitizeSchoolName(config.schoolName),
       gradeSet: String(config.activeGradeSet || "1"),
       currentIdx,
       isPushedToStudent,
@@ -2793,6 +2948,10 @@
   function handleIncomingState(data) {
     if (!data) return;
 
+    if (data.schoolName !== undefined) {
+      config.schoolName = sanitizeSchoolName(data.schoolName);
+    }
+
     if (data.action === "RESET_TO_LOGIN") {
       resetStudentToLogin();
       return;
@@ -2881,7 +3040,7 @@
     else if (data.action === "FINISH_QUIZ") {
       stopSpeech();
       clearStudentTimer();
-      submitToGoogleForm();
+      submitToGoogleForm(data.schoolName);
     }
   }
 
@@ -2901,7 +3060,7 @@
     reportStudentProgress();
   }
 
-  function submitToGoogleForm() {
+  function submitToGoogleForm(overrideSchoolName = "") {
     document.getElementById("student-wait").classList.add("hidden");
     document.getElementById("student-quiz").classList.add("hidden");
     document.getElementById("student-end").classList.remove("hidden");
@@ -2928,7 +3087,9 @@
       return;
     }
 
+    const schoolVal = sanitizeSchoolName(overrideSchoolName || config.schoolName);
     const formData = new FormData();
+    if (config.entrySchool && schoolVal) formData.append(config.entrySchool, schoolVal);
     if (config.entryGrade) formData.append(config.entryGrade, studentInfo.grade);
     if (config.entryClass) formData.append(config.entryClass, studentInfo.cls);
     if (config.entryNum) formData.append(config.entryNum, studentInfo.num);
@@ -3161,7 +3322,10 @@
   function loadConfigInputs() {
     document.getElementById("cfg-teacher-pw").value = config.teacherPw || "1234";
     document.getElementById("cfg-grade-set").value = String(config.activeGradeSet || "1");
+    renderSchoolSelect();
     renderLessonCodeSelect();
+    const schoolInput = document.getElementById("cfg-school-input");
+    if (schoolInput && !schoolInput.value) schoolInput.value = "";
     const roomInput = document.getElementById("cfg-room-code");
     if (roomInput && !roomInput.value) roomInput.value = "";
     document.getElementById("cfg-time-limit").value = String(Number(config.timeLimit) || 0);
@@ -3169,6 +3333,7 @@
     document.getElementById("cfg-read-options").value = config.readOptions || "auto";
     document.getElementById("cfg-firebase").value = config.firebaseUrl || DEFAULT_CONFIG.firebaseUrl;
     document.getElementById("cfg-form-url").value = config.formUrl || "";
+    document.getElementById("cfg-entry-school").value = config.entrySchool || "";
     document.getElementById("cfg-entry-grade").value = config.entryGrade || "";
     document.getElementById("cfg-entry-class").value = config.entryClass || "";
     document.getElementById("cfg-entry-num").value = config.entryNum || "";
@@ -3196,7 +3361,16 @@
     const seenEntries = new Map();
     const duplicateEntries = [];
 
-    document.querySelectorAll(".entry-grid input").forEach(inp => inp.classList.remove("entry-invalid"));
+    document.querySelectorAll(".entry-grid-6 input, .entry-grid input").forEach(inp => inp.classList.remove("entry-invalid"));
+
+    const schoolEntryEl = document.getElementById("cfg-entry-school");
+    const schoolEntryVal = (schoolEntryEl ? schoolEntryEl.value : "").trim();
+    if (schoolEntryVal && !entryPattern.test(schoolEntryVal)) {
+      invalidBasicEntries.push(`학교 (${schoolEntryVal})`);
+      if (schoolEntryEl) schoolEntryEl.classList.add("entry-invalid");
+    } else if (entryPattern.test(schoolEntryVal)) {
+      seenEntries.set(schoolEntryVal, "학교");
+    }
 
     const basicFields = [
       { id: "cfg-entry-grade", label: "학년" },
@@ -3270,11 +3444,14 @@
         `수정하려면 [취소]를 누르고, 무시하고 저장하려면 [확인]을 눌러주세요.`
       );
       if (!proceed) {
-        const firstInvalid = document.querySelector(".entry-grid input.entry-invalid");
+        const firstInvalid = document.querySelector(".entry-grid-6 input.entry-invalid, .entry-grid input.entry-invalid");
         if (firstInvalid) firstInvalid.focus();
         return;
       }
     }
+
+    const typedSchool = sanitizeSchoolName(document.getElementById("cfg-school-input").value);
+    const nextSchool = typedSchool || sanitizeSchoolName(config.schoolName);
 
     const prevCode = getRoomKey();
     const typedCode = sanitizeLessonCode(document.getElementById("cfg-room-code").value);
@@ -3282,6 +3459,12 @@
 
     config.teacherPw = newPw;
     config.activeGradeSet = String(document.getElementById("cfg-grade-set").value || "1");
+    config.schoolName = nextSchool;
+    config.schoolList = normalizeSchoolList(config.schoolList, nextSchool);
+    if (typedSchool && document.getElementById("cfg-school-input")) {
+      document.getElementById("cfg-school-input").value = "";
+    }
+
     config.roomCode = nextCode;
     config.lessonCodes = normalizeLessonCodeList(config.lessonCodes, nextCode);
     if (typedCode && document.getElementById("cfg-room-code")) {
@@ -3292,6 +3475,7 @@
     config.readOptions = document.getElementById("cfg-read-options").value;
     config.firebaseUrl = document.getElementById("cfg-firebase").value.trim() || DEFAULT_CONFIG.firebaseUrl;
     config.formUrl = formUrlVal;
+    config.entrySchool = schoolEntryVal;
     config.entryGrade = document.getElementById("cfg-entry-grade").value.trim();
     config.entryClass = document.getElementById("cfg-entry-class").value.trim();
     config.entryNum = document.getElementById("cfg-entry-num").value.trim();
