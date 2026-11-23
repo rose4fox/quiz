@@ -882,14 +882,14 @@
     <div id="student-login" class="login-wrap">
       <div>
         <span class="welcome-badge">🎈 코딩탐험대 출석 체크</span>
-        <h2 class="login-title">반, 번호, 이름을 적어주세요! 😊</h2>
+        <h2 class="login-title">학년, 반, 번호, 이름을 적어주세요! 😊</h2>
       </div>
 
       <div class="login-box">
         <div class="login-grid">
           <div class="input-field">
             <label for="st-grade">학년</label>
-            <input type="number" id="st-grade" value="1" min="1" max="6" />
+            <input type="number" id="st-grade" min="1" max="6" />
           </div>
           <div class="input-field">
             <label for="st-class">반</label>
@@ -1020,7 +1020,7 @@
     <div class="lobby-header">
       <div class="lobby-title-group">
         <h2>🧭 코딩탐험대 입장 대기실</h2>
-        <p>학생들이 반·번호·이름을 입력하고 입장할 때까지 기다려주세요. 인원을 확인한 뒤 퀴즈를 시작합니다.</p>
+        <p>학생들이 학년·반·번호·이름을 입력하고 입장할 때까지 기다려주세요. 인원을 확인한 뒤 퀴즈를 시작합니다.</p>
         <div class="lobby-meta-row">
           <span id="lobby-school-pill" class="lobby-tag-pill school-pill">🏢 학교: 미지정</span>
           <span id="lobby-room-pill" class="lobby-tag-pill">🏫 수업코드: 미지정</span>
@@ -2004,8 +2004,8 @@
     startSyncListener();
     startTeacherRosterPolling();
 
-    const classInput = document.getElementById("st-class");
-    if (classInput) classInput.focus();
+    const gradeInput = document.getElementById("st-grade");
+    if (gradeInput) gradeInput.focus();
   };
 
   function setupNameImeHelper() {
@@ -2952,12 +2952,18 @@
 
   // ==================== 학생 화면 로직 ====================
   function startStudent() {
-    const grade = document.getElementById("st-grade").value.trim();
+    const gradeInput = document.getElementById("st-grade");
+    const grade = gradeInput.value.trim();
     const cls = document.getElementById("st-class").value.trim();
     const num = document.getElementById("st-num").value.trim();
     const nameInput = document.getElementById("st-name");
     const name = nameInput.value.trim();
 
+    if (!grade || Number(grade) < 1 || Number(grade) > 6) {
+      alert("몇 학년인지 1~6 사이 숫자로 적어주세요!");
+      gradeInput.focus();
+      return;
+    }
     if (!cls || Number(cls) < 1) {
       alert("몇 반인지 숫자로 적어주세요!");
       document.getElementById("st-class").focus();
@@ -3004,6 +3010,7 @@
     studentAnswers = {};
     hasSubmittedToForm = false;
 
+    document.getElementById("st-grade").value = "";
     document.getElementById("st-class").value = "";
     document.getElementById("st-num").value = "";
     document.getElementById("st-name").value = "";
@@ -3013,8 +3020,8 @@
     document.getElementById("student-end").classList.add("hidden");
     document.getElementById("student-login").classList.remove("hidden");
 
-    const classInput = document.getElementById("st-class");
-    if (classInput) classInput.focus();
+    const gradeInput = document.getElementById("st-grade");
+    if (gradeInput) gradeInput.focus();
   }
 
   // 학생이 인적사항을 잘못 입력했을 때 대기 화면에서 다시 입력 화면으로 복귀
@@ -3032,7 +3039,7 @@
     }
 
     if (prevInfo) {
-      document.getElementById("st-grade").value = prevInfo.grade || "1";
+      document.getElementById("st-grade").value = prevInfo.grade || "";
       document.getElementById("st-class").value = prevInfo.cls || "";
       document.getElementById("st-num").value = prevInfo.num || "";
       document.getElementById("st-name").value = prevInfo.name || "";
