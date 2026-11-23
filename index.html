@@ -151,6 +151,9 @@
       font-weight: bold; cursor: pointer; white-space: nowrap; transition: background 0.15s;
     }
     .nav-btn:hover { background: rgba(255,255,255,0.28); }
+    .nav-btn.prev-spaced {
+      margin-left: 14px;
+    }
     .nav-btn.push { background: #2b9348; border-color: #2b9348; color: white; }
     .nav-btn.reveal { background: #7209b7; border-color: #7209b7; color: white; }
     .nav-btn.finish {
@@ -163,6 +166,7 @@
       .teacher-bottom-bar { padding: 5px 8px; }
       .mini-remote { gap: 4px; }
       .status-dot, .resp-badge, .nav-btn { font-size: 0.78rem; padding: 4px 7px; }
+      .nav-btn.prev-spaced { margin-left: 10px; }
       .nav-btn.finish { margin-left: 10px; }
     }
 
@@ -1347,7 +1351,7 @@
       👥 응답: 0 / 0명
     </button>
     <button class="nav-btn" onclick="openTeacherLobby()" title="학생 입장 대기실 화면으로 이동">👥 대기실</button>
-    <button class="nav-btn" onclick="prevQuestion()" title="단축키: 왼쪽 방향키 (←)">◀</button>
+    <button class="nav-btn prev-spaced" onclick="prevQuestion()" title="단축키: 왼쪽 방향키 (←)">◀ 이전</button>
     <button class="nav-btn" onclick="speakCurrentQuestion(true)" title="단축키: R (문제 읽기)">🔊 읽기</button>
     <button class="nav-btn push" onclick="pushToStudents()" title="단축키: Space">📢 학생전송</button>
     <button class="nav-btn reveal" onclick="revealAnswerOnBoard()" title="단축키: Enter">✨ 정답</button>
