@@ -387,8 +387,16 @@
       cursor: pointer; white-space: nowrap; transition: background 0.15s;
     }
     .btn-mini-action:hover { background: #e8efff; }
+    .btn-mini-action.danger-soft {
+      background: #fff5f5; border-color: #feb2b2; color: #c53030;
+    }
+    .btn-mini-action.danger-soft:hover { background: #fed7d7; }
+    .session-actions-row {
+      display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between;
+      gap: 10px; margin-top: 12px;
+    }
     .session-hint {
-      margin: 12px 0 0 0; font-size: 0.88rem; color: #475569; line-height: 1.5;
+      margin: 10px 0 0 0; font-size: 0.88rem; color: #475569; line-height: 1.5;
     }
 
     /* ==================== 학생 대기 화면 ==================== */
@@ -999,11 +1007,15 @@
           </div>
         </div>
 
-        <p id="grade-set-summary" class="session-hint">
-          선택 세트: <b>1학년</b> · 수업 방: <b>default</b>
-        </p>
+        <div class="session-actions-row">
+          <p id="grade-set-summary" class="session-hint" style="margin:0;">
+            선택 세트: <b>1학년</b> · 수업 방: <b>default</b>
+          </p>
+          <button type="button" class="btn-mini-action danger-soft" onclick="clearCurrentGradeSetQuestions()">🗑️ 현재 학년 문제 비우기</button>
+        </div>
+
         <p class="session-hint">
-          • 위에서 학년을 바꾸면 기존 학년 문제는 자동 보관되고 선택한 학년 문제 목록으로 바로 바뀝니다.<br>
+          • 학년을 바꾸면 기존 학년 문제는 자동 보관되고, 선택한 학년의 문제 목록(없으면 0문항)으로 바로 바뀝니다.<br>
           • 여러 학교나 반·학년을 함께 운영할 때는 수업 방 코드를 다르게 입력해 진행 화면과 출석 명단이 섞이지 않도록 구분할 수 있습니다.
         </p>
       </div>
@@ -1400,11 +1412,6 @@
     const targetSet = gradeSets[nextGrade];
     if (targetSet && Array.isArray(targetSet.questions)) {
       questions = cloneData(targetSet.questions);
-      if (targetSet.configSnapshot) {
-        Object.assign(config, cloneData(targetSet.configSnapshot));
-        config.activeGradeSet = nextGrade;
-        loadConfigInputs();
-      }
     } else {
       questions = [];
       gradeSets[nextGrade] = {
@@ -1422,6 +1429,29 @@
     renderTeacherView();
     updateSessionSummaryUI();
     await syncBankToCloud();
+  }
+
+  async function clearCurrentGradeSetQuestions() {
+    const gradeKey = String(config.activeGradeSet || "1");
+    if (questions.length === 0) {
+      alert(`${gradeKey}학년 문제 세트는 이미 비어 있습니다.`);
+      return;
+    }
+    if (!confirm(`${gradeKey}학년 문제 세트의 등록된 문제(${questions.length}문항)를 모두 비울까요?`)) return;
+
+    cancelEditQuestion();
+    questions = [];
+    currentIdx = 0;
+    gradeSets[gradeKey] = {
+      questions: [],
+      configSnapshot: buildConfigSnapshot(),
+      updatedAt: Date.now()
+    };
+    renderQuestionList();
+    renderTeacherView();
+    updateSessionSummaryUI();
+    await syncBankToCloud();
+    alert(`${gradeKey}학년 문제 세트가 비워졌습니다.`);
   }
 
   function syncRoomFromGradeSet() {
