@@ -26,39 +26,64 @@
     }
     body.allow-scroll { overflow-y: auto; height: auto; min-height: 100dvh; }
 
-    /* 중복 탭 경고 배너 */
-    .dup-tab-banner {
-      background: #fff3cd;
-      color: #7c4700;
-      border-bottom: 2px solid #ffca3a;
-      padding: 8px 16px;
-      font-size: 0.92rem;
-      font-weight: bold;
+    /* 중복 탭 중앙 팝업 모달 (눈에 확 띄게 표시) */
+    .dup-modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.65);
+      backdrop-filter: blur(2px);
       display: flex;
       align-items: center;
-      justify-content: space-between;
-      gap: 10px;
-      flex-shrink: 0;
-      z-index: 9500;
+      justify-content: center;
+      z-index: 99999;
+      padding: 18px;
     }
-    .dup-tab-actions {
+    .dup-modal-box {
+      background: #fffdf5;
+      border: 4px solid #ffca3a;
+      border-radius: 24px;
+      padding: 28px 24px;
+      width: 100%;
+      max-width: 440px;
+      text-align: center;
+      box-shadow: 0 20px 45px rgba(0, 0, 0, 0.3);
+      animation: popIn 0.2s ease-out;
+    }
+    .dup-modal-icon {
+      font-size: 3.4rem;
+      line-height: 1;
+      margin-bottom: 10px;
+    }
+    .dup-modal-title {
+      margin: 0 0 10px 0;
+      font-size: 1.45rem;
+      font-weight: 900;
+      color: #7c4700;
+    }
+    .dup-modal-desc {
+      margin: 0 0 20px 0;
+      font-size: 1.05rem;
+      line-height: 1.5;
+      color: #333333;
+      word-break: keep-all;
+    }
+    .dup-modal-btns {
       display: flex;
-      align-items: center;
-      gap: 6px;
-      flex-shrink: 0;
+      justify-content: center;
+      gap: 10px;
+      flex-wrap: wrap;
     }
     .dup-tab-btn {
       background: #ffffff;
-      border: 1.5px solid #e0a800;
-      color: #7c4700;
-      border-radius: 8px;
-      padding: 4px 10px;
-      font-size: 0.82rem;
+      border: 2px solid #cbd5e1;
+      color: #334155;
+      border-radius: 12px;
+      padding: 11px 18px;
+      font-size: 0.98rem;
       font-weight: bold;
       cursor: pointer;
-      white-space: nowrap;
     }
-    .dup-tab-btn:hover { background: #fff9e6; }
+    .dup-tab-btn:hover { background: #f1f5f9; }
     .dup-tab-btn.primary {
       background: #d90429;
       border-color: #d90429;
@@ -865,11 +890,18 @@
 </head>
 <body>
 
-<div id="dup-tab-banner" class="dup-tab-banner hidden">
-  <span id="dup-tab-msg">⚠️ 이미 퀴즈챌린지 창이 열려 있어요! 중복 탭은 닫고 기존 창에서 이어서 진행해 주세요.</span>
-  <div class="dup-tab-actions">
-    <button type="button" class="dup-tab-btn primary" onclick="closeCurrentTabSafely()">이 탭 닫기</button>
-    <button type="button" class="dup-tab-btn" onclick="dismissDupTabBanner()">확인</button>
+<div id="dup-tab-modal" class="dup-modal-backdrop hidden">
+  <div class="dup-modal-box">
+    <div class="dup-modal-icon">⚠️</div>
+    <h3 class="dup-modal-title">이미 퀴즈챌린지가 열려 있어요!</h3>
+    <p id="dup-tab-desc" class="dup-modal-desc">
+      브라우저에 퀴즈챌린지 창이 이미 열려 있습니다.<br>
+      중복으로 열린 창은 닫고, <b>먼저 열린 창</b>에서 이어서 진행해 주세요!
+    </p>
+    <div class="dup-modal-btns">
+      <button type="button" class="dup-tab-btn primary" onclick="closeCurrentTabSafely()">이 중복 탭 닫기</button>
+      <button type="button" class="dup-tab-btn" onclick="dismissDupTabBanner()">닫기(계속 보기)</button>
+    </div>
   </div>
 </div>
 
@@ -1365,7 +1397,7 @@
   const TAB_SESSION_ID = "tab_" + Date.now().toString(36) + "_" + Math.random().toString(36).slice(2, 7);
   const GLOBAL_TAB_CHANNEL_NAME = "coding_quiz_global_tab_guard";
   const ACTIVE_TAB_LOCK_KEY = "coding_quiz_active_tab_lock";
-  const TAB_LOCK_TTL_MS = 3500;
+  const TAB_LOCK_TTL_MS = 4000;
 
   const DEFAULT_CONFIG = {
     teacherPw: "1234",
@@ -1546,7 +1578,7 @@
     return "퀴즈챌린지 화면을 닫으시겠습니까?";
   });
 
-  // ==================== 2. 중복 탭 열림 감지 및 방지 ====================
+  // ==================== 2. 중복 탭 열림 즉시 감지 및 중앙 팝업 ====================
   function readActiveTabLock() {
     try {
       const raw = localStorage.getItem(ACTIVE_TAB_LOCK_KEY);
@@ -1569,19 +1601,15 @@
     } catch (_) {}
   }
 
-  function showDupTabWarning(customMessage) {
+  function showDupTabWarning() {
     duplicateTabDetected = true;
-    const banner = document.getElementById("dup-tab-banner");
-    const msgEl = document.getElementById("dup-tab-msg");
-    if (msgEl && customMessage) {
-      msgEl.innerText = customMessage;
-    }
-    if (banner) banner.classList.remove("hidden");
+    const modal = document.getElementById("dup-tab-modal");
+    if (modal) modal.classList.remove("hidden");
   }
 
   function dismissDupTabBanner() {
-    const banner = document.getElementById("dup-tab-banner");
-    if (banner) banner.classList.add("hidden");
+    const modal = document.getElementById("dup-tab-modal");
+    if (modal) modal.classList.add("hidden");
   }
 
   function closeCurrentTabSafely() {
@@ -1599,39 +1627,34 @@
   function setupDuplicateTabGuard() {
     const existingLock = readActiveTabLock();
     if (existingLock && existingLock.tabId !== TAB_SESSION_ID) {
-      showDupTabWarning("⚠️ 이미 퀴즈챌린지 창이 열려 있어요! 중복 탭은 닫고 먼저 열린 창에서 이어서 진행해 주세요.");
+      showDupTabWarning();
     } else {
       touchActiveTabLock();
     }
 
     tabGuardBc.onmessage = (e) => {
       if (!e.data || e.data.senderTabId === TAB_SESSION_ID) return;
-      if (e.data.type === "TAB_OPENED" || e.data.type === "TAB_ALIVE") {
-        const myOpenedAt = Number(sessionStorage.getItem("quiz_tab_opened_at") || Date.now());
-        const otherOpenedAt = Number(e.data.openedAt || 0);
-        if (otherOpenedAt > 0 && myOpenedAt > otherOpenedAt) {
-          showDupTabWarning("⚠️ 이미 퀴즈챌린지 창이 열려 있어요! 중복 탭은 닫고 먼저 열린 창에서 이어서 진행해 주세요.");
-        }
+      if (e.data.type === "TAB_OPENED") {
+        // 기존 탭이 열려 있는 상태에서 새 탭이 열렸음을 알리면, 새 탭 쪽에 즉시 응답
+        tabGuardBc.postMessage({
+          type: "EXISTING_TAB_HERE",
+          senderTabId: TAB_SESSION_ID
+        });
+      } else if (e.data.type === "EXISTING_TAB_HERE") {
+        // 내가 새로 열린 탭이므로 즉시 중복 팝업 표시
+        showDupTabWarning();
       }
     };
 
-    const openedAt = Date.now();
-    sessionStorage.setItem("quiz_tab_opened_at", String(openedAt));
     tabGuardBc.postMessage({
       type: "TAB_OPENED",
-      senderTabId: TAB_SESSION_ID,
-      openedAt
+      senderTabId: TAB_SESSION_ID
     });
 
     if (tabHeartbeatInterval) clearInterval(tabHeartbeatInterval);
     tabHeartbeatInterval = setInterval(() => {
       if (document.visibilityState === "visible" && !duplicateTabDetected) {
         touchActiveTabLock();
-        tabGuardBc.postMessage({
-          type: "TAB_ALIVE",
-          senderTabId: TAB_SESSION_ID,
-          openedAt
-        });
       }
     }, 1200);
 
